@@ -1,0 +1,1005 @@
+{
+  "version": 1,
+  "id": "demo",
+  "language": "ru",
+  "title": {
+    "ru": "Что если ты больше никогда не уснёшь?",
+    "en": "What If You Never Slept Again?"
+  },
+  "logline": {
+    "ru": "Ты просыпаешься в 3:07 и понимаешь, что сон исчез навсегда. Десять ночей превращают подарок в ловушку.",
+    "en": "You wake at 3:07 and realise sleep is gone forever. Ten nights turn a gift into a trap."
+  },
+  "mainIdea": {
+    "ru": "Сон — не потеря времени, а то, что удерживает тебя целым.",
+    "en": "Sleep is not lost time — it is what holds you together."
+  },
+  "idea": {
+    "template": "no_sleep",
+    "topic": "Что если ты больше никогда не уснёшь?",
+    "theme": "general"
+  },
+  "settings": {
+    "duration": 55,
+    "style": "cinematic-stickman",
+    "characters": 2,
+    "voiceMode": "tts",
+    "music": "dark_ambient",
+    "fps": 24,
+    "width": 1920,
+    "height": 1080
+  },
+  "characters": [
+    {
+      "id": "hero",
+      "name": {
+        "ru": "Алекс",
+        "en": "Alex"
+      },
+      "role": "protagonist",
+      "shirt": "#e0522b",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "hair",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "hero"
+    },
+    {
+      "id": "friend",
+      "name": {
+        "ru": "Мия",
+        "en": "Mia"
+      },
+      "role": "friend",
+      "shirt": "#26a6b8",
+      "pants": "#3a2d4f",
+      "shoes": "#f2c744",
+      "accessory": "scarf",
+      "accessoryColor": "#f2c744",
+      "height": 0.94,
+      "build": "slim",
+      "eyes": "wide",
+      "voice": "friend"
+    }
+  ],
+  "voices": [
+    {
+      "id": "narrator",
+      "label": {
+        "ru": "Диктор",
+        "en": "Narrator"
+      },
+      "gender": "male",
+      "ageRange": "35-50",
+      "timbre": "deep, warm baritone with slight rasp",
+      "speed": 0.94,
+      "intonation": "low, measured, rising tension toward the end of each paragraph",
+      "mood": "ominous curiosity",
+      "accent": {
+        "ru": "нейтральный русский",
+        "en": "neutral General American"
+      },
+      "delivery": {
+        "ru": "второе лицо, шёпот в тихих местах, паузы перед поворотами",
+        "en": "second person, near-whisper in quiet moments, pauses before twists"
+      },
+      "prompt": {
+        "ru": "Мужской голос, 35-50 лет, глубокий тёплый баритон с лёгкой хрипотцой, медленный темп (0.94x), документально-кинематографическая подача, сдержанное напряжение, паузы перед поворотами, обращение на «ты». Без пафоса и крика.",
+        "en": "Male voice, 35-50, deep warm baritone with a slight rasp, slow pace (0.94x), cinematic documentary delivery, restrained tension, pauses before twists, addressing the viewer as \"you\". No melodrama, never shouting."
+      },
+      "piper": {
+        "ru": "ru_RU-denis-medium",
+        "en": "en_US-ryan-medium",
+        "pitch": 0.9
+      }
+    },
+    {
+      "id": "hero",
+      "label": {
+        "ru": "Герой",
+        "en": "Hero"
+      },
+      "gender": "male",
+      "ageRange": "22-32",
+      "timbre": "light, slightly nasal tenor, youthful",
+      "speed": 1.04,
+      "intonation": "natural, expressive, breaks when afraid",
+      "mood": "confused, determined",
+      "accent": {
+        "ru": "нейтральный",
+        "en": "neutral American"
+      },
+      "delivery": {
+        "ru": "разговорно, живые эмоции",
+        "en": "conversational, lively emotion"
+      },
+      "prompt": {
+        "ru": "Молодой мужской голос 22-32 года, светлый тенор, живая разговорная подача, голос срывается на страхе, скорость 1.04x.",
+        "en": "Young male voice, 22-32, light tenor, lively conversational delivery, voice cracks when afraid, 1.04x speed."
+      },
+      "piper": {
+        "ru": "ru_RU-denis-medium",
+        "en": "en_US-ryan-medium",
+        "pitch": 1.1
+      }
+    },
+    {
+      "id": "friend",
+      "label": {
+        "ru": "Подруга",
+        "en": "Friend"
+      },
+      "gender": "female",
+      "ageRange": "22-32",
+      "timbre": "bright, clear mezzo",
+      "speed": 1.08,
+      "intonation": "quick, bright, warm",
+      "mood": "worried, supportive",
+      "accent": {
+        "ru": "нейтральный",
+        "en": "neutral American"
+      },
+      "delivery": {
+        "ru": "быстро и тепло",
+        "en": "quick and warm"
+      },
+      "prompt": {
+        "ru": "Женский голос 22-32 года, яркое чистое меццо, быстрый тёплый темп 1.08x, заботливая интонация.",
+        "en": "Female voice, 22-32, bright clear mezzo, quick warm pace 1.08x, caring intonation."
+      },
+      "piper": {
+        "ru": "ru_RU-irina-medium",
+        "en": "en_US-amy-medium",
+        "pitch": 1
+      }
+    }
+  ],
+  "scenes": [
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.4,
+      "minDur": 8,
+      "props": [
+        {
+          "id": "bed",
+          "kind": "bed",
+          "x": 600,
+          "on": "floor",
+          "color": "#4b3f6b"
+        },
+        {
+          "id": "ns",
+          "kind": "table",
+          "x": 905,
+          "on": "floor",
+          "scale": 0.38,
+          "color": "#5a3d2b"
+        },
+        {
+          "id": "clk",
+          "kind": "clock",
+          "x": 905,
+          "on": "ns"
+        }
+      ],
+      "pstates": [
+        {
+          "t": {
+            "line": "s01_a",
+            "off": 1.3
+          },
+          "prop": "clk",
+          "key": "ring",
+          "to": 1,
+          "dur": 0.1
+        },
+        {
+          "t": {
+            "line": "s01_b",
+            "off": 0
+          },
+          "prop": "clk",
+          "key": "ring",
+          "to": 0,
+          "dur": 0.1
+        }
+      ],
+      "sfx": [
+        {
+          "t": {
+            "line": "s01_a",
+            "off": 1.3
+          },
+          "kind": "sting",
+          "gain": 0.7
+        },
+        {
+          "t": {
+            "line": "s01_b",
+            "off": 3.8
+          },
+          "kind": "heartbeat",
+          "gain": 0.8
+        }
+      ],
+      "beats": [
+        {
+          "t": 0,
+          "char": "hero",
+          "do": "sleep",
+          "seatH": 62,
+          "emotion": "tired"
+        },
+        {
+          "t": {
+            "line": "s01_a",
+            "off": 1.3
+          },
+          "char": "hero",
+          "do": "sit_up",
+          "seatH": 62,
+          "emotion": "surprised",
+          "look": {
+            "prop": "clk"
+          }
+        },
+        {
+          "t": {
+            "line": "s01_b",
+            "off": 0.2
+          },
+          "char": "hero",
+          "do": "sit",
+          "seatH": 62,
+          "emotion": "sad",
+          "look": "down"
+        },
+        {
+          "t": {
+            "line": "s01_b",
+            "off": 3.6
+          },
+          "char": "hero",
+          "do": "slump",
+          "emotion": "scared",
+          "look": "up"
+        }
+      ],
+      "shots": [],
+      "lines": [
+        {
+          "id": "s01_a",
+          "voice": "narrator",
+          "text": {
+            "ru": "Ты просыпаешься среди ночи. Часы показывают 3:07.",
+            "en": "You wake in the middle of the night. The clock says 3:07."
+          }
+        },
+        {
+          "id": "s01_b",
+          "voice": "narrator",
+          "text": {
+            "ru": "Закрываешь глаза. Минута. Час. Сон не приходит. И уже не придёт — никогда.",
+            "en": "You close your eyes. A minute. An hour. Sleep does not come. And it never will."
+          },
+          "pause": 0.5
+        }
+      ],
+      "fx": [],
+      "title": {
+        "ru": "3:07",
+        "en": "3:07"
+      },
+      "env": {
+        "id": "bedroom",
+        "time": "night"
+      },
+      "light": {
+        "key": "moon",
+        "x": 1370,
+        "y": 200,
+        "color": "#9ab4ff",
+        "rim": "#7aa8ff",
+        "intensity": 0.6,
+        "grade": "cold"
+      },
+      "ambience": "room_night",
+      "actors": [
+        {
+          "char": "hero",
+          "x": 640,
+          "facing": "r",
+          "start": "sleep",
+          "seatH": 62
+        }
+      ],
+      "shotPlan": [
+        {
+          "type": "establishing",
+          "move": "push"
+        },
+        {
+          "type": "medium",
+          "char": "hero"
+        },
+        {
+          "type": "insert",
+          "prop": "clk",
+          "move": "push"
+        },
+        {
+          "type": "close",
+          "char": "hero",
+          "at": "head",
+          "move": "push"
+        }
+      ],
+      "counter": {
+        "label": {
+          "ru": "Часов без сна",
+          "en": "Hours awake"
+        },
+        "from": 0,
+        "to": 1,
+        "format": "decimal",
+        "unit": ""
+      },
+      "id": "s01"
+    },
+    {
+      "kind": "title",
+      "transition": {
+        "in": "dip",
+        "out": "dip"
+      },
+      "musicLevel": 0.9,
+      "minDur": 4.2,
+      "props": [],
+      "pstates": [],
+      "sfx": [
+        {
+          "t": 0.2,
+          "kind": "boom",
+          "gain": 0.9
+        },
+        {
+          "t": 0.2,
+          "kind": "whoosh",
+          "gain": 0.6
+        }
+      ],
+      "beats": [],
+      "shots": [],
+      "lines": [],
+      "fx": [],
+      "id": "s02",
+      "title": {
+        "ru": "Что если ты больше никогда не уснёшь?",
+        "en": "What If You Never Slept Again?"
+      },
+      "env": {
+        "id": "void",
+        "time": "night"
+      },
+      "light": {
+        "key": "none",
+        "x": 960,
+        "y": 400,
+        "color": "#9ec4ff",
+        "rim": "#9ec4ff",
+        "intensity": 0.3,
+        "grade": "cold"
+      },
+      "ambience": "silence",
+      "actors": [],
+      "overlay": {
+        "type": "caption",
+        "text": {
+          "ru": "Ты просыпаешься в 3:07 и понимаешь, что сон исчез навсегда. Десять ночей превращают подарок в ловушку.",
+          "en": "You wake at 3:07 and realise sleep is gone forever. Ten nights turn a gift into a trap."
+        },
+        "t": 1
+      },
+      "shotPlan": [
+        {
+          "type": "establishing",
+          "move": "push"
+        }
+      ]
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "dip",
+        "out": "cut"
+      },
+      "musicLevel": 0.7,
+      "minDur": 4,
+      "props": [],
+      "pstates": [],
+      "sfx": [
+        {
+          "t": {
+            "line": "s03_b",
+            "off": 0.1
+          },
+          "kind": "thunder",
+          "gain": 0.9
+        },
+        {
+          "t": {
+            "line": "s03_b",
+            "off": 0.1
+          },
+          "kind": "impact",
+          "gain": 0.6
+        }
+      ],
+      "beats": [
+        {
+          "t": 0.3,
+          "char": "hero",
+          "do": "walk",
+          "to": 700,
+          "dur": 6,
+          "speed": 150,
+          "emotion": "tired"
+        },
+        {
+          "t": {
+            "line": "s03_b",
+            "off": 0.1
+          },
+          "char": "hero",
+          "do": "cower",
+          "emotion": "scared",
+          "look": "back"
+        },
+        {
+          "t": {
+            "line": "s03_b",
+            "off": 2.4
+          },
+          "char": "hero",
+          "do": "slump",
+          "emotion": "panic",
+          "look": "down"
+        }
+      ],
+      "shots": [],
+      "lines": [
+        {
+          "id": "s03_a",
+          "voice": "narrator",
+          "text": {
+            "ru": "На седьмую ночь тишина становится громче. Мысли — быстрее. А тело — тяжелее.",
+            "en": "By the seventh night silence gets louder. Thoughts get faster. The body gets heavier."
+          }
+        },
+        {
+          "id": "s03_b",
+          "voice": "narrator",
+          "text": {
+            "ru": "И ты начинаешь замечать то, чего нет.",
+            "en": "And you begin to notice things that are not there."
+          }
+        }
+      ],
+      "fx": [
+        "fog"
+      ],
+      "title": {
+        "ru": "Тишина громче",
+        "en": "Louder silence"
+      },
+      "env": {
+        "id": "street",
+        "time": "night",
+        "weather": "storm"
+      },
+      "light": {
+        "key": "neon",
+        "x": 300,
+        "y": 300,
+        "color": "#ff4d6d",
+        "rim": "#ff6a88",
+        "intensity": 0.65,
+        "flicker": 0.6,
+        "grade": "noir"
+      },
+      "ambience": "rain",
+      "actors": [
+        {
+          "char": "hero",
+          "x": 1500,
+          "facing": "l"
+        }
+      ],
+      "shotPlan": [
+        {
+          "type": "wide",
+          "char": "hero",
+          "move": "pan",
+          "angle": "low"
+        },
+        {
+          "type": "medium",
+          "char": "hero",
+          "move": "handheld"
+        },
+        {
+          "type": "close",
+          "char": "hero",
+          "at": "head",
+          "move": "push"
+        }
+      ],
+      "counter": {
+        "label": {
+          "ru": "Дни без сна",
+          "en": "Days awake"
+        },
+        "from": 7,
+        "to": 9,
+        "format": "int",
+        "danger": true
+      },
+      "id": "s03"
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 4,
+      "props": [
+        {
+          "id": "hb",
+          "kind": "bed",
+          "x": 690,
+          "on": "floor",
+          "color": "#cfd8dc"
+        }
+      ],
+      "pstates": [],
+      "sfx": [
+        {
+          "t": {
+            "line": "s04_a",
+            "off": 0
+          },
+          "kind": "beep",
+          "gain": 0.4
+        },
+        {
+          "t": {
+            "line": "s04_a",
+            "off": 1.6
+          },
+          "kind": "beep",
+          "gain": 0.4
+        }
+      ],
+      "beats": [
+        {
+          "t": 0.2,
+          "char": "hero",
+          "do": "sit",
+          "seatH": 62,
+          "emotion": "tired",
+          "look": "down"
+        }
+      ],
+      "shots": [],
+      "lines": [
+        {
+          "id": "s04_a",
+          "voice": "narrator",
+          "text": {
+            "ru": "Врач разводит руками. Мозгу нужен сон не для отдыха — во сне он вымывает токсины.",
+            "en": "The doctor spreads his hands. The brain needs sleep not to rest — during sleep it flushes out toxins."
+          }
+        }
+      ],
+      "fx": [],
+      "title": {
+        "ru": "Диагноз",
+        "en": "Diagnosis"
+      },
+      "env": {
+        "id": "hospital",
+        "time": "indoor"
+      },
+      "light": {
+        "key": "lamp",
+        "x": 1000,
+        "y": 60,
+        "color": "#e8fbff",
+        "rim": "#9fe8ff",
+        "intensity": 0.5,
+        "grade": "sick",
+        "flicker": 0.3
+      },
+      "ambience": "hospital",
+      "actors": [
+        {
+          "char": "hero",
+          "x": 700,
+          "facing": "r",
+          "start": "sit",
+          "seatH": 62
+        }
+      ],
+      "shotPlan": [
+        {
+          "type": "wide",
+          "move": "dolly",
+          "focus": {
+            "x": 960,
+            "y": 520
+          }
+        },
+        {
+          "type": "medium",
+          "char": "doc"
+        },
+        {
+          "type": "close",
+          "char": "hero",
+          "at": "head",
+          "move": "push"
+        }
+      ],
+      "counter": {
+        "label": {
+          "ru": "Дни без сна",
+          "en": "Days awake"
+        },
+        "from": 9,
+        "to": 10,
+        "format": "int",
+        "danger": true
+      },
+      "id": "s04"
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.9,
+      "minDur": 4,
+      "props": [
+        {
+          "id": "bed",
+          "kind": "bed",
+          "x": 600,
+          "on": "floor",
+          "color": "#4b3f6b"
+        },
+        {
+          "id": "ns",
+          "kind": "table",
+          "x": 905,
+          "on": "floor",
+          "scale": 0.38,
+          "color": "#5a3d2b"
+        },
+        {
+          "id": "clk",
+          "kind": "clock",
+          "x": 905,
+          "on": "ns"
+        }
+      ],
+      "pstates": [
+        {
+          "t": {
+            "line": "s05_a",
+            "off": 2
+          },
+          "prop": "clk",
+          "key": "ring",
+          "to": 1,
+          "dur": 0.1
+        }
+      ],
+      "sfx": [
+        {
+          "t": {
+            "line": "s05_a",
+            "off": 0
+          },
+          "kind": "riser",
+          "gain": 0.8
+        },
+        {
+          "t": {
+            "line": "s05_a",
+            "off": 2
+          },
+          "kind": "alarm",
+          "gain": 0.45
+        },
+        {
+          "t": {
+            "line": "s05_b",
+            "off": 0
+          },
+          "kind": "static",
+          "gain": 0.5
+        }
+      ],
+      "beats": [
+        {
+          "t": 0,
+          "char": "hero",
+          "do": "lie",
+          "seatH": 62,
+          "emotion": "scared",
+          "look": "up"
+        },
+        {
+          "t": {
+            "line": "s05_a",
+            "off": 2.6
+          },
+          "char": "hero",
+          "do": "sit_up",
+          "seatH": 62,
+          "emotion": "panic",
+          "look": "up"
+        },
+        {
+          "t": {
+            "line": "s05_b",
+            "off": 0.2
+          },
+          "char": "hero",
+          "do": "sit",
+          "seatH": 62,
+          "emotion": "sad",
+          "look": "down"
+        }
+      ],
+      "shots": [],
+      "lines": [
+        {
+          "id": "s05_a",
+          "voice": "narrator",
+          "text": {
+            "ru": "На десятый день потолок начинает дышать. Стены шепчут твоё имя.",
+            "en": "On the tenth day the ceiling begins to breathe. The walls whisper your name."
+          }
+        },
+        {
+          "id": "s05_b",
+          "voice": "narrator",
+          "text": {
+            "ru": "И ты понимаешь: сон был не слабостью. Он был единственным, что держало тебя целым.",
+            "en": "And you understand: sleep was never weakness. It was the only thing holding you together."
+          },
+          "pause": 0.8
+        }
+      ],
+      "fx": [
+        "fog"
+      ],
+      "title": {
+        "ru": "Потолок дышит",
+        "en": "The ceiling breathes"
+      },
+      "env": {
+        "id": "bedroom",
+        "time": "night"
+      },
+      "light": {
+        "key": "emergency",
+        "x": 1370,
+        "y": 200,
+        "color": "#9aff7a",
+        "rim": "#b6ff8a",
+        "intensity": 0.5,
+        "grade": "sick",
+        "flicker": 0.5,
+        "pulse": {
+          "color": "#7aff5a",
+          "period": 2.4
+        }
+      },
+      "ambience": "room_night",
+      "actors": [
+        {
+          "char": "hero",
+          "x": 640,
+          "facing": "r",
+          "start": "lie",
+          "seatH": 62
+        }
+      ],
+      "shotPlan": [
+        {
+          "type": "wide",
+          "move": "crane",
+          "angle": "high",
+          "dutch": 4
+        },
+        {
+          "type": "close",
+          "char": "hero",
+          "at": "head",
+          "dutch": -5,
+          "move": "handheld"
+        },
+        {
+          "type": "insert",
+          "prop": "clk",
+          "move": "push"
+        },
+        {
+          "type": "medium",
+          "char": "hero",
+          "move": "pull"
+        }
+      ],
+      "counter": {
+        "label": {
+          "ru": "Дни без сна",
+          "en": "Days awake"
+        },
+        "from": 10,
+        "to": 11,
+        "format": "int",
+        "danger": true
+      },
+      "id": "s05"
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "fade",
+        "out": "fade"
+      },
+      "musicLevel": 0.8,
+      "minDur": 4,
+      "props": [],
+      "pstates": [],
+      "sfx": [
+        {
+          "t": {
+            "line": "s06_a",
+            "off": 1.2
+          },
+          "kind": "swell",
+          "gain": 0.6
+        }
+      ],
+      "beats": [
+        {
+          "t": 0,
+          "char": "hero",
+          "do": "slump",
+          "emotion": "sad",
+          "look": "down"
+        },
+        {
+          "t": {
+            "line": "s06_a",
+            "off": 1.2
+          },
+          "char": "hero",
+          "do": "stretch",
+          "emotion": "tired",
+          "look": "up"
+        },
+        {
+          "t": {
+            "line": "s06_b",
+            "off": 0
+          },
+          "char": "hero",
+          "do": "idle",
+          "emotion": "happy",
+          "look": {
+            "x": 1700,
+            "y": 400
+          }
+        }
+      ],
+      "shots": [],
+      "lines": [
+        {
+          "id": "s06_a",
+          "voice": "narrator",
+          "text": {
+            "ru": "Ты бы отдал всё за одну самую обычную ночь.",
+            "en": "You would give anything for one perfectly ordinary night."
+          },
+          "pause": 0.7
+        },
+        {
+          "id": "s06_b",
+          "voice": "narrator",
+          "text": {
+            "ru": "А ты согласился бы никогда не спать — ради бесконечного времени?",
+            "en": "Would you agree to never sleep again — for infinite time?"
+          }
+        }
+      ],
+      "fx": [],
+      "title": {
+        "ru": "Одна обычная ночь",
+        "en": "One ordinary night"
+      },
+      "env": {
+        "id": "nature",
+        "time": "dawn"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1500,
+        "y": 300,
+        "color": "#ffd8a8",
+        "rim": "#ffc58a",
+        "intensity": 0.7,
+        "grade": "dawn"
+      },
+      "ambience": "forest",
+      "silence": false,
+      "actors": [
+        {
+          "char": "hero",
+          "x": 700,
+          "facing": "r",
+          "start": "slump"
+        }
+      ],
+      "shotPlan": [
+        {
+          "type": "wide",
+          "char": "hero",
+          "move": "crane"
+        },
+        {
+          "type": "medium",
+          "char": "hero",
+          "move": "drift"
+        },
+        {
+          "type": "close",
+          "char": "hero",
+          "at": "head",
+          "move": "push"
+        },
+        {
+          "type": "wide",
+          "char": "hero",
+          "move": "pull"
+        }
+      ],
+      "overlay": {
+        "type": "question",
+        "text": {
+          "ru": "Ты согласился бы никогда не спать?",
+          "en": "Would you agree to never sleep?"
+        },
+        "t": {
+          "line": "s06_b",
+          "off": 0.6
+        }
+      },
+      "id": "s06"
+    }
+  ],
+  "references": []
+}

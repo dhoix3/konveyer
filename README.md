@@ -1,0 +1,143 @@
+# What If Cine Studio
+
+Fully local pipeline that turns an idea into a finished **1920×1080 / 24 fps / H.264 + AAC MP4** — a cinematic *stickman* "What If" video:
+
+```
+IDEA → SCRIPT → VOICE → TIMELINE → SCENES → SOUND → RENDER → FINAL.mp4
+```
+
+No paid APIs, no image/video generators. Everything is code:
+
+| Part | Technology |
+|---|---|
+| Animation, backgrounds, camera, HUD | React 18 + TypeScript + **Remotion 4** + SVG |
+| Video / audio processing, loudness | **FFmpeg** (the binary bundled with Remotion is used if no system ffmpeg) |
+| Voices | **Piper TTS** (ONNX, offline) or your own recordings |
+| Speech recognition | **Whisper ONNX** (`@huggingface/transformers`, `Xenova/whisper-tiny`), with silence-detection fallback |
+| Sound design + music + mixing | **Python/numpy** procedural synthesis (no samples) |
+| Orchestration | Node.js CLI (`engine/render.mjs`) + a web **Studio** UI (Next.js, in the repo root) |
+
+## Layout
+
+```
+whatif-cine-studio/
+  engine/
+    render.mjs            pipeline CLI (one command per stage)
+    package.json          Remotion 4 / React 18 dependencies
+    src/
+      char/               skeleton (FK + ground solver), action library, track compiler, faces, props, SVG character
+      cine/               virtual camera (shots, pushes, pans, crane, handheld, dutch)
+      bg/                 10 parallax environments + shared helpers (envs.tsx, helpers.tsx)
+      fx/                 rain, snow, fog, dust, embers, grain, vignette, colour grading, key-light glow
+      hud/                counters, subtitles, title card, final question, letterbox
+      lib/                types, math, character + voice library
+      project/            Remotion Root, compositions (Scene, Film, PoseSheet)
+      v2/                 SceneRenderer – assembles one scene
+    public/{backgrounds,fx,audio}
+    tools/                script/voice/timeline/sound/qa stages + Python (tts.py, mixer.py, gen_assets.py)
+    templates/            example project JSON
+    models/piper/         downloaded voice models (auto)
+  projects/<id>/          project.json, plan.json, timeline.json, voice/, audio/, logs/, state.json, qa_report.json
+  projects/examples/      ready-made example project (demo)
+  output/<id>/            scenes/*.mp4, video.mp4, FINAL.mp4, frames/*.png
+  docs/                   ARCHITECTURE.md
+  SKILL.md                instructions for an AI agent
+```
+
+## Requirements
+
+* Node.js ≥ 22 (TypeScript files are executed natively by Node's type stripping), npm
+* Python ≥ 3.9 with `numpy` and `piper-tts` (`pip install numpy piper-tts`)
+* Linux/macOS/Windows. On Linux, headless Chrome needs system libraries (`sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2 libpango-1.0-0 libcairo2`)
+* ~4 GB RAM and 4 cores are enough. Rendering 1080p runs at roughly 4–6 frames/s on 4 cores.
+
+## Install
+
+```bash
+cd whatif-cine-studio/engine
+npm install
+pip install numpy piper-tts
+node render.mjs doctor          # checks everything, generates the film-grain asset
+```
+Piper voice models (~60 MB each) and the Whisper model are downloaded automatically on first use and then work offline.
+
+## Quick start
+
+```bash
+cd whatif-cine-studio/engine
+node render.mjs idea --lang ru                       # list ideas
+node render.mjs new my-film --lang ru --duration 50 --characters 2 --music tense
+node render.mjs all my-film                          # whole pipeline → ../output/my-film/FINAL.mp4
+```
+
+Or use the web Studio (repo root): `npm run dev` (or the preview) → create, edit the script, run stages, preview frames and scenes, upload audio/references.
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `doctor` | environment check |
+| `idea [--lang] [--theme] [--count]` | generate What If concepts |
+| `new <id> [--lang ru\|en] [--duration 30-180] [--topic "…"] [--theme t] [--characters 1-3] [--voice tts\|upload\|files\|none] [--music dark_ambient\|tense\|mystery\|epic\|emotional\|lofi] [--style s] [--template no_sleep\|gravity\|no_internet]` | build the script → `projects/<id>/project.json` |
+| `voice <id> [--audio file] [--no-whisper] [--force]` | TTS per line, **or** analyse an uploaded recording |
+| `timeline <id>` | resolve everything to numeric times → `plan.json`, `timeline.json`; runs plan QA |
+| `scenes <id> [--only s01,s03] [--force] [--draft]` | render scenes (skips finished, verified ones) |
+| `sound <id> [--force]` | build audio plan, synthesise, mix, duck, normalise to **−14 LUFS** |
+| `render <id> [--draft]` | scenes + lossless concat → `video.mp4` |
+| `final <id> [--draft]` | mux AAC audio → `FINAL.mp4` |
+| `qa <id> [--plan-only]` | full quality report → `qa_report.json` |
+| `frame <id> --scene s01 --t 2.5 [--out file.png]` | render a single frame for review |
+| `all <id>` | everything, in order |
+| `list` | projects and stage status |
+
+`--draft` renders at half resolution with a fast preset for quick iteration (outputs `DRAFT.mp4`).
+
+### Resume, re-render, integrity
+
+* Each stage writes status to `projects/<id>/state.json` and a log to `projects/<id>/logs/<stage>.log`.
+* Each scene gets a content hash (scene JSON + cast + engine version). A scene is skipped when its hash matches, the file exists, its SHA-1 matches and its duration is right. Interrupt the render at any time and run the same command again — finished scenes are not redone; the interrupted one restarts (it is written as `*.part.mp4` and renamed atomically).
+* Edit the script, run `timeline`, then `scenes <id> --only s03` to re-render just that scene (the hash changes automatically; `--force` forces it).
+
+## Voices and sync
+
+* Voices (`engine/src/lib/library.ts`) have gender, age range, timbre, speed, intonation, mood, accent, delivery style and a **ready-made prompt** for external voice generators (shown in the Studio → Assets tab). RU and EN supported.
+* **TTS**: Piper models per language, pitch-shifted per voice so narrator/hero/friend sound different.
+* **Your recording** (`voice <id> --audio narration.mp3`): FFmpeg converts it → Whisper ONNX recognises words with timestamps → script tokens are aligned with the recognised words (Needleman–Wunsch) → phrases get time intervals → the audio is cut into per-line clips → `timeline` builds scene durations around them. If Whisper cannot run, silence detection splits the recording into phrases instead. Outputs: `voice/manifest.json`, `transcript.json`, `timeline.json`.
+* **Per-line files**: drop `voice/<lineId>.wav|mp3` into the project and use `--voice files`.
+* Animation is anchored to speech: beats/shots/sfx use `{line, off}` so the action moves with the words.
+
+## Sound
+
+Music (6 moods) and ambience beds are synthesised in `tools/mixer.py`; SFX include footsteps (derived from the real walk cycle, per surface), doors, knocks, impacts, whooshes, notifications, alarms, thunder, heartbeat, risers, stings, static, power-down, etc. Music ducks −12 dB and ambience −6 dB under speech; scenes marked `silence: true` cut music and ambience (silence as a device). The final mix is loudness-normalised with two-pass `loudnorm` to −14 LUFS and verified by QA.
+
+## Art rules enforced in code
+
+* One skeleton for every character: fixed bone lengths, 2 arms/2 legs, joint limits → no extra limbs, detached arms or bad anatomy.
+* **Ground-contact solver**: the lowest body point always touches the support surface (floor, bed, seat height); airborne only for jump/float/run/fall.
+* Props rest on a named surface (`on: floor | <propId>`); `on: "air"` requires a `why`. Held props follow the hand; released props fall to a declared surface.
+* Poses are blended with ease and overshoot, jumps have anticipation/landing, turns are animated.
+* Camera: shots alternate wide/medium/close (auto-planned ≤ ~3.4 s), every shot moves (push, pull, pan, dolly, crane, handheld), parallax layers, letterbox bars, teal/orange or scene-specific grade, animated light, rim (contra) lighting.
+* Each environment has ≥ 2 living details (listed in `bg/envs.tsx`, verified by QA) plus dust.
+
+## Quality checks (`qa`)
+
+Plan level: anatomy/joint limits, bone-length drift, ground contact, teleport (px/frame), jitter (acceleration), impossible speeds, prop surfaces and holds, unknown environments/props, ≥ 2 live details, shot variety & duration, line overlap, audio files present, frame sums, requested-duration drift.
+Media level: resolution, FPS, codec, scene duration, **blackdetect** (empty frames), **freezedetect** (static > 4 s), final duration, audio track, loudness.
+
+## Studio UI
+
+Left: project list and the *new video* form (language, duration, theme, characters, voice mode, music, style, topic/ideas). Tabs: **Pipeline** (stage buttons, live log, timeline bars, QA), **Script** (edit titles, environments, lines; *Re-render scene*), **Preview** (single frame at any time, scene video, final video), **Assets** (upload narration → auto sync, upload reference images/video/audio, voice prompts, cast).
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `error while loading shared libraries: libnspr4.so` | install the Chrome libraries listed above |
+| `ffmpeg not found` | `npm install` in `engine/` (Remotion ships ffmpeg) or install system ffmpeg |
+| `No module named piper` / `numpy` | `pip install numpy piper-tts` |
+| Voice model download fails | check network; models go to `engine/models/piper/`; or use `--voice none` / your own audio |
+| Whisper unavailable | falls back to silence detection automatically; or `--no-whisper` |
+| Rendering is slow / out of memory | `--concurrency 1`, `--draft`; close other apps |
+| `Unknown line anchor` in timeline | a beat refers to a removed line — fix the script |
+| QA says *not touching the ground* | the pose needs a `seatH` that matches the furniture (bed 62, chair 80) |
+| Scene does not update | run `timeline` after editing `project.json`, then `scenes --only <id>` |

@@ -1,0 +1,27 @@
+{
+  "name": "whatif-cine-engine",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "What If Cine Studio render engine (Remotion 4 + React 18 + SVG)",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "node render.mjs",
+    "doctor": "node render.mjs doctor",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.2",
+    "@remotion/bundler": "^4.0.545",
+    "@remotion/cli": "^4.0.545",
+    "@remotion/renderer": "^4.0.545",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.545"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^18.3.31",
+    "typescript": "^7.0.2"
+  }
+}

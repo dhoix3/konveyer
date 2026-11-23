@@ -1,0 +1,156 @@
+{
+  "fps": 24,
+  "source": "tts",
+  "totalSec": 62.875,
+  "scenes": [
+    {
+      "id": "s01",
+      "title": {
+        "ru": "3:07",
+        "en": "3:07"
+      },
+      "start": 0,
+      "duration": 14.5,
+      "startFrame": 0,
+      "frames": 348,
+      "lines": [
+        {
+          "id": "s01_a",
+          "voice": "narrator",
+          "text": "Ты просыпаешься среди ночи. Часы показывают 3:07.",
+          "start": 0.7,
+          "end": 5.602,
+          "file": "voice/s01_a.wav"
+        },
+        {
+          "id": "s01_b",
+          "voice": "narrator",
+          "text": "Закрываешь глаза. Минута. Час. Сон не приходит. И уже не придёт — никогда.",
+          "start": 5.902,
+          "end": 13.577,
+          "file": "voice/s01_b.wav"
+        }
+      ]
+    },
+    {
+      "id": "s02",
+      "title": {
+        "ru": "Что если ты больше никогда не уснёшь?",
+        "en": "What If You Never Slept Again?"
+      },
+      "start": 14.5,
+      "duration": 4.208333333333333,
+      "startFrame": 348,
+      "frames": 101,
+      "lines": []
+    },
+    {
+      "id": "s03",
+      "title": {
+        "ru": "Тишина громче",
+        "en": "Louder silence"
+      },
+      "start": 18.708333333333332,
+      "duration": 11.5,
+      "startFrame": 449,
+      "frames": 276,
+      "lines": [
+        {
+          "id": "s03_a",
+          "voice": "narrator",
+          "text": "На седьмую ночь тишина становится громче. Мысли — быстрее. А тело — тяжелее.",
+          "start": 19.408,
+          "end": 26,
+          "file": "voice/s03_a.wav"
+        },
+        {
+          "id": "s03_b",
+          "voice": "narrator",
+          "text": "И ты начинаешь замечать то, чего нет.",
+          "start": 26.3,
+          "end": 29.267,
+          "file": "voice/s03_b.wav"
+        }
+      ]
+    },
+    {
+      "id": "s04",
+      "title": {
+        "ru": "Диагноз",
+        "en": "Diagnosis"
+      },
+      "start": 30.208333333333332,
+      "duration": 8.125,
+      "startFrame": 725,
+      "frames": 195,
+      "lines": [
+        {
+          "id": "s04_a",
+          "voice": "narrator",
+          "text": "Врач разводит руками. Мозгу нужен сон не для отдыха — во сне он вымывает токсины.",
+          "start": 30.908,
+          "end": 37.397,
+          "file": "voice/s04_a.wav"
+        }
+      ]
+    },
+    {
+      "id": "s05",
+      "title": {
+        "ru": "Потолок дышит",
+        "en": "The ceiling breathes"
+      },
+      "start": 38.33333333333333,
+      "duration": 14.166666666666666,
+      "startFrame": 920,
+      "frames": 340,
+      "lines": [
+        {
+          "id": "s05_a",
+          "voice": "narrator",
+          "text": "На десятый день потолок начинает дышать. Стены шепчут твоё имя.",
+          "start": 39.033,
+          "end": 44.541,
+          "file": "voice/s05_a.wav"
+        },
+        {
+          "id": "s05_b",
+          "voice": "narrator",
+          "text": "И ты понимаешь: сон был не слабостью. Он был единственным, что держало тебя целым.",
+          "start": 44.841,
+          "end": 51.278,
+          "file": "voice/s05_b.wav"
+        }
+      ]
+    },
+    {
+      "id": "s06",
+      "title": {
+        "ru": "Одна обычная ночь",
+        "en": "One ordinary night"
+      },
+      "start": 52.49999999999999,
+      "duration": 10.375,
+      "startFrame": 1260,
+      "frames": 249,
+      "lines": [
+        {
+          "id": "s06_a",
+          "voice": "narrator",
+          "text": "Ты бы отдал всё за одну самую обычную ночь.",
+          "start": 53.2,
+          "end": 56.618,
+          "file": "voice/s06_a.wav"
+        },
+        {
+          "id": "s06_b",
+          "voice": "narrator",
+          "text": "А ты согласился бы никогда не спать — ради бесконечного времени?",
+          "start": 57.318,
+          "end": 61.937,
+          "file": "voice/s06_b.wav"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "id": "mini",
+  "language": "en",
+  "title": {"ru": "Мини", "en": "Mini"},
+  "logline": {"ru": "Пример", "en": "Example"},
+  "mainIdea": {"ru": "Пример", "en": "Example"},
+  "idea": {"template": "custom", "topic": "example", "theme": "general"},
+  "settings": {"duration": 12, "style": "cinematic-stickman", "characters": 1, "voiceMode": "tts", "music": "mystery", "fps": 24, "width": 1920, "height": 1080},
+  "characters": [{"id": "hero", "name": {"ru": "Алекс", "en": "Alex"}, "role": "protagonist", "shirt": "#e0522b", "pants": "#27334f", "shoes": "#e8e8e8", "accessory": "hair", "accessoryColor": "#5a3a22", "height": 1.0, "build": "normal", "eyes": "round", "voice": "hero"}],
+  "voices": [],
+  "scenes": [
+    {
+      "id": "s01", "title": {"ru": "Дверь", "en": "The door"},
+      "env": {"id": "bedroom", "time": "night"},
+      "light": {"key": "moon", "x": 1370, "y": 200, "color": "#9ab4ff", "rim": "#7aa8ff", "intensity": 0.6, "grade": "cold"},
+      "ambience": "room_night",
+      "actors": [{"char": "hero", "x": 300, "facing": "r"}],
+      "props": [{"id": "door", "kind": "door", "x": 1300, "on": "floor"}],
+      "pstates": [{"t": {"line": "s01_a", "off": 1.0}, "prop": "door", "key": "open", "to": 1, "dur": 1.0}],
+      "lines": [{"id": "s01_a", "voice": "narrator", "text": {"ru": "Ты идёшь к двери.", "en": "You walk to the door."}}],
+      "beats": [{"t": 0.3, "char": "hero", "do": "walk", "to": 1100, "dur": 4}, {"t": {"line": "s01_a", "off": 1.0}, "char": "hero", "do": "idle", "emotion": "surprised", "look": {"prop": "door"}}],
+      "shotPlan": [{"type": "wide", "char": "hero", "move": "pan"}, {"type": "close", "char": "hero", "at": "head"}],
+      "minDur": 6
+    }
+  ]
+}
