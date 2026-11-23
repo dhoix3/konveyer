@@ -50,7 +50,7 @@ export async function ensureModel(name, log) {
   if (!/^[a-z]{2}_[A-Z]{2}-[a-z0-9_]+-(x_low|low|medium|high)$/.test(name)) {
     throw new Error(`invalid Piper voice name "${name}"`);
   }
-  const [langRegion, voice, quality] = [name.split('_')[0], name.split('-')[1], name.split('-')[2]];
+  const [langRegion, voice, quality] = [name.split('-')[0], name.split('-')[1], name.split('-')[2]];
   const [lc, region] = langRegion.split('_');
   const model = path.join(MODELS, `${name}.onnx`);
   const config = path.join(MODELS, `${name}.onnx.json`);
@@ -134,7 +134,7 @@ export async function voiceTTS(id, project, log, {force = false, ...opts} = {}) 
     } finally {
       try { fs.unlinkSync(jf); } catch {}
     }
-  } else log.info('TTS: all lines up to date (skipped)');
+  } else if (!earlyFailed.length) log.info('TTS: all lines up to date (skipped)');
 
   const lines = {};
   const missing = [];

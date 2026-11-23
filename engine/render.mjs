@@ -320,7 +320,7 @@ function cmdDoctor() {
   try { runPython('gen_assets.py', [path.join(ENGINE, 'public')]); add('python+numpy', true, 'grain asset generated'); } catch (e) { add('python+numpy', false, e.message.slice(0, 120)); }
   try { runPython('tts.py', ['/dev/null']); } catch (e) { add('piper-tts', !/No module named/.test(e.message), /No module/.test(e.message) ? 'pip install piper-tts' : 'installed'); }
   const models = fs.existsSync(path.join(ENGINE, 'models', 'piper')) ? fs.readdirSync(path.join(ENGINE, 'models', 'piper')).filter((f) => f.endsWith('.onnx')) : [];
-  add('piper models', true, models.length ? models.join(', ') : 'none yet (downloaded on first voice run)');
+  add('piper models', models.length > 0, models.length ? models.join(', ') : 'missing in this checkout; existing local model files are required for offline TTS');
   add('remotion', fs.existsSync(path.join(ENGINE, 'node_modules', 'remotion')), 'engine/node_modules');
   add('whisper (onnx)', fs.existsSync(path.join(ENGINE, 'node_modules', '@huggingface', 'transformers')), '@huggingface/transformers');
   if (checks.some((c) => !c.ok)) process.exitCode = 1;

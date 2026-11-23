@@ -2,9 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {projectDir, readJson, writeJson, sha1, FPS, WIDTH, HEIGHT} from './lib.mjs';
-import {estimateLine} from './script.mjs';
-
-const LEAD = 0.7, TAIL = 0.9, GAP = 0.3;
+import {estimateLine, LEAD, TAIL, GAP} from './script.mjs';
 const MOVES = ['push', 'drift', 'pan', 'dolly', 'pull', 'crane'];
 const TYPE_CYCLE = ['wide', 'medium', 'close'];
 const TYPE_ORDER = ['wide', 'medium', 'close', 'establishing', 'insert', 'extreme_close'];

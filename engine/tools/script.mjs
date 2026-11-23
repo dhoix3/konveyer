@@ -268,11 +268,13 @@ const KEYWORDS = {
  */
 export function pickTemplate(topic = '', theme) {
   const t = String(topic || '');
-  for (const [k, re] of Object.entries(KEYWORDS)) if (re.test(t)) return k;
-  const idea = IDEAS.find((i) => i.ru === t || i.en === t);
-  if (idea) return idea.template;
-  const byTheme = IDEAS.find((i) => i.theme === theme);
-  if (byTheme) return byTheme.template;
+  // A subject match is not an intent match: faster internet, stronger gravity
+  // and sleeping forever must not become outage/zero-gravity/insomnia films.
+  if (/не спать|не усн|не сможешь усн|бессонниц|insomnia|can'?t sleep|without sleep|no sleep|never sleep/i.test(t)) return 'no_sleep';
+  const loss = /исчез|пропад|пропал|исчезн|отключ|без |не будет|vanish|disappear|lost|lose|without|no |zero |went out|goes out/i.test(t);
+  if (loss && KEYWORDS.gravity.test(t)) return 'gravity';
+  if (loss && KEYWORDS.no_internet.test(t)) return 'no_internet';
+  void theme; // A UI category must never replace an explicit user premise.
   return null; // no strong match — the caller generates a free-form story
 }
 
@@ -281,9 +283,19 @@ export function estimateLine(text, voice, lang) {
   const v = LIB_VOICES.find((x) => x.id === voice) || LIB_VOICES[0];
   return Math.max(1.2, text.length / (cps * v.speed)) + 0.15;
 }
+// Timeline pacing constants — shared with timeline.mjs so the script-stage
+// estimate cannot drift from the plan the timeline stage actually builds.
+export const LEAD = 0.7, TAIL = 0.9, GAP = 0.3;
+// Mirror timeline.mjs exactly: lines start at LEAD, each is followed by its
+// pause (default GAP), and the scene ends TAIL after the last line (or
+// lastPause + 0.4 when that is larger).  The old "+0.8" pad underestimated
+// every scene by ~1 s, so a 25 s request produced a 29–35 s film.
 const estScene = (sc, lang) => {
-  const total = sc.lines.reduce((a, l) => a + estimateLine(l.text[lang], l.voice, lang) + (l.pause ?? 0.25), 0);
-  return Math.max(sc.minDur ?? 4, total + 0.8);
+  const ls = sc.lines;
+  const sum = ls.reduce((a, l) => a + estimateLine(l.text[lang], l.voice, lang) + (l.pause ?? GAP), 0);
+  const lastPause = ls.length ? (ls.at(-1).pause ?? GAP) : 0;
+  const text = LEAD + sum - lastPause + Math.max(TAIL, lastPause + 0.4);
+  return Math.max(sc.minDur ?? 4, text) + 0.05; // + frame-rounding pad
 };
 
 function localize(sc, sid) {
@@ -339,7 +351,7 @@ export function buildProject(opts = {}) {
   if (mode === 'freeform') {
     A = analyzeTopic(topic, lang);
     meta = storyMeta(A, {lang});
-    const built = buildStoryScenes(A, {nChars});
+    const built = buildStoryScenes(A, {nChars, compact: duration <= 30});
     poolDefs = built.defs;
     extras = built.extras;
   } else {
@@ -353,8 +365,9 @@ export function buildProject(opts = {}) {
   // choose scenes for the target duration
   let defs = poolDefs.filter((d) => !(d.needs || []).some((n) => !has(n)));
   const TITLE = 4.2;
+  const BUDGET = duration * 1.05; // requested length + 5% tolerance
   const total = () => defs.reduce((a, d) => a + estScene(d.scene, lang), 0) + TITLE;
-  while (total() > duration * 1.12) {
+  while (total() > BUDGET) {
     const droppable = defs.filter((d) => d.opt).sort((a, b) => a.opt - b.opt)[0];
     if (!droppable) break;
     defs = defs.filter((d) => d !== droppable);
@@ -363,8 +376,7 @@ export function buildProject(opts = {}) {
   // is text-length driven).  Trim trailing narration lines from the back of
   // the arc so the script fits; the finale's overlay line is never touched.
   // Beats/sfx anchored to a removed line are filtered out below via ok().
-  while (total() > duration * 1.12) {
-    let trimmed = false;
+  const trimOneLine = () => {
     for (let i = defs.length - 1; i >= 0; i--) {
       const sc = defs[i].scene;
       if (sc.lines.length < 2) continue;
@@ -372,11 +384,55 @@ export function buildProject(opts = {}) {
       const ov = sc.overlay?.t;
       if (ov && typeof ov === 'object' && ov.line === last.id) continue;
       sc.lines = sc.lines.slice(0, -1);
-      trimmed = true;
-      break;
+      return true;
     }
-    if (!trimmed) break;
+    return false;
+  };
+  while (total() > BUDGET && trimOneLine()) { /* keep trimming */ }
+  // Template scenes carry minDur floors (e.g. 8 s) that line-trimming cannot
+  // go below.  minDur is a pacing preference, not a hard requirement: when
+  // the user asked for 25 s the film must be ~25 s, so scale the floors down
+  // (never below 2.5 s per scene) until the estimate fits.
+  const MIN_SCENE = 2.5;
+  while (total() > BUDGET) {
+    const cand = defs
+      .filter((d) => (d.scene.minDur ?? 4) > MIN_SCENE)
+      .sort((a, b) => (b.scene.minDur ?? 4) - (a.scene.minDur ?? 4))[0];
+    if (!cand) break;
+    cand.scene.minDur = Math.max(MIN_SCENE, (cand.scene.minDur ?? 4) - 0.5);
   }
+  // If floors alone still overflow (very short film, many scenes), trim lines
+  // once more — now every scene is at its minimum duration.
+  while (total() > BUDGET && trimOneLine()) { /* keep trimming */ }
+  // Last resorts for very short films: the remaining narration itself is too
+  // long.  Shorten the longest lines at clause boundaries (never mid-word,
+  // never below 25 chars) — this preserves the story arc while fitting the
+  // requested length.  Each language is cut at its own boundary.
+  const shorten = (text) => {
+    // Only remove complete sentences: cutting words/clauses can invert the
+    // premise or leave ungrammatical narration. Never cut inside the topic.
+    const first = text.match(/^(.+?[.!?])(?:\s|$)/u)?.[1];
+    return first && first.length < text.length && !first.includes(topic)
+      ? first : null;
+  };
+  while (total() > BUDGET) {
+    let best = null, bestLen = 0;
+    for (const d of defs) for (const l of d.scene.lines) {
+      const len = (l.text[lang] || '').length;
+      if (len > bestLen && shorten(l.text[lang] || '')) { best = l; bestLen = len; }
+    }
+    if (!best) break;
+    for (const lg of ['ru', 'en']) {
+      const s = shorten(best.text[lg] || '');
+      if (s) best.text[lg] = s;
+    }
+  }
+  // If even shortened narration overflows, drop middle scenes (the hook and
+  // the finale always survive) until the film fits.
+  while (total() > BUDGET && defs.length > 2) {
+    defs.splice(1, 1);
+  }
+  while (total() > BUDGET && trimOneLine()) { /* final trim */ }
   // Long videos: add extra development scenes from the free-form pool so the
   // story does not become a few over-stretched scenes.
   if (extras.length) {
@@ -384,6 +440,7 @@ export function buildProject(opts = {}) {
     if (insertAt < 0) insertAt = defs.length;
     for (const ex of extras) {
       if (total() >= duration * 0.85) break;
+      if (total() + estScene(ex.scene, lang) > BUDGET) continue;
       defs.splice(insertAt, 0, ex);
       insertAt += 1;
     }
@@ -406,7 +463,7 @@ export function buildProject(opts = {}) {
     // spread the remaining duration over ALL surviving scenes so the final
     // length matches the request (previously only required scenes stretched
     // and long videos undershot the target).
-    if (extra > 3) sc.minDur = estScene(d.scene, lang) + extra / defs.length;
+    if (extra > 0) sc.minDur = estScene(d.scene, lang) + extra / defs.length;
     if (mode === 'freeform' && style.grade) sc.light = {...sc.light, grade: style.grade};
     scenes.push(sc);
     if (i === 0) {

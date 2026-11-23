@@ -10,7 +10,18 @@ const envSrc = fs.readFileSync(path.join(ENGINE, 'src/bg/envs.tsx'), 'utf8');
 const ENVS = {};
 for (const m of envSrc.matchAll(/reg\(\{\s*id: '(\w+)'[\s\S]*?live: \[([^\]]*)\]/g)) ENVS[m[1]] = (m[2].match(/'[^']+'/g) || []).length;
 const propSrc = fs.readFileSync(path.join(ENGINE, 'src/char/props.tsx'), 'utf8');
-const PROP_KINDS = new Set([...propSrc.matchAll(/^  (\w+): \{\n    top:/gm)].map((m) => m[1]));
+// Extract prop kinds from the PROPS table.  The previous regex required the
+// exact layout "  kind: {\n    top:" and silently matched nothing on CRLF
+// checkouts (Windows), so every prop was reported as "unknown kind".
+// Scope the match to the PROPS block and tolerate \r\n and field order.
+export function parsePropKinds(source) {
+  const block = source.match(/export const PROPS[\s\S]*?=\s*\{([\s\S]*?)\r?\n\};/)?.[1];
+  if (!block) throw new Error('qa: PROPS table not found in src/char/props.tsx');
+  const kinds = new Set([...block.matchAll(/^ {2}(\w+):\s*\{/gm)].map(m => m[1]));
+  if (!kinds.size) throw new Error('qa: no prop kinds parsed — cannot validate props');
+  return kinds;
+}
+const PROP_KINDS = parsePropKinds(propSrc);
 const AIR_OK = new Set(['jump', 'float', 'cheer', 'run', 'fall']);
 
 export function qaPlan(id, plan) {
