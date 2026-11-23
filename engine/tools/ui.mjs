@@ -13,7 +13,7 @@ import http from 'node:http';
 import {spawn, spawnSync} from 'node:child_process';
 import {
   ENGINE, PROJECTS, OUTPUT, projectDir, outDir, ensure, readJson, writeJson,
-  safeId, assertId,
+  safeId, assertId, markStage,
 } from './lib.mjs';
 import {MUSIC_MOODS, LANGS, STYLES, TEMPLATE_IDS} from './script.mjs';
 
@@ -33,7 +33,7 @@ function listProjects() {
     let p = {};
     try { p = readJson(pj, {}); } catch { continue; }
     const statePath = path.join(PROJECTS, d, 'state.json');
-    const state = fs.existsSync(statePath) ? readJson(statePath, {stages: {}}) : {stages: {}};
+    const state = readJson(statePath, {stages: {}});
     const job = jobs.get(d);
     let mtime = 0;
     try { mtime = fs.statSync(pj).mtimeMs; } catch {}
@@ -58,7 +58,10 @@ function listProjects() {
 function tailFile(file, n = 160) {
   try {
     if (!fs.existsSync(file)) return [];
-    const text = fs.readFileSync(file, 'utf8');
+    const fd = fs.openSync(file, 'r');
+    let text;
+    try { const size = fs.fstatSync(fd).size; const buffer = Buffer.alloc(Math.min(size, 128 * 1024)); fs.readSync(fd, buffer, 0, buffer.length, Math.max(0, size - buffer.length)); text = buffer.toString('utf8'); }
+    finally { fs.closeSync(fd); }
     const lines = text.split('\n').filter(Boolean);
     return lines.slice(-n);
   } catch {
@@ -102,8 +105,17 @@ function startJob(id, stage, extra = []) {
 function stopJob(id) {
   const job = jobs.get(id);
   if (!job?.running) throw new HttpError(409, `для проекта ${id} нет активной задачи`);
-  try { process.kill(-job.pid, 'SIGTERM'); } catch {}
-  try { process.kill(job.pid, 'SIGTERM'); } catch {}
+  if (process.platform === 'win32') {
+    const r = spawnSync('taskkill', ['/PID', String(job.pid), '/T', '/F'], {encoding: 'utf8', windowsHide: true});
+    if (r.status !== 0) throw new HttpError(500, `Не удалось остановить дерево процессов: ${r.stderr || r.error?.message}`);
+  } else {
+    try { process.kill(-job.pid, 'SIGTERM'); }
+    catch (e) { if (e.code !== 'ESRCH') throw e; }
+  }
+  const state = readJson(path.join(projectDir(id), 'state.json'), {stages:{}});
+  for (const [stage, value] of Object.entries(state.stages || {})) {
+    if (value.status === 'running') markStage(id, stage, 'failed', {error:'Остановлено пользователем'});
+  }
   job.stopped = true;
   return job;
 }
@@ -115,6 +127,9 @@ class HttpError extends Error {
 function createProject(body) {
   const id = String(body.id || '').trim();
   if (!safeId(id)) throw new HttpError(400, 'некорректный id проекта: разрешены буквы, цифры, «-» и «_», до 40 символов');
+  if (jobs.get(id)?.running) throw new HttpError(409, 'Нельзя перезаписать выполняющийся проект');
+  const narrator = String(body.narrator || '');
+  if (narrator && !MODEL_RE.test(narrator)) throw new HttpError(400, 'некорректная модель голоса');
   const topic = String(body.topic ?? '').trim();
   if (topic.length > 300) throw new HttpError(400, 'тема слишком длинная (максимум 300 символов)');
   const duration = Number(body.duration);
@@ -142,7 +157,6 @@ function createProject(body) {
   if (r.status !== 0) throw new HttpError(400, (r.stderr || r.stdout || 'create failed').trim().split('\n').slice(-1)[0]);
 
   // Optional narrator voice model (applied before the voice stage runs).
-  const narrator = String(body.narrator || '');
   if (narrator) {
     if (!MODEL_RE.test(narrator)) throw new Error('некорректная модель голоса');
     const pj = path.join(projectDir(id), 'project.json');
@@ -171,7 +185,7 @@ function readBody(req) {
   return new Promise((resolve, reject) => {
     let data = '';
     req.on('data', (c) => { data += c; if (data.length > 1e6) { reject(new Error('body too large')); req.destroy(); } });
-    req.on('end', () => { try { resolve(data ? JSON.parse(data) : {}); } catch { reject(new Error('bad json')); } });
+    req.on('end', () => { try { const body = data ? JSON.parse(data) : {}; if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('object required'); resolve(body); } catch { reject(new HttpError(400, 'bad json: expected object')); } });
     req.on('error', reject);
   });
 }
@@ -183,10 +197,11 @@ function serveFile(req, res, file) {
   const type = ext === '.mp4' ? 'video/mp4' : ext === '.json' ? 'application/json' : 'application/octet-stream';
   const range = req.headers.range;
   if (range) {
-    const m = /bytes=(\d*)-(\d*)/.exec(range);
+    const m = /^bytes=(\d*)-(\d*)$/.exec(range);
     if (m) {
-      let start = m[1] ? Number(m[1]) : 0;
-      let end = m[2] ? Number(m[2]) : stat.size - 1;
+      let start = m[1] ? Number(m[1]) : Math.max(0, stat.size - Number(m[2]));
+      let end = m[1] && m[2] ? Number(m[2]) : stat.size - 1;
+      if (!m[1] && (!m[2] || Number(m[2]) <= 0)) start = stat.size;
       if (start <= end && start < stat.size) {
         end = Math.min(end, stat.size - 1);
         res.writeHead(206, {
@@ -197,6 +212,8 @@ function serveFile(req, res, file) {
         return;
       }
     }
+    res.writeHead(416, {'content-range': `bytes */${stat.size}`});
+    return res.end();
   }
   res.writeHead(200, {'content-type': type, 'content-length': stat.size, 'accept-ranges': 'bytes'});
   fs.createReadStream(file).pipe(res);
@@ -275,12 +292,18 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
     <button class="secondary" onclick="run('all')">&#9654; Запустить всё</button>
     <button class="danger" onclick="stop()">&#9632; Остановить</button>
   </div>
-  <div class="msg" id="msg"></div>
+  <button class="small secondary" onclick="checkReady()">Проверить компоненты</button>
+  <button class="small secondary" onclick="openFolder('project')">Папка проекта</button>
+  <button class="small secondary" onclick="openFolder('output')">Папка видео</button>
+  <div class="msg" id="msg" role="status"></div>
 </section>
 <section>
   <h2 id="stageTitle">Этапы</h2>
   <div class="chips" id="chips"><span class="muted">выберите проект</span></div>
-  <div class="bar" id="progress" style="display:none"><i></i></div>
+  <div class="muted" id="progress" role="status" style="display:none">Генерация выполняется. Этапы и журнал обновляются автоматически.</div>
+  <button class="small secondary" onclick="previewScript()">Предпросмотр сценария</button>
+  <pre id="scriptPreview" style="white-space:pre-wrap" hidden></pre>
+  <video id="player" controls preload="none" style="width:100%;max-height:440px;margin-top:12px" hidden></video>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="stageBtns"></div>
   <label style="display:flex;gap:6px;align-items:center;color:var(--dim);font-size:12px;margin:0 0 8px">
     <input type="checkbox" id="draft" style="width:auto"> draft (быстрый черновик, half-res)
@@ -345,7 +368,7 @@ function renderProjects(list){
   for (var i = 0; i < projectsCache.length; i++){
     var p = projectsCache[i];
     var title = (p.title && (p.title[p.language] || p.title.ru)) || p.id;
-    var status = p.final ? '✅ MP4 готов' : (p.job && p.job.running ? '⏳ ' + p.job.stage : '…');
+    var status = p.job && p.job.running ? '⏳ ' + p.job.stage : (p.final ? 'MP4 сохранён · проверьте этапы' : '…');
     h += '<div class="proj ' + (p.id === current ? 'active' : '') + '" onclick="select(\\'' + p.id + '\\')">' +
       '<div class="t">' + esc(title) + '</div>' +
       '<div class="m">' + esc(p.id) + ' · ' + p.scenes + ' сцен · ' + esc(p.template || 'freeform') + '</div>' +
@@ -359,7 +382,7 @@ async function refresh(){
     var st = await api('/api/state');
     renderProjects(st.projects);
     renderStage();
-  } catch (e) { /* server restarting */ }
+  } catch (e) { msg('Нет связи с сервером: ' + e.message, 'err'); }
 }
 async function loadLog(){
   if (!current){ el('log').textContent = '—'; return; }
@@ -433,6 +456,31 @@ function renderStage(){
   if (p && p.final) dl += '<a class="dl" href="/file?id=' + encodeURIComponent(current) + '&name=FINAL.mp4">&#11015; FINAL.mp4</a>';
   if (p && p.draft) dl += '<a class="dl" href="/file?id=' + encodeURIComponent(current) + '&name=DRAFT.mp4">&#11015; DRAFT.mp4</a>';
   el('downloads').innerHTML = dl;
+  var player = el('player');
+  var videoUrl = p && (p.final || p.draft) ? '/file?id=' + encodeURIComponent(current) + '&name=' + (p.final ? 'FINAL.mp4' : 'DRAFT.mp4') : '';
+  if (player.dataset.url !== videoUrl) { player.dataset.url = videoUrl; if (videoUrl) player.src = videoUrl; else player.removeAttribute('src'); }
+  player.hidden = !videoUrl;
+  var buttons = btns.querySelectorAll('button');
+  for (var j = 0; j < buttons.length; j++) buttons[j].disabled = !!running;
+}
+async function checkReady(){
+  msg('Проверка компонентов…');
+  try { var result = await api('/api/check', {method:'POST'});
+    el('log').textContent = result.report;
+    msg(result.ready ? 'Компоненты готовы' : 'Есть проблемы: см. журнал проверки', result.ready ? 'ok' : 'err');
+  } catch(e){ msg(e.message, 'err'); }
+}
+async function openFolder(target){
+  if (!current) return;
+  try { await api('/api/open', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({id:current,target:target})}); }
+  catch(e){msg(e.message,'err');}
+}
+async function previewScript(){
+  if (!current) return;
+  try { var data = await api('/api/script?id=' + encodeURIComponent(current));
+    el('scriptPreview').textContent = data.scenes.map(function(s){return s.id + ': ' + s.lines.join(' ');}).join(String.fromCharCode(10,10));
+    el('scriptPreview').hidden = false;
+  } catch(e){msg(e.message, 'err');}
 }
 function startPoll(){
   if (pollTimer) return;
@@ -455,15 +503,40 @@ export function startUI({port = 7788} = {}) {
     try {
       const u = new URL(req.url, 'http://localhost');
       const p = u.pathname;
+      if (req.method === 'POST' && req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) return json(res, 403, {error:'cross-origin request forbidden'});
+      if (req.method === 'GET' && p === '/api/script') {
+        const id = u.searchParams.get('id');
+        if (!safeId(id)) return json(res, 400, {error:'bad id'});
+        const file = path.join(projectDir(id), 'project.json');
+        if (!fs.existsSync(file)) return json(res, 404, {error:'project not found'});
+        const project = readJson(file);
+        return json(res, 200, {language:project.language, scenes:project.scenes.map(s => ({id:s.id, title:s.title, lines:s.lines.map(l => l.text[project.language])}))});
+      }
       if (req.method === 'GET' && (p === '/' || p === '/index.html')) {
         res.writeHead(200, {'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store'});
         return res.end(PAGE);
+      }
+      if (req.method === 'POST' && p === '/api/check') {
+        const check = spawnSync(process.execPath, [path.join(ENGINE,'render.mjs'), 'doctor'], {cwd:ENGINE, encoding:'utf8', timeout:30000});
+        return json(res, 200, {ready:check.status === 0, report:(check.stdout || '') + (check.stderr || '') + (check.error?.message || '')});
+      }
+      if (req.method === 'POST' && p === '/api/open') {
+        const {id, target} = await readBody(req);
+        if (!safeId(id) || !['project', 'output'].includes(target)) return json(res, 400, {error:'bad folder'});
+        if (process.platform !== 'win32') return json(res, 501, {error:'Открытие папки доступно на локальном Windows-сервере'});
+        const folder = target === 'project' ? projectDir(id) : outDir(id);
+        if (!fs.existsSync(folder)) return json(res, 404, {error:'folder not found'});
+        const explorer = spawn('explorer.exe', [folder], {windowsHide:true, stdio:'ignore'});
+        explorer.on('error', e=>console.error('explorer:',e.message));
+        explorer.unref();
+        return json(res, 200, {ok:true});
       }
       if (req.method === 'GET' && p === '/api/state') return json(res, 200, {projects: listProjects()});
       if (req.method === 'GET' && p === '/api/log') {
         const id = u.searchParams.get('id') || '';
         if (!safeId(id)) return json(res, 400, {error: 'bad id'});
         const stage = u.searchParams.get('stage');
+        if (stage && ![...STAGES, 'all', 'script', 'idea', ...STAGES.map(s => 'ui_' + s), 'ui_all'].includes(stage)) return json(res, 400, {error:'bad log stage'});
         const file = stage ? path.join(projectDir(id), 'logs', `${stage}.log`) : latestLog(id);
         return json(res, 200, {file: file || null, lines: file ? tailFile(file, 220) : []});
       }
@@ -494,6 +567,7 @@ export function startUI({port = 7788} = {}) {
       }
       json(res, 404, {error: 'not found'});
     } catch (e) {
+      console.error('ui request failed:', e.stack || e);
       json(res, e.status || 500, {error: String(e.message || e)});
     }
   });
@@ -505,7 +579,10 @@ export function startUI({port = 7788} = {}) {
     console.log(`What If Cine Studio UI: http://localhost:${port}  (listening on 0.0.0.0)`);
     console.log('Ctrl+C to stop. The UI spawns the same render.mjs CLI — logs stay in projects/<id>/logs/.');
   });
-  const shutdown = () => { try { server.close(); } catch {} process.exit(0); };
+  const shutdown = () => {
+    for (const [id, job] of jobs) if (job.running) { try { stopJob(id); } catch (e) { console.error('shutdown:', e.message); } }
+    server.close(() => process.exit(0));
+  };
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
   return server;

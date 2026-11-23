@@ -441,6 +441,17 @@ export function buildStoryScenes(A, {nChars = 2, compact = false} = {}) {
     ru: [A.pack.explain.ru, A.pack.mainIdea.ru],
     en: [A.pack.explain.en, A.pack.mainIdea.en],
   }};
+  if (dinosaursReturn) pack.explain = T(
+    'В этом вымышленном мире крупным животным нужны корм и безопасная среда.',
+    'In this imagined world, large animals need food and a safe habitat.');
+  if (/океан|ocean/i.test(A.raw) && /кип|boil/i.test(A.raw)) {
+    pack.develop = {
+      ru: ['Представь: над океаном поднимается пар.', 'Побережья эвакуируют. Морские экосистемы гибнут.'],
+      en: ['Imagine steam rising over the ocean.', 'Coasts are evacuated. Marine ecosystems collapse.'],
+    };
+    pack.explain = T('Это фантастическое допущение, а не прогноз: нужен огромный приток энергии.',
+      'This is a fictional premise, not a forecast: it requires an enormous energy input.');
+  }
   const topic = A.raw;
   const expertId = pack.expert;
   const sightingRu = pack.sighting.ru.replace('{T}', () => topic);

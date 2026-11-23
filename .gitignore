@@ -40,3 +40,6 @@ __pycache__/
 *.log
 
 /engine/headers.txt
+
+# Transient per-project process locks
+.pipeline.lock

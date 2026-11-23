@@ -87,6 +87,12 @@ export function resolveVoiceModel(voice, project, opts = {}) {
   return project.settings?.voiceModels?.[voice.id] || fallback;
 }
 
+export function ttsLineHash(line, project, opts = {}) {
+  const v = voiceById(line.voice);
+  return sha1([TTS_VERSION, project.language, line.text[project.language],
+    resolveVoiceModel(v, project, opts), Number(v.piper.pitch) || 1, Number(v.speed) || 1]);
+}
+
 export const lineFile = (id, lid) => path.join(projectDir(id), 'voice', `${lid}.wav`);
 
 export async function voiceTTS(id, project, log, {force = false, ...opts} = {}) {
@@ -102,7 +108,7 @@ export async function voiceTTS(id, project, log, {force = false, ...opts} = {}) 
     const name = resolveVoiceModel(v, project, opts);
     const pitch = Number(v.piper.pitch) || 1;
     const speed = Number(v.speed) || 1;
-    const hash = sha1([TTS_VERSION, project.language, text, name, pitch, speed]);
+    const hash = ttsLineHash(l, project, opts);
     hashes[l.id] = hash;
     const out = lineFile(id, l.id);
     if (!force && mf.lines[l.id]?.hash === hash && fs.existsSync(out)) { valid.add(l.id); continue; }
@@ -281,6 +287,6 @@ export async function runVoice(id, project, log, args = {}) {
   if (mode === 'upload') return voiceUpload(id, project, path.resolve(String(args.audio)), log, {noWhisper: !!args['no-whisper'], model: args.model});
   if (mode === 'files') return voiceFiles(id, project, log);
   if (mode === 'none') { const o = {source: 'none', lines: {}}; writeJson(path.join(ensure(path.join(projectDir(id), 'voice')), 'manifest.json'), o); return o; }
-  return voiceTTS(id, project, log, {force: !!args.force});
+  return voiceTTS(id, project, log, {...args, force: !!args.force});
 }
 export {FFMPEG, ffmpegEnv, spawnSync};
