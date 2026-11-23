@@ -1,4 +1,4 @@
-// Local web UI for What If Cine Studio — zero dependencies (node:http only).
+// Local web UI for Koveyer Dhoix'a — zero dependencies (node:http only).
 //
 // Serves a single page where the user enters the topic, duration, language,
 // voice, style and music, creates a project, runs pipeline stages with live
@@ -8,6 +8,8 @@
 //
 //   node render.mjs ui [--port 7788]
 import fs from 'node:fs';
+import os from 'node:os';
+import {normalizeBrief} from './production.mjs';
 import path from 'node:path';
 import http from 'node:http';
 import {spawn, spawnSync} from 'node:child_process';
@@ -43,6 +45,7 @@ function listProjects() {
       language: p.language || 'ru',
       scenes: Array.isArray(p.scenes) ? p.scenes.length : 0,
       template: p.idea?.template,
+      production:p.production ? {kind:p.production.kind,seriesId:p.production.seriesId,episodes:p.production.episodes,format:p.production.brief?.format} : null,
       topic: p.idea?.topic,
       stages: state.stages || {},
       final: fs.existsSync(path.join(OUTPUT, d, 'FINAL.mp4')),
@@ -131,7 +134,7 @@ function createProject(body) {
   const narrator = String(body.narrator || '');
   if (narrator && !MODEL_RE.test(narrator)) throw new HttpError(400, 'некорректная модель голоса');
   const topic = String(body.topic ?? '').trim();
-  if (topic.length > 300) throw new HttpError(400, 'тема слишком длинная (максимум 300 символов)');
+  if (topic.length > (body.format ? 4000 : 300)) throw new HttpError(400, 'тема превышает допустимую длину');
   const duration = Number(body.duration);
   if (!Number.isFinite(duration) || duration < 25 || duration > 180) throw new HttpError(400, 'длительность должна быть 25–180 секунд');
   const lang = LANGS.includes(body.lang) ? body.lang : 'ru';
@@ -152,12 +155,25 @@ function createProject(body) {
   if (music) args.push('--music', music);
   if (template) args.push('--template', template);
   if (body.force) args.push('--force');
+  if(body.continueFrom) { if(!safeId(body.continueFrom)) throw new HttpError(400,'bad continuation id'); args.push('--continue-from',body.continueFrom); }
+  let scratch;
+  if (body.format) {
+    const materials=body.materials || {};
+    try { normalizeBrief({name:body.name,topic,format:body.format,genre:body.genre,narrative:body.narrative,episodes:body.episodes,
+      language:lang,duration,characters,sources:materials.sources,claims:materials.claims}); } catch(e) { throw new HttpError(400,e.message); }
+    if(narrator) args.push('--voice-model',narrator);
+    args.push('--format',body.format,'--name',body.name || topic,'--genre',body.genre || 'drama','--narrative',body.narrative || 'chronological','--episodes',String(body.episodes || 3));
+    scratch=fs.mkdtempSync(path.join(os.tmpdir(),'koveyer-materials-'));
+    const file=path.join(scratch,'materials.json');writeJson(file,materials);args.push('--materials',file);
+  }
 
-  const r = spawnSync(process.execPath, [path.join(ENGINE, 'render.mjs'), ...args], {cwd: ENGINE, encoding: 'utf8'});
+  let r;
+  try { r = spawnSync(process.execPath, [path.join(ENGINE, 'render.mjs'), ...args], {cwd: ENGINE, encoding: 'utf8'}); }
+  finally { if(scratch) fs.rmSync(scratch,{recursive:true,force:true}); }
   if (r.status !== 0) throw new HttpError(400, (r.stderr || r.stdout || 'create failed').trim().split('\n').slice(-1)[0]);
 
   // Optional narrator voice model (applied before the voice stage runs).
-  if (narrator) {
+  if (narrator && !body.format) {
     if (!MODEL_RE.test(narrator)) throw new Error('некорректная модель голоса');
     const pj = path.join(projectDir(id), 'project.json');
     const p = readJson(pj);
@@ -221,11 +237,11 @@ function serveFile(req, res, file) {
 
 const PAGE = `<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>What If Cine Studio</title>
+<title>Koveyer Dhoix'a</title>
 <style>
-:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--dim:#8b949e;--acc:#58a6ff;--ok:#3fb950;--err:#f85149;--warn:#d29922}
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--dim:#8b949e;--acc:#42dbc8;--ok:#3fb950;--err:#f85149;--warn:#d29922}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 Segoe UI,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px}
 header h1{font-size:17px;margin:0}header .sub{color:var(--dim);font-size:12px}
 main{display:grid;grid-template-columns:260px 1fr 1fr;gap:14px;padding:14px 20px;max-width:1500px;margin:0 auto}
@@ -257,18 +273,26 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
 @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
 .muted{color:var(--dim);font-size:12px}
 </style></head><body>
-<header><h1>&#127916; What If Cine Studio</h1><span class="sub">идея &rarr; сценарий &rarr; голос &rarr; сцены &rarr; звук &rarr; MP4</span></header>
+<header><h1>&#127916; Koveyer Dhoix'a</h1><span class="sub">идея &rarr; сценарий &rarr; голос &rarr; сцены &rarr; звук &rarr; MP4</span></header>
 <main>
 <section>
   <h2>Проекты</h2>
   <div id="projects"><div class="muted">загрузка…</div></div>
 </section>
 <section>
-  <h2>Новое видео</h2>
+  <h2>Создать производство</h2>
+  <p class="muted">Локальный правиловый сценарист · стилизованная SVG-графика · не LLM</p>
+  <h3>1. Замысел</h3>
+  <label for="projectName">Название</label><input id="projectName" maxlength="160" placeholder="Название фильма или сезона">
+  <div class="row"><div><label for="format">Формат</label><select id="format"><option value="fiction">Художественный фильм</option><option value="documentary">Документальный разбор</option><option value="reconstruction">Учебная реконструкция</option><option value="series">Мини-сериал (вымысел)</option></select></div>
+  <div><label for="genre">Жанр</label><select id="genre"><option value="drama">Драма</option><option value="science">Научный</option><option value="history">Исторический</option><option value="disaster">Катастрофа</option><option value="fantasy">Фантастика</option><option value="post-apocalyptic">Постапокалипсис</option></select></div></div>
   <label for="topic">Тема видео</label>
-  <textarea id="topic" placeholder="Например: что если динозавры вернутся? Или просто: волки Арктики"></textarea>
+  <textarea id="topic" maxlength="4000" placeholder="Тема, конфликт, события и желаемое завершение"></textarea>
+  <label for="continueFrom">Продолжение проекта (id, необязательно)</label><input id="continueFrom" maxlength="40" placeholder="Например: terra-e01">
+  <h3>2. Производство</h3>
+  <div class="row"><div><label for="episodes">Эпизодов (только сериал)</label><input id="episodes" type="number" min="1" max="12" value="3"></div><div><label for="narrative">Повествование</label><select id="narrative"><option value="chronological">Хронология</option><option value="investigation">Исследование</option><option value="character">От лица героев</option></select></div></div>
   <div class="row">
-    <div><label for="duration">Длительность, сек</label><input id="duration" type="number" min="25" max="180" value="45"></div>
+    <div><label for="duration">Длительность, сек</label><input id="duration" type="number" min="25" max="180" value="90"></div>
     <div><label for="lang">Язык</label><select id="lang"><option value="ru">Русский</option><option value="en">English</option></select></div>
   </div>
   <div class="row">
@@ -279,6 +303,8 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
     <div><label for="style">Стиль</label><select id="style"></select></div>
     <div><label for="music">Музыка</label><select id="music"></select></div>
   </div>
+  <h3>3. Материалы и запуск</h3>
+  <details id="evidencePanel"><summary>Источники и утверждения (JSON)</summary><p class="muted">Для документального разбора. supported означает «подкреплено источником пользователя», а не независимую проверку. Без материалов создаётся только исследовательская заявка.</p><textarea id="materials" placeholder='{"sources":[],"claims":[]}'></textarea></details>
   <div class="row">
     <div><label for="template">Шаблон</label><select id="template"><option value="auto">авто (по теме)</option><option value="freeform">свободная тема</option></select></div>
     <div><label for="voiceMode">Озвучка</label><select id="voiceMode"><option value="tts">Piper TTS</option><option value="none">без голоса (музыка)</option></select></div>
@@ -302,6 +328,7 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <div class="chips" id="chips"><span class="muted">выберите проект</span></div>
   <div class="muted" id="progress" role="status" style="display:none">Генерация выполняется. Этапы и журнал обновляются автоматически.</div>
   <button class="small secondary" onclick="previewScript()">Предпросмотр сценария</button>
+  <button class="small secondary" onclick="regenerateEpisode()">Пересоздать эпизод сезона</button>
   <pre id="scriptPreview" style="white-space:pre-wrap" hidden></pre>
   <video id="player" controls preload="none" style="width:100%;max-height:440px;margin-top:12px" hidden></video>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="stageBtns"></div>
@@ -355,6 +382,13 @@ function fillNarrator(){
   el('narrator').innerHTML = h;
 }
 el('lang').addEventListener('change', fillNarrator);
+function updateFormat(){
+  var format=el('format').value;
+  el('episodes').disabled=format!=='series';
+  el('template').disabled=!!format;
+  el('evidencePanel').hidden=format!=='documentary' && format!=='reconstruction';
+}
+el('format').addEventListener('change',updateFormat);
 el('topic').addEventListener('input', function(){
   if (!el('pid').dataset.touched) el('pid').value = slug(el('topic').value);
 });
@@ -399,6 +433,8 @@ async function create(){
   try {
     msg('создание…');
     var body = {
+      continueFrom:el('continueFrom').value,name:el('projectName').value,format:el('format').value,genre:el('genre').value,narrative:el('narrative').value,episodes:el('episodes').value,
+      materials:JSON.parse(el('materials').value || '{}'),
       topic: el('topic').value, duration: el('duration').value, lang: el('lang').value,
       characters: el('characters').value, style: el('style').value, music: el('music').value,
       template: el('template').value, voiceMode: el('voiceMode').value, narrator: el('narrator').value,
@@ -449,6 +485,7 @@ function renderStage(){
   h += '<button class="small secondary" onclick="run(\\'all\\')">всё</button>';
   btns.innerHTML = h;
   var running = p && p.job && p.job.running;
+  var container = p && p.production && p.production.kind==='season';
   el('progress').style.display = running ? 'block' : 'none';
   var title = p ? ((p.title && (p.title[p.language] || p.title.ru)) || current) : current;
   el('stageTitle').textContent = 'Этапы — ' + title;
@@ -461,7 +498,7 @@ function renderStage(){
   if (player.dataset.url !== videoUrl) { player.dataset.url = videoUrl; if (videoUrl) player.src = videoUrl; else player.removeAttribute('src'); }
   player.hidden = !videoUrl;
   var buttons = btns.querySelectorAll('button');
-  for (var j = 0; j < buttons.length; j++) buttons[j].disabled = !!running;
+  for (var j = 0; j < buttons.length; j++) buttons[j].disabled = !!running || !!container;
 }
 async function checkReady(){
   msg('Проверка компонентов…');
@@ -475,10 +512,17 @@ async function openFolder(target){
   try { await api('/api/open', {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({id:current,target:target})}); }
   catch(e){msg(e.message,'err');}
 }
+async function regenerateEpisode(){
+  if(!current) return;
+  var number=Number(prompt('Номер эпизода выбранного сезона'));
+  if(!Number.isInteger(number) || number<1 || !confirm('Пересоздать сценарий только этого эпизода? Другие серии сохранятся.')) return;
+  try {await api('/api/episode',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:current,episode:number})});msg('Перегенерация эпизода запущена','ok');}
+  catch(e){msg(e.message,'err');}
+}
 async function previewScript(){
   if (!current) return;
   try { var data = await api('/api/script?id=' + encodeURIComponent(current));
-    el('scriptPreview').textContent = data.scenes.map(function(s){return s.id + ': ' + s.lines.join(' ');}).join(String.fromCharCode(10,10));
+    el('scriptPreview').textContent = (data.production ? JSON.stringify({provider:data.production.provider,notes:data.production.notes,episodes:data.production.episodes},null,2) + String.fromCharCode(10) : '') + data.scenes.map(function(s){return s.id + ': ' + s.lines.join(' ');}).join(String.fromCharCode(10,10));
     el('scriptPreview').hidden = false;
   } catch(e){msg(e.message, 'err');}
 }
@@ -489,6 +533,7 @@ function startPoll(){
 }
 async function boot(){
   fillSelects();
+  updateFormat();
   await refresh();
   if (!current && projectsCache.length) select(projectsCache[0].id);
   else loadLog();
@@ -510,7 +555,7 @@ export function startUI({port = 7788} = {}) {
         const file = path.join(projectDir(id), 'project.json');
         if (!fs.existsSync(file)) return json(res, 404, {error:'project not found'});
         const project = readJson(file);
-        return json(res, 200, {language:project.language, scenes:project.scenes.map(s => ({id:s.id, title:s.title, lines:s.lines.map(l => l.text[project.language])}))});
+        return json(res, 200, {production:project.production,language:project.language, scenes:project.scenes.map(s => ({id:s.id, title:s.title, lines:s.lines.map(l => l.text[project.language])}))});
       }
       if (req.method === 'GET' && (p === '/' || p === '/index.html')) {
         res.writeHead(200, {'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store'});
@@ -551,11 +596,20 @@ export function startUI({port = 7788} = {}) {
         const body = await readBody(req);
         return json(res, 200, createProject(body));
       }
+      if (req.method === 'POST' && p === '/api/episode') {
+        const {id,episode}=await readBody(req);
+        if(!safeId(id) || !Number.isInteger(episode)) return json(res,400,{error:'bad episode'});
+        const project=readJson(path.join(projectDir(id),'project.json'));
+        if(project.production?.kind!=='season' || !project.production.episodes[episode-1]) return json(res,400,{error:'Выберите сезон и существующий эпизод'});
+        const job=startJob(id,'episode',['--episode',String(episode),'--force']);
+        return json(res,200,{ok:true,pid:job.pid});
+      }
       if (req.method === 'POST' && p === '/api/run') {
         const {id, stage, draft} = await readBody(req);
         if (!safeId(id)) return json(res, 400, {error: 'bad id'});
         if (stage !== 'all' && !STAGES.includes(stage)) return json(res, 400, {error: 'bad stage'});
         if (!fs.existsSync(path.join(projectDir(id), 'project.json'))) return json(res, 404, {error: 'project not found'});
+        if (readJson(path.join(projectDir(id),'project.json')).production?.kind==='season') return json(res,400,{error:'Выберите проект отдельного эпизода'});
         const extra = draft ? ['--draft'] : [];
         const job = startJob(id, stage, extra);
         return json(res, 200, {ok: true, stage: job.stage, pid: job.pid});
@@ -568,7 +622,7 @@ export function startUI({port = 7788} = {}) {
       json(res, 404, {error: 'not found'});
     } catch (e) {
       console.error('ui request failed:', e.stack || e);
-      json(res, e.status || 500, {error: String(e.message || e)});
+      json(res, e.status || (e.message?.includes('unknown') || e.message?.includes('требуется') ? 400 : 500), {error: String(e.message || e)});
     }
   });
   server.on('error', (e) => {
@@ -576,7 +630,7 @@ export function startUI({port = 7788} = {}) {
     process.exit(1);
   });
   server.listen(port, '0.0.0.0', () => {
-    console.log(`What If Cine Studio UI: http://localhost:${port}  (listening on 0.0.0.0)`);
+    console.log(`Koveyer Dhoix'a UI: http://localhost:${port}  (listening on 0.0.0.0)`);
     console.log('Ctrl+C to stop. The UI spawns the same render.mjs CLI — logs stay in projects/<id>/logs/.');
   });
   const shutdown = () => {

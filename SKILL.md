@@ -1,4 +1,4 @@
-# SKILL: What If Cine Studio
+# SKILL: Koveyer Dhoix'a
 
 Use this when asked to create a cinematic stickman "What If" video (idea → MP4) or to modify one.
 Working directory for commands: `whatif-cine-studio/engine`. Outputs: `../output/<id>/FINAL.mp4`.

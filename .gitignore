@@ -43,3 +43,6 @@ __pycache__/
 
 # Transient per-project process locks
 .pipeline.lock
+
+# Local render-test dependencies (not production assets)
+/engine/.cache/

@@ -70,6 +70,7 @@ function autoShots(sc, dur) {
 export function buildPlan(id) {
   const dir = projectDir(id);
   const project = readJson(path.join(dir, 'project.json'));
+  if(project.production?.kind==='season') throw new Error('Сезон — контейнер: выберите отдельный эпизод для таймлайна.');
   const mf = readJson(path.join(dir, 'voice', 'manifest.json'), {source: 'none', lines: {}});
   const lang = project.language;
   const fps = FPS;
@@ -121,7 +122,7 @@ export function buildPlan(id) {
   const plan = {
     version: 1, projectHash: sha1(project), voiceManifestHash: sha1(mf), id: project.id, language: lang, title: project.title, fps, width: WIDTH, height: HEIGHT,
     totalFrames: frameCursor, totalSec: frameCursor / fps, voiceSource,
-    characters: project.characters, voices: project.voices, scenes, music: {mood: project.settings.music},
+    production: project.production, characters: project.characters, voices: project.voices, scenes, music: {mood: project.settings.music},
   };
   plan.hash = sha1({...plan, hash: undefined});
   writeJson(path.join(dir, 'plan.json'), plan);
