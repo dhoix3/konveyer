@@ -1,7 +1,7 @@
 // SOUND stage: plan.json -> audio_plan.json -> procedural synthesis + mix (Python/numpy) -> loudness normalisation to -14 LUFS.
 import fs from 'node:fs';
 import path from 'node:path';
-import {projectDir, ensure, readJson, writeJson, ff, runPython, probe, sha1} from './lib.mjs';
+import {projectDir, ensure, readJson, writeJson, ff, runPython, probe, sha1, fileSha, sourceHash} from './lib.mjs';
 import {compileTrack} from '../src/char/track.ts';
 
 const SURFACE = {bedroom: 'wood', kitchen: 'tile', office: 'tile', school: 'wood', hospital: 'tile', street: 'concrete', city: 'concrete', stadium: 'grass', nature: 'grass', station: 'metal', void: 'wood'};
@@ -15,8 +15,8 @@ export function buildAudioPlan(id, plan, log) {
     for (const l of sc.lines) {
       if (!l.file) continue;
       const src = path.join(dir, l.file);
-      const dst = path.join(cache, `${l.id}.wav`);
-      if (!fs.existsSync(dst) || fs.statSync(dst).mtimeMs < fs.statSync(src).mtimeMs) ff(['-i', src, '-ac', '1', '-ar', '44100', '-c:a', 'pcm_s16le', dst]);
+      const dst = path.join(cache, `${l.id}-${fileSha(src)}.wav`);
+      if (!fs.existsSync(dst)) ff(['-i', src, '-ac', '1', '-ar', '44100', '-c:a', 'pcm_s16le', dst]);
       voice.push({file: dst, t: +l.start.toFixed(3), gain: 1.0, line: l.id});
     }
     for (const s of sc.sfx) sfx.push({t: +(sc.startSec + s.t).toFixed(3), kind: s.kind, gain: s.gain ?? 0.8, pan: s.pan ?? 0});
@@ -56,7 +56,7 @@ export function measureLufs(file) {
 export function runSound(id, plan, log, {force = false} = {}) {
   const dir = projectDir(id);
   const ap = buildAudioPlan(id, plan, log);
-  const key = sha1(ap) + (fs.existsSync(path.join(dir, 'audio', 'mix.wav')) ? '' : 'x');
+  const key = sha1({ap, source:sourceHash()});
   const keyFile = path.join(dir, 'audio', 'mix.key');
   const final = path.join(dir, 'audio', 'mix_norm.wav');
   if (!force && fs.existsSync(final) && fs.existsSync(keyFile) && fs.readFileSync(keyFile, 'utf8') === key) {

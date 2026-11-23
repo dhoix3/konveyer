@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // What If Cine Studio — pipeline CLI.
 // IDEA -> SCRIPT -> VOICE -> TIMELINE -> SCENES -> SOUND -> RENDER -> FINAL.mp4
+import {lockProject} from './tools/project-lock.mjs';
+import {prepareBrowser} from './tools/browser.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -10,8 +12,9 @@ import {
 } from './tools/lib.mjs';
 import {buildProject, generateIdeas, TEMPLATE_IDS, MUSIC_MOODS, LANGS, STYLES} from './tools/script.mjs';
 import {startUI} from './tools/ui.mjs';
-import {runVoice} from './tools/voice.mjs';
+import {runVoice, resolveVoiceModel, allLines} from './tools/voice.mjs';
 import {buildPlan} from './tools/timeline.mjs';
+import {voiceById} from './src/lib/library.ts';
 import {runSound} from './tools/sound.mjs';
 import {qaPlan, qaMedia, writeReport} from './tools/qa.mjs';
 
@@ -22,7 +25,11 @@ const loadProject = (id) => readJson(path.join(projectDir(id), 'project.json'));
 const loadPlan = (id) => {
   const f = path.join(projectDir(id), 'plan.json');
   if (!fs.existsSync(f)) throw new Error(`plan.json missing — run: node render.mjs timeline ${id}`);
-  return readJson(f);
+  const plan = readJson(f);
+  if (plan.projectHash && plan.projectHash !== sha1(loadProject(id))) throw new Error(`project.json changed — re-run voice and timeline ${id} before rendering`);
+  const manifest = readJson(path.join(projectDir(id), 'voice', 'manifest.json'), {source:'none', lines:{}});
+  if (plan.voiceManifestHash && plan.voiceManifestHash !== sha1(manifest)) throw new Error(`Voice manifest changed — re-run timeline ${id}`);
+  return plan;
 };
 const need = (id) => { if (!id) throw new Error('project id required'); if (!fs.existsSync(path.join(projectDir(id), 'project.json'))) throw new Error(`project "${id}" not found in ${PROJECTS}`); return id; };
 
@@ -84,7 +91,19 @@ async function cmdVoice(id) {
   const log = logger(id, 'voice');
   if (args.audio && !path.isAbsolute(String(args.audio)) && fs.existsSync(path.join(projectDir(id), String(args.audio)))) args.audio = path.join(projectDir(id), String(args.audio));
   markStage(id, 'voice', 'running');
-  try { const mf = await runVoice(id, loadProject(id), log, args); markStage(id, 'voice', 'done', {source: mf.source}); log.info(`voice ready (${mf.source})`); }
+  try {
+    const project = loadProject(id);
+    if (args['voice-model']) {
+      const voiceModels = {...project.settings.voiceModels};
+      for (const line of allLines(project)) {
+        const model = resolveVoiceModel(voiceById(line.voice), project, args);
+        if (!/^[a-z]{2}_[A-Z]{2}-[a-z0-9_]+-(x_low|low|medium|high)$/.test(model)) throw new Error(`invalid Piper voice name: ${model}`);
+        voiceModels[line.voice] = model;
+      }
+      project.settings.voiceModels = voiceModels;
+      writeJson(path.join(projectDir(id), 'project.json'), project);
+    }
+    const mf = await runVoice(id, project, log, args); markStage(id, 'voice', 'done', {source: mf.source}); log.info(`voice ready (${mf.source})`); }
   catch (e) { markStage(id, 'voice', 'failed', {error: e.message}); throw e; }
 }
 
@@ -120,15 +139,16 @@ async function cmdScenes(id) {
   const only = args.only ? String(args.only).split(',') : null;
   const state = loadState(id);
   state.scenes ||= {};
+  const {renderMedia, selectComposition} = await import('@remotion/renderer');
+  const browserExecutable = await prepareBrowser(log);
   await ensureAssets();
-  const {renderMedia, selectComposition, ensureBrowser} = await import('@remotion/renderer');
-  await ensureBrowser();
   const serveUrl = await getBundle(log);
   // 8 GB machines cannot afford two Chromium renderers plus x264; default to
   // one worker and let the user opt in explicitly.
   const ramGB = os.totalmem() / 1e9;
   const autoConc = ramGB < 12 ? 1 : Math.max(1, Math.min(3, Math.floor(os.cpus().length / 2)));
-  const conc = Number(args.concurrency) || autoConc;
+  const conc = Number(args.concurrency ?? autoConc);
+  if (!Number.isInteger(conc) || conc < 1 || conc > 16) throw new Error('--concurrency must be an integer 1–16');
   for (const sc of plan.scenes) {
     if (only && !only.includes(sc.id)) continue;
     const file = path.join(dir, `${sc.id}.mp4`);
@@ -145,11 +165,11 @@ async function cmdScenes(id) {
     const t0 = Date.now();
     log.info(`${sc.id}: rendering ${sc.durFrames} frames (${sc.env.id}/${sc.env.time})${draft ? ' [draft]' : ''}`);
     const inputProps = {plan, sceneIndex: sc.index, subtitles: !args['no-subs']};
-    const comp = await selectComposition({serveUrl, id: 'Scene', inputProps, chromiumOptions: chromeOpts()});
+    const comp = await selectComposition({serveUrl, id: 'Scene', inputProps, browserExecutable, chromiumOptions: chromeOpts()});
     const part = file.replace(/\.mp4$/, '.part.mp4');
     let last = -1;
     await renderMedia({
-      composition: comp, serveUrl, codec: 'h264', outputLocation: part, inputProps, muted: true, crf: draft ? 30 : 17, pixelFormat: 'yuv420p',
+      composition: comp, serveUrl, browserExecutable, codec: 'h264', outputLocation: part, inputProps, muted: true, crf: draft ? 30 : 17, pixelFormat: 'yuv420p',
       imageFormat: 'jpeg', jpegQuality: 92, scale, concurrency: conc, x264Preset: draft ? 'veryfast' : 'medium', chromiumOptions: chromeOpts(), overwrite: true,
       onProgress: ({progress}) => { const p = Math.floor(progress * 10); if (p !== last) { last = p; process.stdout.write(`\r  ${sc.id} ${p * 10}%   `); } },
     });
@@ -256,18 +276,18 @@ async function cmdQa(id) {
 async function cmdFrame(id) {
   const log = logger(id, 'frame');
   const plan = loadPlan(id);
-  await ensureAssets();
   const sc = plan.scenes.find((s) => s.id === (args.scene || plan.scenes[0].id));
   if (!sc) throw new Error('scene not found');
   const t = Number(args.t ?? 1);
   const frame = Math.max(0, Math.min(sc.durFrames - 1, Math.round(t * FPS)));
-  const {renderStill, selectComposition, ensureBrowser} = await import('@remotion/renderer');
-  await ensureBrowser();
+  const {renderStill, selectComposition} = await import('@remotion/renderer');
+  const browserExecutable = await prepareBrowser(log);
+  await ensureAssets();
   const serveUrl = await getBundle(log);
   const inputProps = {plan, sceneIndex: sc.index, subtitles: !args['no-subs']};
-  const comp = await selectComposition({serveUrl, id: 'Scene', inputProps, chromiumOptions: chromeOpts()});
+  const comp = await selectComposition({serveUrl, id: 'Scene', inputProps, browserExecutable, chromiumOptions: chromeOpts()});
   const out = args.out ? path.resolve(String(args.out)) : path.join(ensure(path.join(outDir(id), 'frames')), `${sc.id}_f${String(frame).padStart(4, '0')}.png`);
-  await renderStill({composition: comp, serveUrl, output: out, frame, inputProps, imageFormat: 'png', scale: Number(args.scale) || 1, chromiumOptions: chromeOpts()});
+  await renderStill({composition: comp, serveUrl, browserExecutable, output: out, frame, inputProps, imageFormat: 'png', scale: Number(args.scale) || 1, chromiumOptions: chromeOpts()});
   log.info(`frame -> ${out}`);
   console.log(out);
 }
@@ -312,15 +332,16 @@ function cmdList() {
   console.log(JSON.stringify(rows, null, 2));
 }
 
-function cmdDoctor() {
+async function cmdDoctor() {
   const checks = [];
   const add = (name, ok, info) => { checks.push({name, ok, info}); console.log(`${ok ? '✔' : '✘'} ${name}${info ? ' — ' + info : ''}`); };
   add('node', Number(process.versions.node.split('.')[0]) >= 22, process.version);
   try { const v = probe.length ? FFMPEG() : ''; add('ffmpeg', true, v); } catch (e) { add('ffmpeg', false, e.message); }
   try { runPython('gen_assets.py', [path.join(ENGINE, 'public')]); add('python+numpy', true, 'grain asset generated'); } catch (e) { add('python+numpy', false, e.message.slice(0, 120)); }
-  try { runPython('tts.py', ['/dev/null']); } catch (e) { add('piper-tts', !/No module named/.test(e.message), /No module/.test(e.message) ? 'pip install piper-tts' : 'installed'); }
+  try { add('piper-tts', true, runPython('tts.py', ['--version']).trim()); } catch (e) { add('piper-tts', false, e.message); }
   const models = fs.existsSync(path.join(ENGINE, 'models', 'piper')) ? fs.readdirSync(path.join(ENGINE, 'models', 'piper')).filter((f) => f.endsWith('.onnx')) : [];
-  add('piper models', true, models.length ? models.join(', ') : 'none yet (downloaded on first voice run)');
+  add('piper models', models.length > 0, models.length ? models.join(', ') : 'missing in this checkout; existing local model files are required for offline TTS');
+  try { const browser = await prepareBrowser(null, {env:{...process.env, REMOTION_ALLOW_BROWSER_DOWNLOAD:'0'}}); add('Chrome', true, browser); } catch (e) { add('Chrome', false, e.message); }
   add('remotion', fs.existsSync(path.join(ENGINE, 'node_modules', 'remotion')), 'engine/node_modules');
   add('whisper (onnx)', fs.existsSync(path.join(ENGINE, 'node_modules', '@huggingface', 'transformers')), '@huggingface/transformers');
   if (checks.some((c) => !c.ok)) process.exitCode = 1;
@@ -359,6 +380,11 @@ function failRunningStage(id, err) {
     }
   } catch { /* no readable state — nothing to mark */ }
 }
+for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
+  if (cmd === 'ui') return;
+  failRunningStage(args._[1], new Error('Остановлено пользователем'));
+  process.exit(130);
+});
 process.on('uncaughtException', (e) => { failRunningStage(args._[1], e); console.error(`✘ ${e.message}`); process.exit(1); });
 process.on('unhandledRejection', (e) => { failRunningStage(args._[1], e); console.error(`✘ ${e?.message || e}`); process.exit(1); });
 
@@ -367,6 +393,10 @@ try {
   if (!cmd || !table[cmd]) { console.log(HELP); process.exit(cmd ? 1 : 0); }
   const id = args._[1];
   if (!['idea', 'list', 'doctor', 'new', 'ui'].includes(cmd)) need(id);
+  if (!['idea', 'list', 'doctor', 'ui'].includes(cmd) && id) {
+    const unlock = lockProject(id);
+    process.on('exit', unlock);
+  }
   await table[cmd](id, args);
   process.exit(process.exitCode || 0);
 } catch (e) {

@@ -72,9 +72,14 @@ const DOMAINS = [
       ru: 'Первый раз ты видишь это своими глазами: «{T}». Не в экране — вживую.',
       en: 'For the first time you see it with your own eyes: "{T}". Not on a screen — right here.',
     },
+    develop: {
+      ru: ['Учёные наблюдают за животными в новой среде.', 'Людям и животным придётся делить пространство.'],
+      en: ['Scientists observe the animals in their new environment.', 'People and animals will have to share space.'],
+    },
   },
   {
     id: 'nature',
+    develop: {ru: ['Фермеры первыми замечают перемены.', 'Города меняют планы защиты от стихии.'], en: ['Farmers notice the changes first.', 'Cities revise their disaster plans.']},
     keywords: /лес(?!н)|дерев[ья]|океан|мор[еяюем]|рек[аиу]|вулкан|погод|климат|ледник|пустын|облак|дожд|снег|гроз|засух|наводнен|пляж|озер|цвет[ы]|природ/i,
     music: 'emotional', expert: 'doc',
     climaxEnv: {env: 'street', time: 'night', weather: 'storm'}, fx: ['fog'],
@@ -233,6 +238,10 @@ const DOMAINS = [
       ru: '«{T}» — и впервые все думают об одном и том же.',
       en: '"{T}" — and for the first time everyone is thinking about the same thing.',
     },
+    develop: {
+      ru: ['На площадях появляются очереди. На экранах — одни и те же лица.', 'Люди впервые за долгое время говорят друг с другом по-настоящему.'],
+      en: ['Queues appear in the squares. The same faces fill the screens.', 'People talk to each other for real — for the first time in a long while.'],
+    },
   },
   {
     id: 'transport',
@@ -255,6 +264,10 @@ const DOMAINS = [
     sighting: {
       ru: '«{T}» — и город впервые замирает целиком.',
       en: '"{T}" — and for the first time the whole city freezes.',
+    },
+    develop: {
+      ru: ['Дороги закрывают по одной. Водители ищут объезды.', 'Вокзалы гудят. Поезда уходят раньше расписания.'],
+      en: ['Roads close one by one. Drivers look for detours.', 'Stations hum. Trains leave ahead of schedule.'],
     },
   },
   {
@@ -305,6 +318,7 @@ const DOMAINS = [
   },
   {
     id: 'general',
+    develop: {ru: ['Люди проверяют сообщения очевидцев.', 'Приходится пересматривать привычные правила.'], en: ['People check eyewitness reports.', 'Familiar rules need to be reconsidered.']},
     keywords: /$^/, // never matches — fallback
     music: 'tense', expert: 'doc',
     climaxEnv: {env: 'street', time: 'night'}, fx: ['fog'],
@@ -406,8 +420,8 @@ function premiseOf(raw, body, pack, num, isWhatIf, prep) {
       en: cap(`What if it is true: ${body}?`),
     };
   }
-  // Agreement-safe for ru; en uses past tense (no agreement issue).
-  return {ru: cap(pack.premise.ru(body, num)), en: cap(pack.premise.en(body))};
+  // Preserve the premise instead of appending a domain-specific verb.
+  return {ru: cap(`Что если: ${body}?`), en: cap(`What if: ${body}?`)};
 }
 
 // ---------------------------------------------------------------- story scenes
@@ -415,8 +429,29 @@ function premiseOf(raw, body, pack, num, isWhatIf, prep) {
 // Compose the ordered scene definitions for a free-form topic.
 // Returns {defs, extras} where defs are required/optional scenes in dramatic
 // order and extras are appended only when the requested duration needs them.
-export function buildStoryScenes(A, {nChars = 2} = {}) {
-  const pack = A.pack;
+export function buildStoryScenes(A, {nChars = 2, compact = false} = {}) {
+  // Specific causal beats must not leak into unrelated animal stories.
+  const dinosaursReturn = /динозавр|dinosaur/i.test(A.raw) && /верн|возвра|return|back/i.test(A.raw);
+  const pack = dinosaursReturn ? {...A.pack,
+    develop: {
+      ru: ['Динозавры выходят на улицы. Движение перекрыто.', 'Городу нужны ограды, а динозаврам — заповедники.'],
+      en: ['Dinosaurs enter the streets. Traffic stops.', 'The city needs fences; dinosaurs need reserves.'],
+    },
+  } : {...A.pack, develop: A.pack.develop || {
+    ru: [A.pack.explain.ru, A.pack.mainIdea.ru],
+    en: [A.pack.explain.en, A.pack.mainIdea.en],
+  }};
+  if (dinosaursReturn) pack.explain = T(
+    'В этом вымышленном мире крупным животным нужны корм и безопасная среда.',
+    'In this imagined world, large animals need food and a safe habitat.');
+  if (/океан|ocean/i.test(A.raw) && /кип|boil/i.test(A.raw)) {
+    pack.develop = {
+      ru: ['Представь: над океаном поднимается пар.', 'Побережья эвакуируют. Морские экосистемы гибнут.'],
+      en: ['Imagine steam rising over the ocean.', 'Coasts are evacuated. Marine ecosystems collapse.'],
+    };
+    pack.explain = T('Это фантастическое допущение, а не прогноз: нужен огромный приток энергии.',
+      'This is a fictional premise, not a forecast: it requires an enormous energy input.');
+  }
   const topic = A.raw;
   const expertId = pack.expert;
   const sightingRu = pack.sighting.ru.replace('{T}', () => topic);
@@ -455,7 +490,7 @@ export function buildStoryScenes(A, {nChars = 2} = {}) {
       light: lightFor('street', 'day'), ambience: 'street', minDur: 6,
       actors: [{char: 'hero', x: 150, facing: 'r'}],
       lines: [
-        ln('a', 'narrator', 'На улице всё как обычно. Почти как обычно.', 'Outside everything is normal. Almost normal.'),
+        ln('a', 'narrator', pack.develop.ru[0], pack.develop.en[0]),
         ln('b', 'narrator', sightingRu, sightingEn, {pause: 0.4}),
       ],
       beats: [
@@ -577,8 +612,8 @@ export function buildStoryScenes(A, {nChars = 2} = {}) {
       musicLevel: 0.95, fx: pack.fx || [], transition: {in: 'dip', out: 'cut'},
       actors: [{char: 'hero', x: 400, facing: 'r'}],
       lines: [
-        ln('a', 'narrator', `«${topic}» — вот о чём будут говорить завтра.`, `"${topic}" — this is what everyone will talk about tomorrow.`, {pause: 0.4}),
-        ln('b', 'narrator', 'Ты делаешь шаг. Ещё один. И всё меняется.', 'You take a step. Then another. And everything changes.'),
+        ln('a', 'narrator', pack.develop.ru[1], pack.develop.en[1], {pause: 0.4}),
+        ln('b', 'narrator', pack.explain.ru, pack.explain.en),
       ],
       beats: [
         // NB: the next action beat interrupts a move — keep the walk short
@@ -667,6 +702,17 @@ export function buildStoryScenes(A, {nChars = 2} = {}) {
   ];
 
   void nChars;
+  if (compact) {
+    // A short cut keeps complete causal beats, not chopped-off topic text.
+    const hook = defs.find(d => d.n === 'hook').scene;
+    hook.lines = [ln('a', 'narrator', A.premise.ru, A.premise.en)];
+    const encounter = defs.find(d => d.n === 'encounter').scene;
+    encounter.lines = [ln('a', 'narrator', pack.develop.ru[0], pack.develop.en[0])];
+    const climax = defs.find(d => d.n === 'climax').scene;
+    climax.lines = [ln('a', 'narrator', pack.develop.ru[1], pack.develop.en[1])];
+    const finale = defs.find(d => d.n === 'finale').scene;
+    finale.lines = [ln('b', 'narrator', 'Как теперь жить рядом?', 'How do we live together now?')];
+  }
   return {defs, extras, expertId};
 }
 

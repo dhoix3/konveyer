@@ -155,3 +155,121 @@ Project data stays on disk, so CLI and UI are fully interchangeable: `node rende
 | `Unknown line anchor` in timeline | a beat refers to a removed line — fix the script |
 | QA says *not touching the ground* | the pose needs a `seatH` that matches the furniture (bed 62, chair 80) |
 | Scene does not update | run `timeline` after editing `project.json`, then `scenes --only <id>` |
+
+## Обновление: Windows 11 / PowerShell
+
+Работайте из `engine`. GUI остаётся основным рабочим пространством.
+Перед обновлением сохраните резервную копию пользовательских `projects/`, `output/`
+и настроек. Обновляйте рабочую ветку обычным fast-forward после публикации обновления;
+не используйте `reset --hard` или очистку пользовательских каталогов.
+
+```powershell
+Set-Location .\engine
+npm ci
+npm test
+npm run typecheck
+node .\render.mjs doctor
+node .\render.mjs ui --port 7788
+Start-Process 'http://localhost:7788'
+```
+
+Если Piper уже установлен, **не устанавливайте Python, Piper или Denis повторно**.
+Диспетчер ищет `piper-env\Scripts\python.exe`, `.venv\Scripts\python.exe`,
+затем POSIX-окружения и системный Python. Существующие модели должны находиться в
+`engine\models\piper\`, например `ru_RU-denis-medium.onnx` и
+`ru_RU-denis-medium.onnx.json`. Проверка без синтеза:
+
+```powershell
+.\piper-env\Scripts\python.exe .\tools\tts.py --version
+Test-Path .\models\piper\ru_RU-denis-medium.onnx
+Test-Path .\models\piper\ru_RU-denis-medium.onnx.json
+```
+
+Для **новой**, ещё не настроенной установки (не существующего Piper) создайте
+виртуальное окружение и установите `numpy piper-tts`; `npm ci` устанавливает только
+Node-зависимости. Первый запуск отсутствующей модели по-прежнему требует сети.
+Не добавляйте модели в Git.
+
+### Chrome: без обязательного скачивания Headless Shell
+
+Стандартные установки Chrome в Program Files, Program Files (x86) и LocalAppData
+на Windows определяются автоматически. Явное указание имеет наивысший приоритет:
+
+```powershell
+$env:REMOTION_BROWSER_EXECUTABLE = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+Test-Path $env:REMOTION_BROWSER_EXECUTABLE
+node .\render.mjs doctor
+node .\render.mjs ui --port 7788
+```
+
+Переменная должна быть задана **до запуска GUI**, так как дочерние процессы наследуют
+окружение сервера. Этот путь передаётся `ensureBrowser`, `selectComposition`,
+`renderMedia` и `renderStill`. Если задан несуществующий файл, приложение не пытается
+незаметно скачать другой браузер. При отсутствии системного браузера используется
+существующий кеш Remotion. Новая загрузка по умолчанию запрещена и разрешается явно:
+
+```powershell
+$env:REMOTION_ALLOW_BROWSER_DOWNLOAD = '1'
+# Только если действительно хотите скачать браузер и сеть это позволяет.
+```
+
+### Работа через GUI
+
+1. Введите конкретную тему (например, «динозавры вернулись в современный мир»),
+   язык, 25–180 секунд, 1–3 персонажа, голос и стиль. Оставьте шаблон `авто`,
+   чтобы категория не заменяла вашу тему; явный шаблон — осознанный ручной выбор.
+2. Нажмите **Создать проект**, затем **Предпросмотр сценария**.
+3. Нажмите **Проверить компоненты**; диагностика выводится в журнал.
+4. Запустите генерацию. Статусы и журнал — фактические; искусственного процента нет.
+   Одновременные задачи одного проекта блокируются и между GUI и CLI.
+5. MP4 доступен во встроенном проигрывателе, по ссылке скачивания и в
+   `output\<id>\FINAL.mp4` (черновик — `DRAFT.mp4`). Кнопки папок открывают
+   Explorer на компьютере, где запущен сервер, а не на удалённом клиенте.
+
+Файл MP4, сохранившийся от прежнего запуска, не доказывает успешность нового:
+проверяйте статусы `final` и `qa`, время файла и журнал. GUI намеренно не удаляет
+старые результаты при ошибках. Сервер предназначен для доверенной локальной сети;
+не публикуйте порт в открытый интернет.
+
+### Повторный запуск и диагностика
+
+```powershell
+node .\render.mjs voice my-film --force
+node .\render.mjs timeline my-film
+node .\render.mjs scenes my-film --only s03 --force --concurrency 1
+node .\render.mjs sound my-film
+node .\render.mjs render my-film
+node .\render.mjs final my-film
+node .\render.mjs qa my-film
+```
+
+После изменения текста или голоса сначала выполните `voice`, затем `timeline`.
+Устаревший TTS-манифест вызывает понятную ошибку, а не подстановку прежней речи.
+Изменение `project.json` также делает новый план неактуальным. Старые планы без
+поля fingerprint читаются для совместимости; рекомендуется перестроить их.
+Пересэмплированный звук кешируется по содержимому WAV, не по дате файла.
+При изменении аудио пересоберите `sound` и `final`.
+
+Блокировка `.pipeline.lock` снимается при нормальном выходе; после аварии lock
+завершившегося процесса восстанавливается при следующем запуске. Если lock повреждён,
+сначала убедитесь в Диспетчере задач, что генерация не идёт, и лишь затем удалите
+**только `.pipeline.lock`**, не проект. Кнопка остановки на Windows использует
+`taskkill /T /F`, чтобы завершить также Python/FFmpeg/Chrome; готовые файлы остаются.
+
+Логи: `projects\<id>\logs\`; состояния: `state.json`; QA: `qa_report.json`.
+На 8 ГБ RAM сохранён один render worker по умолчанию. Увеличение `--concurrency`
+может привести к нехватке памяти. Не запускайте много разных проектов одновременно.
+
+### Что проверяют тесты
+
+`npm test` запускает `runtime.mjs`, прежние 30 планов/28 видов реквизита/CRLF и
+матрицу тем. Runtime-тесты проверяют поиск Chrome (Windows-пути моделируются),
+реальный `ensureBrowser` без загрузки и запуска фиктивного тестового файла,
+инвалидацию TTS-кеша, ошибки подготовки Piper, настоящее пересэмплирование FFmpeg,
+блокировку CLI, GUI API, JSON, защиту запуска, предпросмотр и Range-запросы.
+Тестовые файлы изолированы и удаляются только из созданных тестом каталогов.
+
+**Это не замена локальному end-to-end тесту:** требуется установленный Chrome,
+Piper/Denis и numpy. Создайте отдельный проект с темой про динозавров, выберите
+25 секунд и TTS, запустите всё, прослушайте реплики, проверьте губы/субтитры,
+длительность и QA. В среде агента этих бинарных компонентов нет.

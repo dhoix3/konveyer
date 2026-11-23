@@ -5,6 +5,7 @@
   "type": "module",
   "description": "What If Cine Studio render engine (Remotion 4 + React 18 + SVG)",
   "scripts": {
+    "test": "node tests/runtime.mjs && node tests/regressions.mjs && node tests/topics.mjs --cleanup",
     "studio": "remotion studio src/index.ts",
     "render": "node render.mjs",
     "doctor": "node render.mjs doctor",

@@ -1,10 +1,9 @@
 // TIMELINE stage: project.json + voice manifest -> plan.json (all times numeric, shots generated, scenes sized).
+import {ttsLineHash} from './voice.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import {projectDir, readJson, writeJson, sha1, FPS, WIDTH, HEIGHT} from './lib.mjs';
-import {estimateLine} from './script.mjs';
-
-const LEAD = 0.7, TAIL = 0.9, GAP = 0.3;
+import {estimateLine, LEAD, TAIL, GAP} from './script.mjs';
 const MOVES = ['push', 'drift', 'pan', 'dolly', 'pull', 'crane'];
 const TYPE_CYCLE = ['wide', 'medium', 'close'];
 const TYPE_ORDER = ['wide', 'medium', 'close', 'establishing', 'insert', 'extreme_close'];
@@ -81,7 +80,15 @@ export function buildPlan(id) {
     const lines = sc.lines.map((l) => {
       totalLines++;
       const m = mf.lines[l.id];
-      const file = m && fs.existsSync(path.join(dir, m.file)) ? m.file : undefined;
+      let file;
+      if (m) {
+        const resolved = typeof m.file === 'string' ? path.resolve(dir, m.file) : '';
+        const relative = path.relative(dir, resolved);
+        const safe = resolved && !relative.startsWith('..') && !path.isAbsolute(relative);
+        const current = mf.source !== 'tts' || m.hash === ttsLineHash(l, project);
+        if (safe && current && Number.isFinite(m.dur) && m.dur > 0 && fs.existsSync(resolved)) file = m.file;
+        else throw new Error(`Voice cache invalid for ${l.id}: text/voice changed, missing audio or invalid duration/path. Re-run voice ${id}.`);
+      }
       if (file) usedFiles++;
       const dur = file ? m.dur : estimateLine(l.text[lang], l.voice, lang);
       const rs = {...l, sceneStart: +c.toFixed(3), sceneEnd: +(c + dur).toFixed(3), file};
@@ -112,7 +119,7 @@ export function buildPlan(id) {
   });
   const voiceSource = usedFiles === totalLines && totalLines > 0 ? (mf.source === 'files' ? 'tts' : mf.source) : 'estimated';
   const plan = {
-    version: 1, id: project.id, language: lang, title: project.title, fps, width: WIDTH, height: HEIGHT,
+    version: 1, projectHash: sha1(project), voiceManifestHash: sha1(mf), id: project.id, language: lang, title: project.title, fps, width: WIDTH, height: HEIGHT,
     totalFrames: frameCursor, totalSec: frameCursor / fps, voiceSource,
     characters: project.characters, voices: project.voices, scenes, music: {mood: project.settings.music},
   };
