@@ -221,8 +221,11 @@ export function probe(file) {
 // Python: explicitly prefer Piper virtual environment.
 export function python() {
   const candidates = [
+    // Windows layouts first (historical), then POSIX layouts.
     path.join(ENGINE, 'piper-env', 'Scripts', 'python.exe'),
     path.join(ENGINE, '.venv', 'Scripts', 'python.exe'),
+    path.join(ENGINE, 'piper-env', 'bin', 'python'),
+    path.join(ENGINE, '.venv', 'bin', 'python'),
     process.env.WHATIF_PYTHON,
     'python3',
     'python'

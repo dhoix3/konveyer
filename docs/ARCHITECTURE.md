@@ -37,14 +37,14 @@ Shots → continuous state (centre, zoom, rotation). Focus follows the subject w
 
 ## Pipeline tooling (`engine/tools`)
 
-`lib.mjs` (paths, state, logging, ffmpeg/ffprobe discovery, atomic JSON), `script.mjs` (ideas, templates, duration fitting), `voice.mjs` (Piper TTS, Whisper alignment, VAD fallback, clip cutting), `timeline.mjs`, `sound.mjs` + `mixer.py`, `qa.mjs`, `tts.py`, `gen_assets.py`.
+`lib.mjs` (paths, state, logging, ffmpeg/ffprobe discovery, atomic JSON), `script.mjs` (ideas, templates, duration fitting), `story.mjs` (freeform topic → domain → story scenes; supports arbitrary topics alongside the classic templates), `voice.mjs` (Piper TTS, Whisper alignment, VAD fallback, clip cutting), `timeline.mjs`, `sound.mjs` + `mixer.py`, `qa.mjs`, `tts.py` + `textnorm.py` (RU/EN text normalisation for TTS), `gen_assets.py`, `ui.mjs` (local web UI).
 
-## Studio (Next.js, repo root)
+## Web UI (`engine/tools/ui.mjs`)
 
-`src/app/page.tsx` UI; `src/app/api/studio/**` routes spawn `engine/render.mjs` as detached jobs (log tail polled by the UI), save edited scripts, upload audio/references and stream files with HTTP Range support. Project data stays on disk so CLI and UI are interchangeable.
+Zero-dependency `node:http` server started with `node render.mjs ui [--port 7788]`. It serves one HTML page and a tiny JSON API (`/api/state`, `/api/create`, `/api/run`, `/api/stop`, `/api/log`, `/file`). Every run spawns the existing `render.mjs` CLI as a detached job writing into `projects/<id>/logs/` — project data stays on disk, so CLI and UI are interchangeable; the UI owns no pipeline logic.
 
 ## Known limits
 
-* Story generation is template-based (3 full dramatic templates, parametrised by cast, duration, language, topic title); a free-text topic picks the nearest template. Add templates in `tools/script.mjs`.
+* Story generation: freeform topics are handled by `tools/story.mjs` (12 detected domains with dedicated scene pools) and the 3 classic templates remain available via `--template`; `idea` output is still template-based. Add domains/pools in `story.mjs`, full templates in `tools/script.mjs`.
 * Piper voices are synthetic; use `--audio` for human narration.
 * 1080p SVG rendering is CPU-heavy (≈ 2–8 min per minute of video on 4 cores).

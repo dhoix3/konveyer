@@ -30,7 +30,7 @@ except Exception:
 
 from textnorm import prepare
 
-TTS_VERSION = "tts-2"
+TTS_VERSION = "tts-3"
 TARGET_PEAK_DB = -3.0
 CHUNK_FADE = 0.006          # seconds, de-click at chunk joins
 LEAD_SILENCE = 0.06

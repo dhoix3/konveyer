@@ -5,9 +5,10 @@ Working directory for commands: `whatif-cine-studio/engine`. Outputs: `../output
 
 ## Workflow
 
+0. Optional: `node render.mjs ui` — local web form (topic, duration, language, voice, style, music) with stage buttons, live log and MP4 download; everything below works identically from the UI.
 1. `node render.mjs doctor` — must be all ✔.
 2. `node render.mjs idea --lang ru` — pick or invent a topic.
-3. `node render.mjs new <id> --lang ru --duration 50 --characters 2 --music tense [--topic "…"]`
+3. `node render.mjs new <id> --lang ru --duration 50 --characters 2 --music tense [--topic "…"]` — with `--topic` the story is generated around that topic (freeform, domain-aware); without it a template story is built. `--template auto|freeform|no_sleep|gravity|no_internet`.
 4. Review/edit `projects/<id>/project.json` (see *Script format*). Keep the dramaturgy intact.
 5. `node render.mjs voice <id>` (Piper TTS) or `voice <id> --audio narration.mp3` (user recording → Whisper → alignment).
 6. `node render.mjs timeline <id>` — runs plan QA; fix every error it prints.
@@ -51,7 +52,7 @@ Never claim a result without running QA and looking at at least a few frames.
 * **New action**: add a case in `src/char/track.ts` (`actionPose`) + name in `ActionName` (`lib/types.ts`) + `SHEET_ACTIONS` in `project/PoseSheet.tsx`. Render the pose sheet: `npx remotion still src/index.ts PoseSheet out.png --props='{"t":1.1}'` and verify anatomy.
 * **New environment**: `reg({id,name,interior,live:[…≥2…],layers})` in `src/bg/envs.tsx`; add surfaces via props, ground is y = 800.
 * **New prop**: entry in `PROPS` (`src/char/props.tsx`) with `top` (surface height) and `grip`.
-* **New story template**: `TEMPLATES` in `tools/script.mjs` (use `opt` to mark droppable scenes, `needs` for required cast).
+* **New story template**: `TEMPLATES` in `tools/script.mjs` (use `opt` to mark droppable scenes, `needs` for required cast). Freeform topic stories come from `tools/story.mjs` (domain detection + scene pools) — extend `DOMAINS`/`EXTRAS` there for richer topics.
 * **New SFX / music mood**: `tools/mixer.py` (`SFX`, `MOODS`).
 
 ## Failure handling

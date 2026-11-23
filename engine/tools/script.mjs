@@ -1,13 +1,22 @@
-// Script engine: IDEA -> SCRIPT. Story templates with the required dramaturgy
-// (hook -> title -> development -> rising stakes -> twist -> climax -> emotional finale -> question).
-// Narration is second person ("Ты просыпаешься..."). Output is project.json.
+// Script engine: IDEA -> SCRIPT. Three classic dramatic templates
+// (hook -> title -> development -> rising stakes -> twist -> climax ->
+// emotional finale -> question) plus a free-form generator for arbitrary
+// topics (see story.mjs).  Narration is second person ("Ты просыпаешься...").
+// Output is project.json.
 import {LIB_CHARS, LIB_VOICES} from '../src/lib/library.ts';
+import {analyzeTopic, buildStoryScenes, storyMeta, T, at, ln, L, S} from './story.mjs';
 
-const T = (ru, en) => ({ru, en});
-const at = (line, off = 0) => ({line, off});
-const ln = (id, voice, ru, en, extra = {}) => ({id, voice, text: T(ru, en), ...extra});
-const L = (key, x, y, color, rim, intensity, extra = {}) => ({key, x, y, color, rim, intensity, ...extra});
-const S = (o) => ({kind: 'story', transition: {in: 'cut', out: 'cut'}, musicLevel: 0.6, minDur: 4, props: [], pstates: [], sfx: [], beats: [], shots: [], lines: [], fx: [], ...o});
+// Re-exported for render.mjs / UI so option lists live in one place.
+export const MUSIC_MOODS = ['dark_ambient', 'tense', 'mystery', 'epic', 'emotional', 'lofi'];
+export const LANGS = ['ru', 'en'];
+// Video styles: affect music everywhere and the colour grade of free-form
+// stories (template stories keep their carefully chosen per-scene grades).
+export const STYLES = {
+  'cinematic-stickman': {label: T('Кинематографичный', 'Cinematic'), grade: null, music: null},
+  'noir': {label: T('Нуар', 'Noir'), grade: 'noir', music: 'mystery'},
+  'warm': {label: T('Тёплый', 'Warm'), grade: 'warm', music: 'emotional'},
+  'vivid': {label: T('Яркий', 'Vivid'), grade: 'teal_orange', music: 'epic'},
+};
 
 export const IDEAS = [
   {template: 'no_sleep', theme: 'body', ru: 'Что если ты больше никогда не уснёшь?', en: 'What if you never slept again?'},
@@ -23,8 +32,17 @@ export const IDEAS = [
 
 export function generateIdeas({lang = 'ru', count = 6, theme} = {}) {
   const pool = theme ? IDEAS.filter((i) => i.theme === theme) : IDEAS;
-  const src = pool.length ? pool : IDEAS;
-  return src.slice(0, count).map((i) => ({template: i.template, theme: i.theme, title: i[lang], ru: i.ru, en: i.en}));
+  if (pool.length) {
+    return pool.slice(0, count).map((i) => ({template: i.template, theme: i.theme, title: i[lang], ru: i.ru, en: i.en}));
+  }
+  // Unknown theme: build a real free-form concept for it instead of showing
+  // unrelated template ideas.
+  if (theme) {
+    const A = analyzeTopic(String(theme), lang);
+    const meta = storyMeta(A, {lang});
+    return [{template: 'freeform', theme: String(theme), topic: String(theme), title: meta.title[lang], ru: meta.title.ru, en: meta.title.en}];
+  }
+  return IDEAS.slice(0, count).map((i) => ({template: i.template, theme: i.theme, title: i[lang], ru: i.ru, en: i.en}));
 }
 
 // ------------------------------------------------------------------ templates
@@ -234,20 +252,28 @@ const TEMPLATES = {
   },
 };
 
+// Strong signals only: a template must really be the topic.  Loose words
+// (ocean, phone, money, dream…) hijacked unrelated topics into an unrelated
+// story — anything without a strong match goes to the free-form generator.
 const KEYWORDS = {
-  no_sleep: /сон|спат|уснё|уснешь|sleep|dream|мысл|thought|insomnia/i,
-  gravity: /гравит|земл|океан|космос|gravity|ocean|earth|space|планет|солнц|sun/i,
-  no_internet: /интернет|телефон|сеть|деньги|internet|phone|network|money|wifi/i,
+  no_sleep: /не спать|бессонниц|не усн|не сможешь усн|insomnia|can'?t sleep|without sleep|no sleep|never sleep|сон|спат|уснё|уснешь|sleep/i,
+  gravity: /гравит|gravity|невесомост|zero gravity|без гравитац/i,
+  no_internet: /интернет|internet|wi-?fi|без сети|offline|no internet/i,
 };
+
+/**
+ * Strong template match for a topic, or null (→ free-form story).
+ * A template is only picked when the topic really is about that template;
+ * arbitrary topics must never be replaced by an unrelated story.
+ */
 export function pickTemplate(topic = '', theme) {
-  for (const [k, re] of Object.entries(KEYWORDS)) if (re.test(topic)) return k;
-  const idea = IDEAS.find((i) => i.ru === topic || i.en === topic);
+  const t = String(topic || '');
+  for (const [k, re] of Object.entries(KEYWORDS)) if (re.test(t)) return k;
+  const idea = IDEAS.find((i) => i.ru === t || i.en === t);
   if (idea) return idea.template;
   const byTheme = IDEAS.find((i) => i.theme === theme);
   if (byTheme) return byTheme.template;
-  let h = 0;
-  for (const ch of topic) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return Object.keys(TEMPLATES)[h % Object.keys(TEMPLATES).length];
+  return null; // no strong match — the caller generates a free-form story
 }
 
 export function estimateLine(text, voice, lang) {
@@ -274,24 +300,93 @@ function localize(sc, sid) {
   };
 }
 
+const hashId = (s) => { let h = 5381; for (const ch of String(s)) h = ((h << 5) + h + ch.charCodeAt(0)) >>> 0; return h; };
+
 export function buildProject(opts = {}) {
   const lang = opts.language === 'en' ? 'en' : 'ru';
   const duration = Math.max(25, Math.min(180, Number(opts.duration) || 45));
-  const topic = (opts.topic || '').trim();
-  const tid = opts.template || pickTemplate(topic, opts.theme);
-  const tpl = TEMPLATES[tid];
+  let topic = String(opts.topic || '').replace(/\s+/g, ' ').trim();
+  if (topic.length > 200) topic = topic.slice(0, 200);
+  if (opts.template && opts.template !== 'freeform' && !TEMPLATES[opts.template]) {
+    throw new Error(`unknown template "${opts.template}" (available: ${Object.keys(TEMPLATES).join(', ')}, freeform)`);
+  }
   const nChars = Math.max(1, Math.min(3, Number(opts.characters) || 2));
-  const castIds = tpl.cast.slice(0, nChars);
+  const styleKey = Object.prototype.hasOwnProperty.call(STYLES, opts.style) ? opts.style : 'cinematic-stickman';
+  const style = STYLES[styleKey];
+
+  // ---- resolve the story source -------------------------------------------------
+  // explicit template -> template; topic strongly matching a template -> template;
+  // anything else -> free-form story built around the user's topic.
+  let mode, tid = null, tpl = null, A = null, meta;
+  if (opts.template === 'freeform') {
+    if (!topic) throw new Error('freeform template requires a topic: --topic "..."');
+    mode = 'freeform';
+  } else if (opts.template) {
+    mode = 'template'; tid = opts.template; tpl = TEMPLATES[tid];
+  } else if (topic) {
+    const kw = pickTemplate(topic, opts.theme);
+    if (kw) { mode = 'template'; tid = kw; tpl = TEMPLATES[tid]; }
+    else mode = 'freeform';
+  } else {
+    // No topic: pick a full template story deterministically (by theme or id)
+    // so `new my-film` always produces a complete, varied film.
+    const byTheme = opts.theme ? IDEAS.find((i) => i.theme === opts.theme) : null;
+    const chosen = byTheme || IDEAS[hashId(opts.id || 'film') % IDEAS.length];
+    mode = 'template'; tid = chosen.template; tpl = TEMPLATES[tid];
+  }
+
+  let poolDefs, extras = [];
+  if (mode === 'freeform') {
+    A = analyzeTopic(topic, lang);
+    meta = storyMeta(A, {lang});
+    const built = buildStoryScenes(A, {nChars});
+    poolDefs = built.defs;
+    extras = built.extras;
+  } else {
+    poolDefs = tpl.scenes();
+    meta = {title: tpl.title, logline: tpl.logline, mainIdea: tpl.mainIdea, cast: tpl.cast, music: tpl.music, domain: tid};
+  }
+  const music = opts.music || style.music || meta.music;
+  const castIds = meta.cast.slice(0, nChars);
   const has = (c) => castIds.includes(c);
 
   // choose scenes for the target duration
-  let defs = tpl.scenes().filter((d) => !(d.needs || []).some((n) => !has(n)));
+  let defs = poolDefs.filter((d) => !(d.needs || []).some((n) => !has(n)));
   const TITLE = 4.2;
   const total = () => defs.reduce((a, d) => a + estScene(d.scene, lang), 0) + TITLE;
   while (total() > duration * 1.12) {
     const droppable = defs.filter((d) => d.opt).sort((a, b) => a.opt - b.opt)[0];
     if (!droppable) break;
     defs = defs.filter((d) => d !== droppable);
+  }
+  // Short films: core scenes alone can exceed the budget (free-form narration
+  // is text-length driven).  Trim trailing narration lines from the back of
+  // the arc so the script fits; the finale's overlay line is never touched.
+  // Beats/sfx anchored to a removed line are filtered out below via ok().
+  while (total() > duration * 1.12) {
+    let trimmed = false;
+    for (let i = defs.length - 1; i >= 0; i--) {
+      const sc = defs[i].scene;
+      if (sc.lines.length < 2) continue;
+      const last = sc.lines[sc.lines.length - 1];
+      const ov = sc.overlay?.t;
+      if (ov && typeof ov === 'object' && ov.line === last.id) continue;
+      sc.lines = sc.lines.slice(0, -1);
+      trimmed = true;
+      break;
+    }
+    if (!trimmed) break;
+  }
+  // Long videos: add extra development scenes from the free-form pool so the
+  // story does not become a few over-stretched scenes.
+  if (extras.length) {
+    let insertAt = defs.findIndex((d) => d.n === 'climax');
+    if (insertAt < 0) insertAt = defs.length;
+    for (const ex of extras) {
+      if (total() >= duration * 0.85) break;
+      defs.splice(insertAt, 0, ex);
+      insertAt += 1;
+    }
   }
   const extra = duration - total();
 
@@ -308,13 +403,17 @@ export function buildProject(opts = {}) {
     const lids = new Set(sc.lines.map((l) => l.id));
     const ok = (x) => !(x.t && typeof x.t === 'object' && 'line' in x.t) || lids.has(x.t.line);
     sc.beats = sc.beats.filter(ok); sc.sfx = sc.sfx.filter(ok); sc.pstates = sc.pstates.filter(ok);
-    if (extra > 3 && !d.opt) sc.minDur = estScene(d.scene, lang) + extra / defs.length;
+    // spread the remaining duration over ALL surviving scenes so the final
+    // length matches the request (previously only required scenes stretched
+    // and long videos undershot the target).
+    if (extra > 3) sc.minDur = estScene(d.scene, lang) + extra / defs.length;
+    if (mode === 'freeform' && style.grade) sc.light = {...sc.light, grade: style.grade};
     scenes.push(sc);
     if (i === 0) {
       scenes.push(S({
-        id: `s${String(k++).padStart(2, '0')}`, kind: 'title', title: tpl.title, env: {id: 'void', time: 'night'},
+        id: `s${String(k++).padStart(2, '0')}`, kind: 'title', title: meta.title, env: {id: 'void', time: 'night'},
         light: L('none', 960, 400, '#9ec4ff', '#9ec4ff', 0.3, {grade: 'cold'}), ambience: 'silence', musicLevel: 0.9, minDur: TITLE,
-        actors: [], overlay: {type: 'caption', text: tpl.logline, t: 1.0}, transition: {in: 'dip', out: 'dip'},
+        actors: [], overlay: {type: 'caption', text: meta.logline, t: 1.0}, transition: {in: 'dip', out: 'dip'},
         sfx: [{t: 0.2, kind: 'boom', gain: 0.9}, {t: 0.2, kind: 'whoosh', gain: 0.6}],
         shotPlan: [{type: 'establishing', move: 'push'}],
       }));
@@ -325,12 +424,23 @@ export function buildProject(opts = {}) {
   castIds.forEach((c) => used.add(c));
   const chars = LIB_CHARS.filter((c) => used.has(c.id));
   const voiceIds = new Set(['narrator', ...chars.map((c) => c.voice)]);
-  const title = topic && !IDEAS.some((i) => i.ru === topic || i.en === topic) ? T(lang === 'ru' ? topic : tpl.title.ru, lang === 'en' ? topic : tpl.title.en) : tpl.title;
-  const id = opts.id || tid;
+  let title;
+  if (mode === 'freeform') {
+    title = meta.title; // the premise, built from the user's topic
+  } else {
+    title = topic && !IDEAS.some((i) => i.ru === topic || i.en === topic)
+      ? T(lang === 'ru' ? topic : tpl.title.ru, lang === 'en' ? topic : tpl.title.en)
+      : tpl.title;
+  }
+  const id = opts.id || tid || 'film';
   return {
-    version: 1, id, language: lang, title, logline: tpl.logline, mainIdea: tpl.mainIdea,
-    idea: {template: tid, topic: topic || tpl.title[lang], theme: opts.theme || 'general'},
-    settings: {duration, style: opts.style || 'cinematic-stickman', characters: nChars, voiceMode: opts.voiceMode || 'tts', music: opts.music || tpl.music, fps: 24, width: 1920, height: 1080},
+    version: 1, id, language: lang, title, logline: meta.logline, mainIdea: meta.mainIdea,
+    idea: {
+      template: mode === 'freeform' ? 'freeform' : tid,
+      topic: topic || meta.title[lang],
+      theme: opts.theme || (mode === 'freeform' ? A.domain : 'general'),
+    },
+    settings: {duration, style: styleKey, characters: nChars, voiceMode: opts.voiceMode || 'tts', music, fps: 24, width: 1920, height: 1080},
     characters: chars, voices: LIB_VOICES.filter((v) => voiceIds.has(v.id)), scenes, references: [],
   };
 }

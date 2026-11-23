@@ -488,6 +488,25 @@ def _decimal_words(val):
     return sign + whole_word + " " + whole_form + " " + " ".join(cardinal(int(d)) for d in digits) + " десятитысячных"
 
 
+_DIGITS_RU = ["ноль", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"]
+
+
+def _replace_ip(text):
+    """Spell IPv4 addresses digit-by-digit.
+
+    Without this a dotted quad is split into decimal numbers and read as
+    "сто девяносто две целых …", which is nonsense.
+    """
+    def repl(m):
+        parts = m.group(0).split(".")
+        out = []
+        for i, p in enumerate(parts):
+            words = " ".join(_DIGITS_RU[int(d)] for d in p)
+            out.append(words + (" точка" if i < len(parts) - 1 else ""))
+        return " ".join(out)
+    return re.sub(r"(?<!\d)\d{1,3}(?:\.\d{1,3}){3}(?!\d)", repl, text)
+
+
 def _replace_dates(text):
     # 21.03.2025
     def dmy(m):
@@ -542,6 +561,9 @@ def _replace_times(text):
 
 
 def _replace_numbers(text):
+    # "24/7" — the fraction rule below would read it as twenty-four over seven.
+    text = re.sub(r"\b24/7\b", "круглосуточно", text)
+
     # Fractions like 1/2, 3/4
     def frac(m):
         a, b = int(m.group(1)), int(m.group(2))
@@ -586,13 +608,18 @@ def _replace_numbers(text):
 
 def _replace_abbrev(text):
     # Order matters: multi-dot abbreviations first.
+    # Lookbehind guard: never match these letter sequences inside a real word —
+    # otherwise "потолок..." becomes "потолоколо" (ок. → около) etc.
+    # A trailing space keeps "ул.Ленин" from gluing into one word; _cleanup
+    # collapses the doubled spaces afterwards.
+    G = r"(?<![а-яёА-ЯЁA-Za-z])"
     pairs = [
-        (r"т\.\s*е\.", "то есть"), (r"т\.\s*д\.", "так далее"), (r"т\.\s*п\.", "тому подобное"),
-        (r"т\.\s*к\.", "так как"), (r"т\.\s*ч\.", "том числе"), (r"и\.\s*т\.\s*д\.", "и так далее"),
-        (r"др\.", "другие"), (r"гг\.", "годы"), (r"вв\.", "века"),
-        (r"ул\.", "улица"), (r"пр\.", "проспект"), (r"им\.", "имени"),
-        (r"рис\.", "рисунок"), (r"стр\.", "страница"), (r"см\.", "смотри"),
-        (r"напр\.", "например"), (r"ок\.", "около"), (r"№\s*", "номер "),
+        (G + r"т\.\s*е\.", "то есть "), (G + r"т\.\s*д\.", "так далее "), (G + r"т\.\s*п\.", "тому подобное "),
+        (G + r"т\.\s*к\.", "так как "), (G + r"т\.\s*ч\.", "том числе "), (G + r"и\.\s*т\.\s*д\.", "и так далее "),
+        (G + r"др\.", "другие "), (G + r"гг\.", "годы "), (G + r"вв\.", "века "),
+        (G + r"ул\.", "улица "), (G + r"пр\.", "проспект "), (G + r"им\.", "имени "),
+        (G + r"рис\.", "рисунок "), (G + r"стр\.", "страница "), (G + r"см\.", "смотри "),
+        (G + r"напр\.", "например "), (G + r"ок\.", "около "), (r"№\s*", "номер "),
         (r"&", " и "), (r"≈", "примерно "), (r"\+", "плюс "),
     ]
     for pat, rep in pairs:
@@ -662,7 +689,9 @@ def _cleanup(text):
     text = text.replace("…", "...").replace("–", "-").replace("—", " - ")
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\s+([,.;:!?])", r"\1", text)
-    text = re.sub(r"([,.;:!?])(?=[^\s\d])", r"\1 ", text)
+    # Add the missing space after punctuation, but never between the dots of
+    # an ellipsis ("потолок..." must not become "потолок. . .").
+    text = re.sub(r"([,.;:!?])(?=[^\s\d.])", r"\1 ", text)
     text = re.sub(r"\s{2,}", " ", text)
     return text.strip()
 
@@ -754,6 +783,7 @@ def prepare(text, lang="ru", opts=None):
     # Russian typography often groups thousands with a thin/non-breaking
     # space: "1 670" must be read as one number, not "one" + "670".
     work = re.sub(r"(?<=\d)[ \u00a0\u2009\u202f](?=\d{3}(?!\d))", "", work)
+    work = _replace_ip(work)
     work = _replace_dates(work)
     work = _replace_times(work)
     work = _replace_units(work)
@@ -783,11 +813,17 @@ def prepare(text, lang="ru", opts=None):
             p = p.strip()
             if not p:
                 continue
+            # Natural breathing pauses: a question hangs a little longer than
+            # a statement, a colon/ellipsis gets a full beat, a comma-level
+            # split inside a sentence stays short.
             last = j == len(pieces) - 1
             if last:
-                pause = 0.38 if p.endswith((".", "!", "?")) else 0.24
+                if p.endswith("..."):
+                    pause = 0.60
+                else:
+                    pause = {".": 0.38, "!": 0.42, "?": 0.46, ":": 0.50, ";": 0.32}.get(p[-1], 0.24)
             else:
-                pause = 0.20
+                pause = 0.30 if p.endswith((":", ";")) else 0.20
             chunks.append({"text": p, "pause": round(pause * pause_scale, 3)})
     return {"normalized": work, "chunks": chunks, "sentences": sentences}
 
@@ -800,21 +836,27 @@ def _self_test():
     cases = [
         ("В 8:15 земля перестаёт тебя держать.", "в восемь пятнадцать земля перестаёт тебя держать"),
         ("Часы показывают 3:07.", "часы показывают три ноль семь"),
-        ("Это 30% от 1 670 км/ч.", "это тридцать процентов от одна тысяча шестьсот семьдесят километров в час"),
+        ("Это 30% от 1 670 км/ч.", "это тридцать процентов от одной тысячи шестисот семидесяти километров в час"),
         ("12 марта 2025 года.", "двенадцатого марта две тысячи двадцать пятого года"),
         ("В 2025 году.", "в две тысячи двадцать пятом году"),
         ("2–3 секунды.", "два-три секунды"),
-        ("1,5 литра.", "одна целых пять десятых литра"),
+        ("1,5 литра.", "полтора литра"),
         ("т.е. это так.", "то есть это так"),
         ("Wi-Fi и GPS.", "вай-фай и джи-пи-эс"),
+        # regression guards for known bugs
+        ("24/7", "круглосуточно"),
+        ("Позвони с 192.168.0.1.", "один девять два точка один шесть восемь"),
+        ("Потолок... и стены.", "потолок... и стены"),
+        ("Уровень 10%.", "десять процентов"),
+        ("От 5 до 10 минут.", "от пяти до десяти минут"),
     ]
     ok = 0
     for src, expect in cases:
         got = prepare(src, "ru")["normalized"].lower()
-        # Normalisation is intentionally conservative; report mismatches but
-        # only fail on clearly broken output (digits / latin leftovers).
+        # Strict: the expected spoken form must appear and no digits / latin
+        # may survive (protected URLs are not part of these cases).
         bad = bool(re.search(r"\d", got)) or bool(re.search(r"[A-Za-z]{2,}", got))
-        if expect in got or not bad:
+        if expect in got and not bad:
             ok += 1
         else:
             print("FAIL", src, "=>", got, "expected ~", expect)

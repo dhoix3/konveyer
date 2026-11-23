@@ -6,6 +6,9 @@ import {estimateLine} from './script.mjs';
 
 const LEAD = 0.7, TAIL = 0.9, GAP = 0.3;
 const MOVES = ['push', 'drift', 'pan', 'dolly', 'pull', 'crane'];
+const TYPE_CYCLE = ['wide', 'medium', 'close'];
+const TYPE_ORDER = ['wide', 'medium', 'close', 'establishing', 'insert', 'extreme_close'];
+const hashStr = (s) => { let h = 5381; for (const ch of String(s)) h = ((h << 5) + h + ch.charCodeAt(0)) >>> 0; return h; };
 
 export function resolveT(t, starts) {
   if (typeof t === 'number') return t;
@@ -14,14 +17,53 @@ export function resolveT(t, starts) {
   return s + (t.off || 0);
 }
 
+// Build the shot list for a scene.  The authored shotPlan is followed exactly
+// while it lasts; after that the generator keeps the film visually varied:
+// no identical shot types or camera moves back-to-back, plus deterministic
+// low/high angles and occasional dutch tilt so repeated topics (and long
+// scenes) do not fall into the same visual rhythm.
 function autoShots(sc, dur) {
-  const plan = sc.shotPlan?.length ? sc.shotPlan : [{type: 'wide'}, {type: 'medium', char: sc.actors[0]?.char}, {type: 'close', char: sc.actors[0]?.char, at: 'head'}];
-  const n = sc.kind === 'title' ? 1 : Math.max(1, Math.min(14, Math.round(dur / 3.4)));
+  const base = sc.shotPlan?.length ? sc.shotPlan : null;
+  const plan = base || [{type: 'wide'}, {type: 'medium', char: sc.actors[0]?.char}, {type: 'close', char: sc.actors[0]?.char, at: 'head'}];
+  // Shot count: ~one shot per 3.4 s, but never fewer than the authored plan
+  // can fill at a watchable pace (≥ 2.5 s per shot).
+  let n = sc.kind === 'title' ? 1 : Math.max(1, Math.min(14, Math.round(dur / 3.4)));
+  if (sc.kind !== 'title' && base) n = Math.max(n, Math.min(base.length, Math.floor(dur / 2.5)));
+  const seed = hashStr(sc.id || 'scene');
   const shots = [];
+  let prevType = null, prevMove = null;
   for (let i = 0; i < n; i++) {
     const p = plan[i % plan.length];
+    const scripted = i < plan.length;
+    let type = p.type;
+    if (i > 0 && type === prevType) {
+      const at = Math.max(0, TYPE_ORDER.indexOf(type));
+      type = TYPE_ORDER[(at + 1) % TYPE_ORDER.length];
+      if (type === prevType) type = TYPE_ORDER[(at + 2) % TYPE_ORDER.length];
+    }
     const focus = p.focus ? p.focus : p.char ? {char: p.char, at: p.at} : p.prop ? {prop: p.prop} : undefined;
-    shots.push({t: +(dur * i / n).toFixed(3), type: p.type, focus, move: i < plan.length ? p.move || MOVES[i % MOVES.length] : MOVES[(i + 2) % MOVES.length], angle: p.angle, dutch: p.dutch, zoom: p.zoom, cut: i > 0 && p.type === 'establishing' ? 'dip' : 'cut'});
+    let move;
+    if (scripted) move = p.move || MOVES[(seed + i) % MOVES.length];
+    else {
+      // deterministic pick that never repeats the previous move
+      let k = (seed + i * 3) % MOVES.length;
+      if (MOVES[k] === prevMove) k = (k + 1) % MOVES.length;
+      move = MOVES[k];
+    }
+    let angle = p.angle;
+    let dutch = p.dutch;
+    if (!scripted) {
+      const v = (seed >>> ((i % 8) * 3)) % 11;
+      if (v === 0 && (type === 'wide' || type === 'medium')) angle = 'low';
+      else if (v === 1 && (type === 'wide' || type === 'medium')) angle = 'high';
+      if (type === 'close' && v === 2) dutch = (seed % 2 ? 1 : -1) * 4;
+      if (v === 3 && move === 'pan') dutch = (seed % 2 ? 1 : -1) * 3;
+    }
+    shots.push({
+      t: +(dur * i / n).toFixed(3), type, focus, move, angle, dutch, zoom: p.zoom,
+      cut: i > 0 && p.type === 'establishing' ? 'dip' : 'cut',
+    });
+    prevType = type; prevMove = move;
   }
   return shots;
 }

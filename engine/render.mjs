@@ -8,7 +8,8 @@ import {
   ENGINE, PROJECTS, OUTPUT, FPS, projectDir, outDir, ensure, readJson, writeJson, sha1, fileSha, logger, markStage, loadState, saveState,
   ff, probe, FFMPEG, runPython, parseArgs, ENGINE_VERSION, sourceHash,
 } from './tools/lib.mjs';
-import {buildProject, generateIdeas, TEMPLATE_IDS} from './tools/script.mjs';
+import {buildProject, generateIdeas, TEMPLATE_IDS, MUSIC_MOODS, LANGS, STYLES} from './tools/script.mjs';
+import {startUI} from './tools/ui.mjs';
 import {runVoice} from './tools/voice.mjs';
 import {buildPlan} from './tools/timeline.mjs';
 import {runSound} from './tools/sound.mjs';
@@ -48,15 +49,34 @@ async function cmdIdea() {
 }
 
 async function cmdNew(id) {
-  if (!id) throw new Error('usage: new <id> [--lang ru|en] [--duration 45] [--topic "..."] [--theme ..] [--characters 1-3] [--voice tts|upload|files|none] [--music mood] [--style ..]');
+  if (!id) throw new Error('usage: new <id> [--lang ru|en] [--duration 45] [--topic "..."] [--theme ..] [--characters 1-3] [--voice tts|upload|files|none] [--music mood] [--style ..] [--template gravity|no_sleep|no_internet|freeform]');
+  // ---- input validation (fail fast, before touching the filesystem)
+  if (args.lang && !LANGS.includes(String(args.lang))) throw new Error(`--lang must be one of: ${LANGS.join(', ')} (got "${args.lang}")`);
+  if (args.music && !MUSIC_MOODS.includes(String(args.music))) throw new Error(`--music must be one of: ${MUSIC_MOODS.join(', ')} (got "${args.music}")`);
+  if (args.style && !Object.prototype.hasOwnProperty.call(STYLES, String(args.style))) throw new Error(`--style must be one of: ${Object.keys(STYLES).join(', ')} (got "${args.style}")`);
+  if (args.template && args.template !== 'freeform' && args.template !== 'auto' && !TEMPLATE_IDS.includes(String(args.template))) throw new Error(`--template must be one of: ${TEMPLATE_IDS.join(', ')}, freeform, auto (got "${args.template}")`);
+  if (args.voice && !['tts', 'upload', 'files', 'none'].includes(String(args.voice))) throw new Error(`--voice must be one of: tts, upload, files, none (got "${args.voice}")`);
+  if (args.duration !== undefined && !Number.isFinite(Number(args.duration))) throw new Error(`--duration must be a number 25-180 (got "${args.duration}")`);
+  if (args.duration !== undefined && (Number(args.duration) < 25 || Number(args.duration) > 180)) throw new Error(`--duration must be 25-180 seconds (got "${args.duration}")`);
+  if (args.characters !== undefined && !(Number(args.characters) >= 1 && Number(args.characters) <= 3)) throw new Error('--characters must be 1, 2 or 3');
+  if (args.topic && String(args.topic).length > 300) throw new Error('--topic is too long (max 300 characters)');
+  if (args.topic && !String(args.topic).trim()) throw new Error('--topic is empty');
+
   const dir = ensure(projectDir(id));
   const log = logger(id, 'script');
-  const project = buildProject({id, language: args.lang, duration: args.duration, topic: args.topic, theme: args.theme, characters: args.characters, voiceMode: args.voice, music: args.music, style: args.style, template: args.template});
-  if (fs.existsSync(path.join(dir, 'project.json')) && !args.force) throw new Error(`project ${id} exists (use --force to overwrite)`);
+  if (args.topic && String(args.topic).length > 200) log.warn('topic longer than 200 chars — it will be truncated');
+  const existed = fs.existsSync(path.join(dir, 'project.json'));
+  if (existed && !args.force) throw new Error(`project ${id} exists (use --force to overwrite)`);
+  const project = buildProject({id, language: args.lang, duration: args.duration, topic: args.topic, theme: args.theme, characters: args.characters, voiceMode: args.voice, music: args.music, style: args.style, template: args.template === 'auto' ? undefined : args.template});
   writeJson(path.join(dir, 'project.json'), project);
   writeJson(path.join(dir, 'idea.json'), project.idea);
+  if (existed && args.force) {
+    // A forced rebuild starts a new film: drop stale stage/scene state so the
+    // UI and `list` never show progress from the previous version.
+    writeJson(path.join(dir, 'state.json'), {stages: {}, scenes: {}});
+  }
   markStage(id, 'idea', 'done'); markStage(id, 'script', 'done');
-  log.info(`created ${id}: "${project.title[project.language]}" — ${project.scenes.length} scenes, template ${project.idea.template}`);
+  log.info(`created ${id}: "${project.title[project.language]}" — ${project.scenes.length} scenes, template ${project.idea.template}${project.idea.template === 'freeform' ? `, domain ${project.idea.theme}` : ''}`);
   return project;
 }
 
@@ -70,13 +90,19 @@ async function cmdVoice(id) {
 
 async function cmdTimeline(id) {
   const log = logger(id, 'timeline');
-  const plan = buildPlan(id);
-  const rep = qaPlan(id, plan);
-  markStage(id, 'timeline', rep.errors.length ? 'failed' : 'done', {totalSec: plan.totalSec, source: plan.voiceSource});
-  log.info(`timeline: ${plan.scenes.length} scenes, ${plan.totalSec.toFixed(1)}s (${plan.totalFrames} frames), voice=${plan.voiceSource}`);
-  rep.warnings.forEach((w) => log.warn(w));
-  if (rep.errors.length) { rep.errors.forEach((e) => log.error(e)); throw new Error(`plan QA failed with ${rep.errors.length} error(s) — see projects/${id}/logs/timeline.log`); }
-  return plan;
+  markStage(id, 'timeline', 'running');
+  try {
+    const plan = buildPlan(id);
+    const rep = qaPlan(id, plan);
+    markStage(id, 'timeline', rep.errors.length ? 'failed' : 'done', {totalSec: plan.totalSec, source: plan.voiceSource});
+    log.info(`timeline: ${plan.scenes.length} scenes, ${plan.totalSec.toFixed(1)}s (${plan.totalFrames} frames), voice=${plan.voiceSource}`);
+    rep.warnings.forEach((w) => log.warn(w));
+    if (rep.errors.length) { rep.errors.forEach((e) => log.error(e)); throw new Error(`plan QA failed with ${rep.errors.length} error(s) — see projects/${id}/logs/timeline.log`); }
+    return plan;
+  } catch (e) {
+    markStage(id, 'timeline', 'failed', {error: String(e.message).slice(0, 300)});
+    throw e;
+  }
 }
 
 const sceneHash = (plan, sc) => sha1({v: ENGINE_VERSION, src: sourceHash(), fps: plan.fps, chars: plan.characters, scene: sc, lang: plan.language, subs: args['no-subs'] ? 0 : 1});
@@ -84,6 +110,9 @@ export const scenesDir = (id, draft) => ensure(path.join(outDir(id), draft ? 'sc
 
 async function cmdScenes(id) {
   const log = logger(id, 'scenes');
+  markStage(id, 'scenes', 'running');
+  let done = 0, skipped = 0;
+  try {
   const plan = loadPlan(id);
   const draft = !!args.draft;
   const scale = draft ? 0.5 : 1;
@@ -95,13 +124,11 @@ async function cmdScenes(id) {
   const {renderMedia, selectComposition, ensureBrowser} = await import('@remotion/renderer');
   await ensureBrowser();
   const serveUrl = await getBundle(log);
-  markStage(id, 'scenes', 'running');
   // 8 GB machines cannot afford two Chromium renderers plus x264; default to
   // one worker and let the user opt in explicitly.
   const ramGB = os.totalmem() / 1e9;
   const autoConc = ramGB < 12 ? 1 : Math.max(1, Math.min(3, Math.floor(os.cpus().length / 2)));
   const conc = Number(args.concurrency) || autoConc;
-  let done = 0, skipped = 0;
   for (const sc of plan.scenes) {
     if (only && !only.includes(sc.id)) continue;
     const file = path.join(dir, `${sc.id}.mp4`);
@@ -138,6 +165,11 @@ async function cmdScenes(id) {
   }
   markStage(id, 'scenes', 'done', {rendered: done, skipped});
   log.info(`scenes finished: ${done} rendered, ${skipped} skipped`);
+  } catch (e) {
+    markStage(id, 'scenes', 'failed', {error: String(e.message).slice(0, 300)});
+    log.error(`scenes failed: ${e.message}`);
+    throw e;
+  }
 }
 const ROOT_OUT = () => path.resolve(OUTPUT, '..');
 
@@ -156,49 +188,69 @@ function sceneFiles(id, plan, draft) {
 async function cmdRender(id) {
   // RENDER: make sure every scene exists then concatenate losslessly
   const log = logger(id, 'render');
-  const plan = loadPlan(id);
-  await cmdScenes(id);
-  const draft = !!args.draft;
-  const files = sceneFiles(id, plan, draft);
-  for (const [sid, f] of Object.entries(files)) if (!fs.existsSync(f)) throw new Error(`scene ${sid} missing: ${f}`);
-  const list = path.join(outDir(id), draft ? 'concat_draft.txt' : 'concat.txt');
-  fs.writeFileSync(list, plan.scenes.map((s) => `file '${files[s.id].replace(/'/g, "'\\''")}'`).join('\n'));
-  const video = path.join(outDir(id), draft ? 'video_draft.mp4' : 'video.mp4');
-  ff(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', video]);
-  const m = probe(video);
-  log.info(`concatenated video: ${m.duration.toFixed(2)}s ${m.width}x${m.height} @${m.fps}fps`);
-  markStage(id, 'render', 'done', {video});
+  markStage(id, 'render', 'running');
+  try {
+    const plan = loadPlan(id);
+    await cmdScenes(id);
+    const draft = !!args.draft;
+    const files = sceneFiles(id, plan, draft);
+    for (const [sid, f] of Object.entries(files)) if (!fs.existsSync(f)) throw new Error(`scene ${sid} missing: ${f}`);
+    const list = path.join(outDir(id), draft ? 'concat_draft.txt' : 'concat.txt');
+    fs.writeFileSync(list, plan.scenes.map((s) => `file '${files[s.id].replace(/'/g, "'\\''")}'`).join('\n'));
+    const video = path.join(outDir(id), draft ? 'video_draft.mp4' : 'video.mp4');
+    ff(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', video]);
+    const m = probe(video);
+    log.info(`concatenated video: ${m.duration.toFixed(2)}s ${m.width}x${m.height} @${m.fps}fps`);
+    markStage(id, 'render', 'done', {video});
+  } catch (e) {
+    markStage(id, 'render', 'failed', {error: String(e.message).slice(0, 300)});
+    log.error(`render failed: ${e.message}`);
+    throw e;
+  }
 }
 
 async function cmdFinal(id) {
   const log = logger(id, 'final');
-  const plan = loadPlan(id);
-  const draft = !!args.draft;
-  const video = path.join(outDir(id), draft ? 'video_draft.mp4' : 'video.mp4');
-  if (!fs.existsSync(video)) throw new Error('video.mp4 missing — run render first');
-  const audio = path.join(projectDir(id), 'audio', 'mix_norm.wav');
-  if (!fs.existsSync(audio)) throw new Error('mixed audio missing — run sound first');
-  const out = path.join(outDir(id), draft ? 'DRAFT.mp4' : 'FINAL.mp4');
-  const tmp = out.replace(/\.mp4$/, '.part.mp4');
-  ff(['-i', video, '-i', audio, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'libx264', '-crf', draft ? '28' : '21', '-preset', draft ? 'veryfast' : 'medium', '-pix_fmt', 'yuv420p', '-r', '24', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-t', plan.totalSec.toFixed(3), '-movflags', '+faststart', tmp]);
-  fs.renameSync(tmp, out);
-  const m = probe(out);
-  log.info(`${path.basename(out)}: ${m.duration.toFixed(2)}s ${m.width}x${m.height} @${m.fps}fps ${m.vcodec}/${m.acodec} (${(fs.statSync(out).size / 1e6).toFixed(1)} MB)`);
-  markStage(id, 'final', 'done', {file: out, seconds: m.duration});
+  markStage(id, 'final', 'running');
+  try {
+    const plan = loadPlan(id);
+    const draft = !!args.draft;
+    const video = path.join(outDir(id), draft ? 'video_draft.mp4' : 'video.mp4');
+    if (!fs.existsSync(video)) throw new Error('video.mp4 missing — run render first');
+    const audio = path.join(projectDir(id), 'audio', 'mix_norm.wav');
+    if (!fs.existsSync(audio)) throw new Error('mixed audio missing — run sound first');
+    const out = path.join(outDir(id), draft ? 'DRAFT.mp4' : 'FINAL.mp4');
+    const tmp = out.replace(/\.mp4$/, '.part.mp4');
+    ff(['-i', video, '-i', audio, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'libx264', '-crf', draft ? '28' : '21', '-preset', draft ? 'veryfast' : 'medium', '-pix_fmt', 'yuv420p', '-r', '24', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-t', plan.totalSec.toFixed(3), '-movflags', '+faststart', tmp]);
+    fs.renameSync(tmp, out);
+    const m = probe(out);
+    log.info(`${path.basename(out)}: ${m.duration.toFixed(2)}s ${m.width}x${m.height} @${m.fps}fps ${m.vcodec}/${m.acodec} (${(fs.statSync(out).size / 1e6).toFixed(1)} MB)`);
+    markStage(id, 'final', 'done', {file: out, seconds: m.duration});
+  } catch (e) {
+    markStage(id, 'final', 'failed', {error: String(e.message).slice(0, 300)});
+    log.error(`final failed: ${e.message}`);
+    throw e;
+  }
 }
 
 async function cmdQa(id) {
   const log = logger(id, 'qa');
-  const plan = loadPlan(id);
-  const draft = !!args.draft;
-  const parts = [qaPlan(id, plan)];
-  if (!args['plan-only']) parts.push(qaMedia(id, plan, sceneFiles(id, plan, draft), path.join(outDir(id), draft ? 'DRAFT.mp4' : 'FINAL.mp4')));
-  const rep = writeReport(id, parts);
-  rep.errors.forEach((e) => log.error(e));
-  rep.warnings.forEach((w) => log.warn(w));
-  log.info(rep.ok ? `QA passed (${rep.warnings.length} notes)` : `QA FAILED: ${rep.errors.length} error(s)`);
-  markStage(id, 'qa', rep.ok ? 'done' : 'failed', {errors: rep.errors.length});
-  if (!rep.ok) process.exitCode = 2;
+  markStage(id, 'qa', 'running');
+  try {
+    const plan = loadPlan(id);
+    const draft = !!args.draft;
+    const parts = [qaPlan(id, plan)];
+    if (!args['plan-only']) parts.push(qaMedia(id, plan, sceneFiles(id, plan, draft), path.join(outDir(id), draft ? 'DRAFT.mp4' : 'FINAL.mp4'), draft));
+    const rep = writeReport(id, parts);
+    rep.errors.forEach((e) => log.error(e));
+    rep.warnings.forEach((w) => log.warn(w));
+    log.info(rep.ok ? `QA passed (${rep.warnings.length} notes)` : `QA FAILED: ${rep.errors.length} error(s)`);
+    markStage(id, 'qa', rep.ok ? 'done' : 'failed', {errors: rep.errors.length});
+    if (!rep.ok) process.exitCode = 2;
+  } catch (e) {
+    markStage(id, 'qa', 'failed', {error: String(e.message).slice(0, 300)});
+    throw e;
+  }
 }
 
 async function cmdFrame(id) {
@@ -221,14 +273,33 @@ async function cmdFrame(id) {
 }
 
 async function cmdAll(id) {
-  if (!fs.existsSync(path.join(projectDir(id), 'project.json'))) await cmdNew(id);
-  await cmdVoice(id);
-  await cmdTimeline(id);
-  await cmdScenes(id);
-  await cmdSound(id);
-  await cmdRender(id);
-  await cmdFinal(id);
-  await cmdQa(id);
+  const log = logger(id, 'all');
+  if (!fs.existsSync(path.join(projectDir(id), 'project.json'))) {
+    log.info('no project yet — creating one from the current options');
+    await cmdNew(id);
+  }
+  const stages = [
+    ['voice', cmdVoice], ['timeline', cmdTimeline], ['scenes', cmdScenes],
+    ['sound', cmdSound], ['render', cmdRender], ['final', cmdFinal], ['qa', cmdQa],
+  ];
+  const t0 = Date.now();
+  for (const [name, fn] of stages) {
+    log.info(`=== stage ${name} started ===`);
+    await fn(id);
+    log.info(`=== stage ${name} done (${((Date.now() - t0) / 1000).toFixed(0)}s total) ===`);
+  }
+  const final = path.join(OUTPUT, id, 'FINAL.mp4');
+  if (fs.existsSync(final)) log.info(`pipeline finished: ${final}`);
+  else log.warn('pipeline finished but FINAL.mp4 not found — check qa report');
+}
+
+async function cmdUi(id, args) {
+  const port = Number(args.port || process.env.PORT || 7788);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('--port must be 1..65535');
+  startUI({port});
+  // Keep the process alive until SIGINT/SIGTERM (startUI exits on both);
+  // otherwise the CLI's trailing process.exit() would kill the server.
+  await new Promise(() => {});
 }
 
 function cmdList() {
@@ -257,26 +328,46 @@ function cmdDoctor() {
 
 const HELP = `What If Cine Studio — pipeline
   node render.mjs doctor                         check environment
+  node render.mjs ui [--port 7788]               local web UI (create/run/download MP4)
   node render.mjs idea [--lang ru|en] [--theme t] [--count n]
-  node render.mjs new <id> [--lang ru] [--duration 45] [--topic "..."] [--characters 2] [--voice tts|upload|files|none] [--music dark_ambient|tense|mystery|epic|emotional|lofi]
+  node render.mjs new <id> [--lang ru] [--duration 45] [--topic "..."] [--characters 2]
+      [--voice tts|upload|files|none] [--style cinematic-stickman|noir|warm|vivid]
+      [--music dark_ambient|tense|mystery|epic|emotional|lofi] [--template auto|freeform|${TEMPLATE_IDS.join('|')}] [--force]
   node render.mjs voice <id> [--audio file.mp3] [--no-whisper] [--force]
   node render.mjs timeline <id>
   node render.mjs scenes <id> [--only s01,s03] [--force] [--draft]
   node render.mjs sound <id> [--force]
   node render.mjs render <id> [--draft]          scenes + lossless concat
   node render.mjs final <id> [--draft]           mux audio -> FINAL.mp4
-  node render.mjs qa <id> [--plan-only]
+  node render.mjs qa <id> [--plan-only] [--draft]
   node render.mjs frame <id> --scene s01 --t 2.5
-  node render.mjs all <id>                       whole pipeline
+  node render.mjs all <id> [--draft]             whole pipeline (stage logs in projects/<id>/logs/all.log)
   node render.mjs list
 templates: ${TEMPLATE_IDS.join(', ')}`;
 
-const table = {idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor};
+// Last-resort guard: some renderer internals die via an uncaught exception
+// (e.g. a socket error while downloading the browser) instead of a rejected
+// promise, which bypasses every stage's try/catch and would leave the stage
+// stuck at "running" with a raw Node dump.  Mark the running stage failed
+// and exit with a clean message instead.
+function failRunningStage(id, err) {
+  if (!id) return;
+  try {
+    const s = loadState(id);
+    for (const [stage, info] of Object.entries(s.stages || {})) {
+      if (info?.status === 'running') markStage(id, stage, 'failed', {error: String(err?.message || err).slice(0, 300)});
+    }
+  } catch { /* no readable state — nothing to mark */ }
+}
+process.on('uncaughtException', (e) => { failRunningStage(args._[1], e); console.error(`✘ ${e.message}`); process.exit(1); });
+process.on('unhandledRejection', (e) => { failRunningStage(args._[1], e); console.error(`✘ ${e?.message || e}`); process.exit(1); });
+
+const table = {idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
 try {
   if (!cmd || !table[cmd]) { console.log(HELP); process.exit(cmd ? 1 : 0); }
   const id = args._[1];
-  if (!['idea', 'list', 'doctor', 'new'].includes(cmd) && !(cmd === 'all')) need(id);
-  await table[cmd](id);
+  if (!['idea', 'list', 'doctor', 'new', 'ui'].includes(cmd)) need(id);
+  await table[cmd](id, args);
   process.exit(process.exitCode || 0);
 } catch (e) {
   console.error(`✘ ${e.message}`);

@@ -11,7 +11,7 @@ const MODELS = path.join(ENGINE, 'models', 'piper');
 const HF = 'https://huggingface.co/rhasspy/piper-voices/resolve/main';
 // Bump whenever text normalisation or synthesis changes.  Cached voice WAVs
 // from an older version must not be reused: the hash only covers text + voice.
-export const TTS_VERSION = 'tts-2';
+export const TTS_VERSION = 'tts-3';
 
 // Extra Russian Piper voices that can be selected per project without changing
 // the defaults in src/lib/library.ts:
@@ -38,7 +38,11 @@ async function downloadModel(url, dest, log) {
       if (attempt < 3) await new Promise((r) => setTimeout(r, 1200 * attempt));
     }
   }
-  throw new Error(`model download failed ${url}: ${lastErr?.message || 'unknown error'}`);
+  throw new Error(
+    `model download failed ${url}: ${lastErr?.message || 'unknown error'}\n` +
+    `  hint: download "${path.basename(dest)}" manually from the same URL and put it into ${MODELS}, ` +
+    `or continue without this voice: --voice none (music only) / --audio your_file.mp3 (uploaded narration)`,
+  );
 }
 
 export async function ensureModel(name, log) {
