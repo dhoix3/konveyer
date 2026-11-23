@@ -14,6 +14,10 @@ export const isMove = (a: ActionName) => MOVE_ACTIONS.includes(a);
 const BLEND: Partial<Record<ActionName, number>> = {
   sit: 0.7, sit_up: 0.8, stand_up: 0.9, lie: 0.8, sleep: 0.8, fall: 0.12, jump: 0.12,
   cower: 0.18, walk: 0.3, run: 0.3, carry: 0.35, idle: 0.35, float: 1.0, slump: 0.8, shrug: 0.25,
+  // Overshoot gestures (wave/point/reach/…) need a longer blend: the hand
+  // travels several hundred px and must stay under the 90 px/frame teleport
+  // threshold used by plan QA.
+  reach: 0.5, wave: 0.5, point: 0.5, hands_up: 0.5, cheer: 0.5, stretch: 0.5,
 };
 const OVERSHOOT: ActionName[] = ['wave', 'point', 'hands_up', 'cheer', 'reach', 'stretch'];
 
@@ -306,11 +310,24 @@ export function compileTrack(scene: ResolvedScene, charId: string): Track {
       const pp = poseOf(ps, ps.t1 - ps.t0, t).pose;
       let w = smooth(lt / s.blend);
       if (OVERSHOOT.includes(s.action)) {
-        const x = clamp(lt / s.blend);
+        // Compose the overshoot ease with smooth(): a raw ease-out start
+        // moves ~46% of the distance in the first frame, which reads as a
+        // teleport (and fails plan QA on hands).  Same curve, soft onset.
+        const x = smooth(clamp(lt / s.blend));
         w = 1 + 2.2 * Math.pow(x - 1, 3) + 1.2 * Math.pow(x - 1, 2);
       }
       pose = lerpPose(pp, pose, w);
     }
+    // Overshoot ease can extrapolate the blend slightly past the target pose
+    // (e.g. seat weight dips below 0), which floats the body off the ground.
+    // Same for `air`: landing from float/jump with the overshoot blend briefly
+    // drives air negative and sinks the body under the floor (plan QA error).
+    pose = {
+      ...pose,
+      seat: Math.min(1, Math.max(0, pose.seat)),
+      air: Math.max(0, pose.air),
+      lift: Math.max(0, pose.lift),
+    };
     pose = breathe(pose, t);
     const tr = isMove(s.action) ? travelled(s, lt) : {d: 0, v: 0};
     const x = s.x0 + s.sgn * tr.d;

@@ -224,7 +224,12 @@ def make_music(mood, total, curve):
     # intensity curve (sections) with smooth transitions
     t = np.arange(len(out)) / SR; xs = [0.0]; ys = [curve[0]['level'] if curve else 0.6]
     for c in curve: xs += [c['t0'] + 0.01, c['t1'] - 0.01]; ys += [c['level'], c['level']]
-    g = np.interp(t, xs, ys); k = int(0.8 * SR); g = np.convolve(g, np.ones(k) / k, mode='same')
+    g = np.interp(t, xs, ys)
+    # Edge-correct moving average: plain convolve(..., 'same') implicitly pads
+    # with zeros and dips the music at the very start/end of the film.
+    k = int(0.8 * SR)
+    padded = np.concatenate([np.full(k, g[0]), g, np.full(k, g[-1])])
+    g = np.convolve(padded, np.ones(k) / k, mode='same')[k:k + len(g)]
     return norm(out, 0.9) * g.astype(np.float32)
 
 # ---------------------------------------------------------------- IO / mixing
@@ -255,7 +260,18 @@ def main():
     plan = json.load(open(sys.argv[1])); outp = sys.argv[2]
     dur = plan['duration']; n = int(dur * SR) + SR
     voice = np.zeros((2, n), np.float32); music = np.zeros((2, n), np.float32); amb = np.zeros((2, n), np.float32); sfx = np.zeros((2, n), np.float32)
-    for v in plan.get('voice', []): put(voice, read_wav(v['file']), v['t'], v.get('gain', 1.0))
+    # Gentle per-clip level match: partial RMS normalisation toward the median
+    # so a quiet line never disappears under the music and a loud one never
+    # jumps (clamped to ±2.5 dB to keep the performance dynamics).
+    vclips = [(v, read_wav(v['file'])) for v in plan.get('voice', [])]
+    vlevels = [float(np.sqrt(np.mean(x ** 2))) for _, x in vclips if x.size]
+    vmed = float(np.median(vlevels)) if vlevels else 0.0
+    for v, x in vclips:
+        lvl = float(np.sqrt(np.mean(x ** 2))) if x.size else 0.0
+        gain = 1.0
+        if vmed > 1e-6 and lvl > 1e-6:
+            gain = float(np.clip((vmed / lvl) ** 0.5, 0.75, 1.5))
+        put(voice, x, v['t'], v.get('gain', 1.0) * gain)
     mus = make_music(plan['music']['mood'], dur, plan['music']['sections'])
     music[0, :len(mus)] = mus; music[1, :len(mus)] = mus
     beds = {}
@@ -267,11 +283,13 @@ def main():
         env = np.ones(e - s, np.float32); env[:f] = np.linspace(0, 1, f); env[-f:] = np.linspace(1, 0, f)
         seg = seg * env * a.get('gain', 0.5); amb[0, s:e] += seg; amb[1, s:e] += seg
     for s in plan.get('sfx', []): put(sfx, get_sfx(s['kind']), s['t'], s.get('gain', 0.8) * 0.9, s.get('pan', 0.0))
-    # speech ducking: music -12 dB, ambience -6 dB while someone talks
-    vm = voice.mean(axis=0); env = envelope(vm); talk = (env > 0.015).astype(np.float32)
+    # speech ducking: proportional to the speech envelope (no hard gate
+    # pumping), music -12 dB, ambience -6 dB, SFX -3 dB while someone talks
+    vm = voice.mean(axis=0); env = envelope(vm)
+    talk = np.clip((env - 0.008) / 0.03, 0.0, 1.0).astype(np.float32)
     duck = smooth_follow(talk, 0.08, 0.7)
     gm = 1 - duck * (1 - 10 ** (-12 / 20)); ga = 1 - duck * (1 - 10 ** (-6 / 20))
-    mix = voice * 1.0 + music * 0.32 * gm + amb * 0.5 * ga + sfx * 0.85
+    mix = voice * 1.0 + music * 0.32 * gm + amb * 0.5 * ga + sfx * 0.85 * (1 - 0.3 * duck)
     mix = np.tanh(mix * 0.9) / np.tanh(0.9)
     mix = mix[:, :int(dur * SR)]
     pk = np.max(np.abs(mix)); mix = mix / max(1.0, pk / 0.95)

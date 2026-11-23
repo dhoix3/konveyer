@@ -1,0 +1,512 @@
+// Local web UI for What If Cine Studio — zero dependencies (node:http only).
+//
+// Serves a single page where the user enters the topic, duration, language,
+// voice, style and music, creates a project, runs pipeline stages with live
+// progress/log tail, and downloads the finished MP4.  It spawns the very same
+// `render.mjs` CLI the terminal uses (same logs, same state.json), so the UI
+// and the CLI stay fully interchangeable and the architecture is unchanged.
+//
+//   node render.mjs ui [--port 7788]
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import {spawn, spawnSync} from 'node:child_process';
+import {
+  ENGINE, PROJECTS, OUTPUT, projectDir, outDir, ensure, readJson, writeJson,
+  safeId, assertId,
+} from './lib.mjs';
+import {MUSIC_MOODS, LANGS, STYLES, TEMPLATE_IDS} from './script.mjs';
+
+const STAGES = ['voice', 'timeline', 'scenes', 'sound', 'render', 'final', 'qa'];
+const MODEL_RE = /^[a-z]{2}_[A-Z]{2}-[a-z0-9_]+-(x_low|low|medium|high)$/;
+const FILE_WHITELIST = new Set(['FINAL.mp4', 'DRAFT.mp4', 'video.mp4', 'video_draft.mp4']);
+
+// latest job per project id
+const jobs = new Map();
+
+function listProjects() {
+  if (!fs.existsSync(PROJECTS)) return [];
+  const rows = [];
+  for (const d of fs.readdirSync(PROJECTS)) {
+    const pj = path.join(PROJECTS, d, 'project.json');
+    if (!fs.existsSync(pj)) continue;
+    let p = {};
+    try { p = readJson(pj, {}); } catch { continue; }
+    const statePath = path.join(PROJECTS, d, 'state.json');
+    const state = fs.existsSync(statePath) ? readJson(statePath, {stages: {}}) : {stages: {}};
+    const job = jobs.get(d);
+    let mtime = 0;
+    try { mtime = fs.statSync(pj).mtimeMs; } catch {}
+    rows.push({
+      id: d,
+      title: p.title || {},
+      language: p.language || 'ru',
+      scenes: Array.isArray(p.scenes) ? p.scenes.length : 0,
+      template: p.idea?.template,
+      topic: p.idea?.topic,
+      stages: state.stages || {},
+      final: fs.existsSync(path.join(OUTPUT, d, 'FINAL.mp4')),
+      draft: fs.existsSync(path.join(OUTPUT, d, 'DRAFT.mp4')),
+      job: job ? {stage: job.stage, running: job.running, code: job.code, started: job.started} : null,
+      mtime,
+    });
+  }
+  rows.sort((a, b) => b.mtime - a.mtime);
+  return rows;
+}
+
+function tailFile(file, n = 160) {
+  try {
+    if (!fs.existsSync(file)) return [];
+    const text = fs.readFileSync(file, 'utf8');
+    const lines = text.split('\n').filter(Boolean);
+    return lines.slice(-n);
+  } catch {
+    return [];
+  }
+}
+
+function latestLog(id) {
+  const dir = path.join(PROJECTS, id, 'logs');
+  if (!fs.existsSync(dir)) return null;
+  let best = null, bestM = 0;
+  for (const f of fs.readdirSync(dir)) {
+    const p = path.join(dir, f);
+    try {
+      const m = fs.statSync(p).mtimeMs;
+      if (m > bestM) { bestM = m; best = p; }
+    } catch {}
+  }
+  return best;
+}
+
+function startJob(id, stage, extra = []) {
+  assertId(id);
+  const running = jobs.get(id);
+  if (running?.running) throw new HttpError(409, `проект ${id} уже выполняется: ${running.stage}`);
+  const logDir = ensure(path.join(projectDir(id), 'logs'));
+  const logFile = path.join(logDir, `ui_${stage}.log`);
+  const fd = fs.openSync(logFile, 'a');
+  fs.writeSync(fd, `\n===== ui run: ${stage} ${extra.join(' ')} @ ${new Date().toISOString()} =====\n`);
+  const child = spawn(process.execPath, [path.join(ENGINE, 'render.mjs'), stage, id, ...extra], {
+    cwd: ENGINE, detached: true, stdio: ['ignore', fd, fd],
+  });
+  const job = {id, stage, pid: child.pid, started: Date.now(), running: true, code: null, logFile};
+  child.on('error', (e) => { job.running = false; job.code = -1; job.error = String(e.message); try { fs.closeSync(fd); } catch {} });
+  child.on('exit', (code) => { job.running = false; job.code = code; job.ended = Date.now(); try { fs.closeSync(fd); } catch {} });
+  child.unref();
+  jobs.set(id, job);
+  return job;
+}
+
+function stopJob(id) {
+  const job = jobs.get(id);
+  if (!job?.running) throw new HttpError(409, `для проекта ${id} нет активной задачи`);
+  try { process.kill(-job.pid, 'SIGTERM'); } catch {}
+  try { process.kill(job.pid, 'SIGTERM'); } catch {}
+  job.stopped = true;
+  return job;
+}
+
+class HttpError extends Error {
+  constructor(status, message) { super(message); this.status = status; }
+}
+
+function createProject(body) {
+  const id = String(body.id || '').trim();
+  if (!safeId(id)) throw new HttpError(400, 'некорректный id проекта: разрешены буквы, цифры, «-» и «_», до 40 символов');
+  const topic = String(body.topic ?? '').trim();
+  if (topic.length > 300) throw new HttpError(400, 'тема слишком длинная (максимум 300 символов)');
+  const duration = Number(body.duration);
+  if (!Number.isFinite(duration) || duration < 25 || duration > 180) throw new HttpError(400, 'длительность должна быть 25–180 секунд');
+  const lang = LANGS.includes(body.lang) ? body.lang : 'ru';
+  const characters = [1, 2, 3].includes(Number(body.characters)) ? Number(body.characters) : 2;
+  let music;
+  if (!body.music || body.music === 'auto') music = undefined;
+  else if (MUSIC_MOODS.includes(body.music)) music = body.music;
+  else throw new HttpError(400, 'неизвестная музыка');
+  const style = Object.prototype.hasOwnProperty.call(STYLES, body.style) ? body.style : 'cinematic-stickman';
+  const voiceMode = ['tts', 'none'].includes(body.voiceMode) ? body.voiceMode : 'tts';
+  const template = !body.template || body.template === 'auto' ? undefined
+    : (body.template === 'freeform' || TEMPLATE_IDS.includes(body.template) ? body.template : undefined);
+  if (body.template && body.template !== 'auto' && !template) throw new HttpError(400, 'неизвестный шаблон');
+
+  const args = ['new', id, '--lang', lang, '--duration', String(duration), '--characters', String(characters),
+    '--voice', voiceMode, '--style', style];
+  if (topic) args.push('--topic', topic);
+  if (music) args.push('--music', music);
+  if (template) args.push('--template', template);
+  if (body.force) args.push('--force');
+
+  const r = spawnSync(process.execPath, [path.join(ENGINE, 'render.mjs'), ...args], {cwd: ENGINE, encoding: 'utf8'});
+  if (r.status !== 0) throw new HttpError(400, (r.stderr || r.stdout || 'create failed').trim().split('\n').slice(-1)[0]);
+
+  // Optional narrator voice model (applied before the voice stage runs).
+  const narrator = String(body.narrator || '');
+  if (narrator) {
+    if (!MODEL_RE.test(narrator)) throw new Error('некорректная модель голоса');
+    const pj = path.join(projectDir(id), 'project.json');
+    const p = readJson(pj);
+    p.settings ||= {};
+    p.settings.voiceModels = {...(p.settings.voiceModels || {}), narrator};
+    writeJson(pj, p);
+  }
+  let summary = null;
+  try {
+    const p = readJson(path.join(projectDir(id), 'project.json'));
+    summary = {title: p.title?.[p.language], scenes: p.scenes.length, template: p.idea.template, domain: p.idea.theme};
+  } catch {}
+  return {id, summary};
+}
+
+// ---------------------------------------------------------------- HTTP
+
+function json(res, code, obj) {
+  const body = JSON.stringify(obj);
+  res.writeHead(code, {'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store'});
+  res.end(body);
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', (c) => { data += c; if (data.length > 1e6) { reject(new Error('body too large')); req.destroy(); } });
+    req.on('end', () => { try { resolve(data ? JSON.parse(data) : {}); } catch { reject(new Error('bad json')); } });
+    req.on('error', reject);
+  });
+}
+
+function serveFile(req, res, file) {
+  if (!fs.existsSync(file)) return json(res, 404, {error: 'file not found'});
+  const stat = fs.statSync(file);
+  const ext = path.extname(file).toLowerCase();
+  const type = ext === '.mp4' ? 'video/mp4' : ext === '.json' ? 'application/json' : 'application/octet-stream';
+  const range = req.headers.range;
+  if (range) {
+    const m = /bytes=(\d*)-(\d*)/.exec(range);
+    if (m) {
+      let start = m[1] ? Number(m[1]) : 0;
+      let end = m[2] ? Number(m[2]) : stat.size - 1;
+      if (start <= end && start < stat.size) {
+        end = Math.min(end, stat.size - 1);
+        res.writeHead(206, {
+          'content-type': type, 'content-length': end - start + 1,
+          'content-range': `bytes ${start}-${end}/${stat.size}`, 'accept-ranges': 'bytes',
+        });
+        fs.createReadStream(file, {start, end}).pipe(res);
+        return;
+      }
+    }
+  }
+  res.writeHead(200, {'content-type': type, 'content-length': stat.size, 'accept-ranges': 'bytes'});
+  fs.createReadStream(file).pipe(res);
+}
+
+const PAGE = `<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What If Cine Studio</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--dim:#8b949e;--acc:#58a6ff;--ok:#3fb950;--err:#f85149;--warn:#d29922}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px}
+header h1{font-size:17px;margin:0}header .sub{color:var(--dim);font-size:12px}
+main{display:grid;grid-template-columns:260px 1fr 1fr;gap:14px;padding:14px 20px;max-width:1500px;margin:0 auto}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:0 0 10px}
+label{display:block;margin:8px 0 3px;color:var(--dim);font-size:12px}
+input,select,textarea{width:100%;background:#0d1117;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font:inherit}
+textarea{min-height:64px;resize:vertical}
+.row{display:flex;gap:10px}.row>div{flex:1}
+button{background:#238636;color:#fff;border:0;border-radius:6px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+button.secondary{background:#21262d;border:1px solid var(--line);color:var(--text);font-weight:400}
+button.danger{background:#da3633}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.small{padding:4px 9px;font-size:12px}
+.proj{padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:7px;cursor:pointer}
+.proj.active{border-color:var(--acc);background:#121a24}
+.proj .t{font-weight:600}.proj .m{color:var(--dim);font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--dim);display:flex;gap:6px;align-items:center}
+.chip.done{border-color:#2ea043;color:var(--ok)}.chip.failed{border-color:var(--err);color:var(--err)}
+.chip.running{border-color:var(--warn);color:var(--warn)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+pre#log{background:#010409;border:1px solid var(--line);border-radius:8px;padding:10px;height:340px;overflow:auto;font:12px/1.4 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-all;margin:0}
+.msg{margin-top:8px;font-size:13px;min-height:18px}.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:none;font-weight:600}
+.bar{height:6px;background:#21262d;border-radius:4px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#1f6feb,#58a6ff);width:30%;animation:slide 1.1s infinite}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+.muted{color:var(--dim);font-size:12px}
+</style></head><body>
+<header><h1>&#127916; What If Cine Studio</h1><span class="sub">идея &rarr; сценарий &rarr; голос &rarr; сцены &rarr; звук &rarr; MP4</span></header>
+<main>
+<section>
+  <h2>Проекты</h2>
+  <div id="projects"><div class="muted">загрузка…</div></div>
+</section>
+<section>
+  <h2>Новое видео</h2>
+  <label for="topic">Тема видео</label>
+  <textarea id="topic" placeholder="Например: что если динозавры вернутся? Или просто: волки Арктики"></textarea>
+  <div class="row">
+    <div><label for="duration">Длительность, сек</label><input id="duration" type="number" min="25" max="180" value="45"></div>
+    <div><label for="lang">Язык</label><select id="lang"><option value="ru">Русский</option><option value="en">English</option></select></div>
+  </div>
+  <div class="row">
+    <div><label for="characters">Персонажей</label><select id="characters"><option>1</option><option selected>2</option><option>3</option></select></div>
+    <div><label for="narrator">Голос диктора</label><select id="narrator"></select></div>
+  </div>
+  <div class="row">
+    <div><label for="style">Стиль</label><select id="style"></select></div>
+    <div><label for="music">Музыка</label><select id="music"></select></div>
+  </div>
+  <div class="row">
+    <div><label for="template">Шаблон</label><select id="template"><option value="auto">авто (по теме)</option><option value="freeform">свободная тема</option></select></div>
+    <div><label for="voiceMode">Озвучка</label><select id="voiceMode"><option value="tts">Piper TTS</option><option value="none">без голоса (музыка)</option></select></div>
+  </div>
+  <div class="row">
+    <div><label for="pid">id проекта</label><input id="pid" placeholder="авто"></div>
+    <div style="display:flex;align-items:flex-end;padding-bottom:8px"><label style="margin:0;color:var(--text)"><input type="checkbox" id="force" style="width:auto"> перезаписать</label></div>
+  </div>
+  <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+    <button onclick="create()">Создать проект</button>
+    <button class="secondary" onclick="run('all')">&#9654; Запустить всё</button>
+    <button class="danger" onclick="stop()">&#9632; Остановить</button>
+  </div>
+  <div class="msg" id="msg"></div>
+</section>
+<section>
+  <h2 id="stageTitle">Этапы</h2>
+  <div class="chips" id="chips"><span class="muted">выберите проект</span></div>
+  <div class="bar" id="progress" style="display:none"><i></i></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="stageBtns"></div>
+  <label style="display:flex;gap:6px;align-items:center;color:var(--dim);font-size:12px;margin:0 0 8px">
+    <input type="checkbox" id="draft" style="width:auto"> draft (быстрый черновик, half-res)
+  </label>
+  <div id="downloads"></div>
+  <h2 style="margin-top:14px">Журнал</h2>
+  <pre id="log">&mdash;</pre>
+</section>
+</main>
+<script>
+var STAGES = ['voice','timeline','scenes','sound','render','final','qa'];
+var LABELS = {voice:'голос',timeline:'таймлайн',scenes:'сцены',sound:'звук',render:'рендер',final:'mux',qa:'QA'};
+var current = null, pollTimer = null, logTimer = null;
+var projectsCache = [];
+function el(id){ return document.getElementById(id); }
+function msg(t, cls){ var m = el('msg'); m.textContent = t || ''; m.className = 'msg ' + (cls || ''); }
+async function api(url, opt){
+  var r = await fetch(url, opt);
+  var j = await r.json().catch(function(){ return {}; });
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j;
+}
+function esc(s){
+  return String(s).replace(/[&<>"]/g, function(c){
+    return c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&quot;';
+  });
+}
+function slug(s){
+  return (s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24);
+}
+function fillSelects(){
+  var styles = [['cinematic-stickman','Кинематографичный'],['noir','Нуар'],['warm','Тёплый'],['vivid','Яркий']];
+  var h = '';
+  for (var i = 0; i < styles.length; i++) h += '<option value="' + styles[i][0] + '">' + styles[i][1] + '</option>';
+  el('style').innerHTML = h;
+  var moods = [['auto','авто (по теме)'],['dark_ambient','dark_ambient'],['tense','tense'],['mystery','mystery'],['epic','epic'],['emotional','emotional'],['lofi','lofi']];
+  h = '';
+  for (var j = 0; j < moods.length; j++) h += '<option value="' + moods[j][0] + '">' + moods[j][1] + '</option>';
+  el('music').innerHTML = h;
+  fillNarrator();
+}
+function fillNarrator(){
+  var lang = el('lang').value;
+  var opts = lang === 'ru'
+    ? [['','по умолчанию (denis)'],['ru_RU-dmitri-medium','dmitri'],['ru_RU-ruslan-medium','ruslan'],['ru_RU-irina-medium','irina (женский)']]
+    : [['','по умолчанию (ryan)'],['en_US-amy-medium','amy (female)']];
+  var h = '';
+  for (var i = 0; i < opts.length; i++) h += '<option value="' + opts[i][0] + '">' + opts[i][1] + '</option>';
+  el('narrator').innerHTML = h;
+}
+el('lang').addEventListener('change', fillNarrator);
+el('topic').addEventListener('input', function(){
+  if (!el('pid').dataset.touched) el('pid').value = slug(el('topic').value);
+});
+el('pid').addEventListener('input', function(){ el('pid').dataset.touched = '1'; });
+
+function renderProjects(list){
+  projectsCache = list || [];
+  var e = el('projects');
+  if (!projectsCache.length){ e.innerHTML = '<div class="muted">проектов нет — создайте первый</div>'; return; }
+  var h = '';
+  for (var i = 0; i < projectsCache.length; i++){
+    var p = projectsCache[i];
+    var title = (p.title && (p.title[p.language] || p.title.ru)) || p.id;
+    var status = p.final ? '✅ MP4 готов' : (p.job && p.job.running ? '⏳ ' + p.job.stage : '…');
+    h += '<div class="proj ' + (p.id === current ? 'active' : '') + '" onclick="select(\\'' + p.id + '\\')">' +
+      '<div class="t">' + esc(title) + '</div>' +
+      '<div class="m">' + esc(p.id) + ' · ' + p.scenes + ' сцен · ' + esc(p.template || 'freeform') + '</div>' +
+      '<div class="m">' + status + '</div></div>';
+  }
+  e.innerHTML = h;
+}
+function select(id){ current = id; refresh(); loadLog(); }
+async function refresh(){
+  try {
+    var st = await api('/api/state');
+    renderProjects(st.projects);
+    renderStage();
+  } catch (e) { /* server restarting */ }
+}
+async function loadLog(){
+  if (!current){ el('log').textContent = '—'; return; }
+  try {
+    var r = await api('/api/log?id=' + encodeURIComponent(current));
+    var text = r.lines.length ? r.lines.join(String.fromCharCode(10)) : '(пусто)';
+    var box = el('log');
+    var nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+    box.textContent = text;
+    if (nearBottom) box.scrollTop = box.scrollHeight;
+  } catch (e) {}
+}
+async function create(){
+  try {
+    msg('создание…');
+    var body = {
+      topic: el('topic').value, duration: el('duration').value, lang: el('lang').value,
+      characters: el('characters').value, style: el('style').value, music: el('music').value,
+      template: el('template').value, voiceMode: el('voiceMode').value, narrator: el('narrator').value,
+      force: el('force').checked
+    };
+    body.id = (el('pid').value || '').trim() || slug(el('topic').value) || ('film-' + Date.now().toString(36).slice(-4));
+    var r = await api('/api/create', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body)});
+    current = r.id;
+    msg('проект ' + r.id + ' создан' + (r.summary ? ': ' + r.summary.title : ''), 'ok');
+    refresh(); loadLog();
+  } catch (e) { msg(e.message, 'err'); }
+}
+async function run(stage){
+  if (!current){ msg('сначала выберите проект', 'err'); return; }
+  try {
+    var draft = el('draft').checked;
+    await api('/api/run', {method:'POST', headers:{'content-type':'application/json'},
+      body: JSON.stringify({id: current, stage: stage, draft: draft})});
+    msg('запущен этап: ' + stage, 'ok');
+    renderStage(); loadLog();
+  } catch (e) { msg(e.message, 'err'); }
+}
+async function stop(){
+  if (!current) return;
+  try {
+    await api('/api/stop', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({id: current})});
+    msg('остановлено', 'ok');
+  } catch (e) { msg(e.message, 'err'); }
+}
+function renderStage(){
+  var chips = el('chips'), btns = el('stageBtns');
+  var p = null;
+  for (var i = 0; i < projectsCache.length; i++) if (projectsCache[i].id === current) p = projectsCache[i];
+  if (!current){ chips.innerHTML = '<span class="muted">выберите проект</span>'; btns.innerHTML = ''; el('downloads').innerHTML = ''; return; }
+  var st = (p && p.stages) || {};
+  var h = '';
+  for (var s = 0; s < STAGES.length; s++){
+    var key = STAGES[s], v = st[key];
+    var status = v ? v.status : '—';
+    var cls = status === 'done' ? 'done' : status === 'failed' ? 'failed' : status === 'running' ? 'running' : '';
+    h += '<span class="chip ' + cls + '"><span class="dot"></span>' + LABELS[key] + ': ' + status + '</span>';
+  }
+  chips.innerHTML = h;
+  h = '';
+  for (var b = 0; b < STAGES.length; b++){
+    h += '<button class="small secondary" onclick="run(\\'' + STAGES[b] + '\\')">' + LABELS[STAGES[b]] + '</button>';
+  }
+  h += '<button class="small secondary" onclick="run(\\'all\\')">всё</button>';
+  btns.innerHTML = h;
+  var running = p && p.job && p.job.running;
+  el('progress').style.display = running ? 'block' : 'none';
+  var title = p ? ((p.title && (p.title[p.language] || p.title.ru)) || current) : current;
+  el('stageTitle').textContent = 'Этапы — ' + title;
+  var dl = '';
+  if (p && p.final) dl += '<a class="dl" href="/file?id=' + encodeURIComponent(current) + '&name=FINAL.mp4">&#11015; FINAL.mp4</a>';
+  if (p && p.draft) dl += '<a class="dl" href="/file?id=' + encodeURIComponent(current) + '&name=DRAFT.mp4">&#11015; DRAFT.mp4</a>';
+  el('downloads').innerHTML = dl;
+}
+function startPoll(){
+  if (pollTimer) return;
+  pollTimer = setInterval(refresh, 1500);
+  logTimer = setInterval(loadLog, 2500);
+}
+async function boot(){
+  fillSelects();
+  await refresh();
+  if (!current && projectsCache.length) select(projectsCache[0].id);
+  else loadLog();
+  startPoll();
+}
+boot();
+</script>
+</body></html>`;
+
+export function startUI({port = 7788} = {}) {
+  const server = http.createServer(async (req, res) => {
+    try {
+      const u = new URL(req.url, 'http://localhost');
+      const p = u.pathname;
+      if (req.method === 'GET' && (p === '/' || p === '/index.html')) {
+        res.writeHead(200, {'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store'});
+        return res.end(PAGE);
+      }
+      if (req.method === 'GET' && p === '/api/state') return json(res, 200, {projects: listProjects()});
+      if (req.method === 'GET' && p === '/api/log') {
+        const id = u.searchParams.get('id') || '';
+        if (!safeId(id)) return json(res, 400, {error: 'bad id'});
+        const stage = u.searchParams.get('stage');
+        const file = stage ? path.join(projectDir(id), 'logs', `${stage}.log`) : latestLog(id);
+        return json(res, 200, {file: file || null, lines: file ? tailFile(file, 220) : []});
+      }
+      if (req.method === 'GET' && p === '/file') {
+        const id = u.searchParams.get('id') || '';
+        const name = u.searchParams.get('name') || '';
+        if (!safeId(id)) return json(res, 400, {error: 'bad id'});
+        if (!FILE_WHITELIST.has(name)) return json(res, 403, {error: 'forbidden'});
+        return serveFile(req, res, path.join(outDir(id), name));
+      }
+      if (req.method === 'POST' && p === '/api/create') {
+        const body = await readBody(req);
+        return json(res, 200, createProject(body));
+      }
+      if (req.method === 'POST' && p === '/api/run') {
+        const {id, stage, draft} = await readBody(req);
+        if (!safeId(id)) return json(res, 400, {error: 'bad id'});
+        if (stage !== 'all' && !STAGES.includes(stage)) return json(res, 400, {error: 'bad stage'});
+        if (!fs.existsSync(path.join(projectDir(id), 'project.json'))) return json(res, 404, {error: 'project not found'});
+        const extra = draft ? ['--draft'] : [];
+        const job = startJob(id, stage, extra);
+        return json(res, 200, {ok: true, stage: job.stage, pid: job.pid});
+      }
+      if (req.method === 'POST' && p === '/api/stop') {
+        const {id} = await readBody(req);
+        if (!safeId(id)) return json(res, 400, {error: 'bad id'});
+        return json(res, 200, {ok: true, stopped: stopJob(id).stage});
+      }
+      json(res, 404, {error: 'not found'});
+    } catch (e) {
+      json(res, e.status || 500, {error: String(e.message || e)});
+    }
+  });
+  server.on('error', (e) => {
+    console.error(`ui: ${e.message} (port ${port})`);
+    process.exit(1);
+  });
+  server.listen(port, '0.0.0.0', () => {
+    console.log(`What If Cine Studio UI: http://localhost:${port}  (listening on 0.0.0.0)`);
+    console.log('Ctrl+C to stop. The UI spawns the same render.mjs CLI — logs stay in projects/<id>/logs/.');
+  });
+  const shutdown = () => { try { server.close(); } catch {} process.exit(0); };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+  return server;
+}

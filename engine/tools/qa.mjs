@@ -113,14 +113,17 @@ export function qaPlan(id, plan) {
   return {errors, warnings};
 }
 
-export function qaMedia(id, plan, sceneFiles, finalFile) {
+export function qaMedia(id, plan, sceneFiles, finalFile, draft = false) {
   const errors = [], warnings = [];
+  // Draft renders are half resolution by design — check against that.
+  const W = draft ? WIDTH / 2 : WIDTH;
+  const H = draft ? HEIGHT / 2 : HEIGHT;
   for (const sc of plan.scenes) {
     const f = sceneFiles[sc.id];
     if (!f || !fs.existsSync(f)) { errors.push(`[${sc.id}] scene video missing`); continue; }
     try {
       const m = probe(f);
-      if (m.width !== WIDTH || m.height !== HEIGHT) errors.push(`[${sc.id}] resolution ${m.width}x${m.height}`);
+      if (m.width !== W || m.height !== H) errors.push(`[${sc.id}] resolution ${m.width}x${m.height}`);
       if (Math.abs(m.fps - FPS) > 0.01) errors.push(`[${sc.id}] fps ${m.fps}`);
       if (m.vcodec !== 'h264') errors.push(`[${sc.id}] codec ${m.vcodec}`);
       const expect = sc.durFrames / FPS;
@@ -133,7 +136,7 @@ export function qaMedia(id, plan, sceneFiles, finalFile) {
   }
   if (finalFile && fs.existsSync(finalFile)) {
     const m = probe(finalFile);
-    if (m.width !== WIDTH || m.height !== HEIGHT) errors.push(`[final] resolution ${m.width}x${m.height}`);
+    if (m.width !== W || m.height !== H) errors.push(`[final] resolution ${m.width}x${m.height}`);
     if (Math.abs(m.fps - FPS) > 0.01) errors.push(`[final] fps ${m.fps}`);
     if (m.vcodec !== 'h264' || (m.hasAudio && m.acodec !== 'aac')) errors.push(`[final] codecs ${m.vcodec}/${m.acodec}`);
     if (!m.hasAudio) errors.push('[final] no audio track');

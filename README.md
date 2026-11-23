@@ -15,7 +15,7 @@ No paid APIs, no image/video generators. Everything is code:
 | Voices | **Piper TTS** (ONNX, offline) or your own recordings |
 | Speech recognition | **Whisper ONNX** (`@huggingface/transformers`, `Xenova/whisper-tiny`), with silence-detection fallback |
 | Sound design + music + mixing | **Python/numpy** procedural synthesis (no samples) |
-| Orchestration | Node.js CLI (`engine/render.mjs`) + a web **Studio** UI (Next.js, in the repo root) |
+| Orchestration | Node.js CLI (`engine/render.mjs`) + a local **web UI** (`render.mjs ui`, zero dependencies) |
 
 ## Layout
 
@@ -34,7 +34,7 @@ whatif-cine-studio/
       project/            Remotion Root, compositions (Scene, Film, PoseSheet)
       v2/                 SceneRenderer – assembles one scene
     public/{backgrounds,fx,audio}
-    tools/                script/voice/timeline/sound/qa stages + Python (tts.py, mixer.py, gen_assets.py)
+    tools/                script/story/voice/timeline/sound/qa stages, textnorm.py, local web UI (ui.mjs) + Python (tts.py, mixer.py, gen_assets.py)
     templates/            example project JSON
     models/piper/         downloaded voice models (auto)
   projects/<id>/          project.json, plan.json, timeline.json, voice/, audio/, logs/, state.json, qa_report.json
@@ -66,28 +66,35 @@ Piper voice models (~60 MB each) and the Whisper model are downloaded automatica
 ```bash
 cd whatif-cine-studio/engine
 node render.mjs idea --lang ru                       # list ideas
-node render.mjs new my-film --lang ru --duration 50 --characters 2 --music tense
+node render.mjs new my-film --lang ru --duration 50 --characters 2 --music tense --topic "что если динозавры вернутся?"
 node render.mjs all my-film                          # whole pipeline → ../output/my-film/FINAL.mp4
 ```
 
-Or use the web Studio (repo root): `npm run dev` (or the preview) → create, edit the script, run stages, preview frames and scenes, upload audio/references.
+Or open the local web UI — no extra dependencies, no server framework:
+
+```bash
+node render.mjs ui                                   # → http://localhost:7788
+```
+
+Enter a topic (any free-text idea — the story is generated around it, templates stay optional), pick duration/language/voice/style/music, press **Создать** → **Запустить всё**, watch stage progress and the live log, then download `FINAL.mp4`.
 
 ## Commands
 
 | Command | What it does |
 |---|---|
 | `doctor` | environment check |
-| `idea [--lang] [--theme] [--count]` | generate What If concepts |
-| `new <id> [--lang ru\|en] [--duration 30-180] [--topic "…"] [--theme t] [--characters 1-3] [--voice tts\|upload\|files\|none] [--music dark_ambient\|tense\|mystery\|epic\|emotional\|lofi] [--style s] [--template no_sleep\|gravity\|no_internet]` | build the script → `projects/<id>/project.json` |
+| `ui [--port 7788]` | local web UI: create/run/monitor projects, live log, MP4 download |
+| `idea [--lang] [--theme] [--count]` | generate What If concepts (template-based) |
+| `new <id> [--lang ru\|en] [--duration 25-180] [--topic "…"] [--theme t] [--characters 1-3] [--voice tts\|upload\|files\|none] [--music dark_ambient\|tense\|mystery\|epic\|emotional\|lofi] [--style s] [--template auto\|freeform\|no_sleep\|gravity\|no_internet] [--force]` | build the script around the topic → `projects/<id>/project.json`; no `--topic` = template story |
 | `voice <id> [--audio file] [--no-whisper] [--force]` | TTS per line, **or** analyse an uploaded recording |
 | `timeline <id>` | resolve everything to numeric times → `plan.json`, `timeline.json`; runs plan QA |
 | `scenes <id> [--only s01,s03] [--force] [--draft]` | render scenes (skips finished, verified ones) |
 | `sound <id> [--force]` | build audio plan, synthesise, mix, duck, normalise to **−14 LUFS** |
 | `render <id> [--draft]` | scenes + lossless concat → `video.mp4` |
 | `final <id> [--draft]` | mux AAC audio → `FINAL.mp4` |
-| `qa <id> [--plan-only]` | full quality report → `qa_report.json` |
+| `qa <id> [--plan-only] [--draft]` | full quality report → `qa_report.json` |
 | `frame <id> --scene s01 --t 2.5 [--out file.png]` | render a single frame for review |
-| `all <id>` | everything, in order |
+| `all <id> [--draft]` | everything, in order (per-stage log also aggregated in `logs/all.log`) |
 | `list` | projects and stage status |
 
 `--draft` renders at half resolution with a fast preset for quick iteration (outputs `DRAFT.mp4`).
@@ -100,7 +107,7 @@ Or use the web Studio (repo root): `npm run dev` (or the preview) → create, ed
 
 ## Voices and sync
 
-* Voices (`engine/src/lib/library.ts`) have gender, age range, timbre, speed, intonation, mood, accent, delivery style and a **ready-made prompt** for external voice generators (shown in the Studio → Assets tab). RU and EN supported.
+* Voices (`engine/src/lib/library.ts`) have gender, age range, timbre, speed, intonation, mood, accent, delivery style and a **ready-made prompt** for external voice generators. RU and EN supported. Alternative Piper narrator models can be chosen in the web UI or via `project.json → settings.voiceModels`.
 * **TTS**: Piper models per language, pitch-shifted per voice so narrator/hero/friend sound different.
 * **Your recording** (`voice <id> --audio narration.mp3`): FFmpeg converts it → Whisper ONNX recognises words with timestamps → script tokens are aligned with the recognised words (Needleman–Wunsch) → phrases get time intervals → the audio is cut into per-line clips → `timeline` builds scene durations around them. If Whisper cannot run, silence detection splits the recording into phrases instead. Outputs: `voice/manifest.json`, `transcript.json`, `timeline.json`.
 * **Per-line files**: drop `voice/<lineId>.wav|mp3` into the project and use `--voice files`.
@@ -124,9 +131,16 @@ Music (6 moods) and ambience beds are synthesised in `tools/mixer.py`; SFX inclu
 Plan level: anatomy/joint limits, bone-length drift, ground contact, teleport (px/frame), jitter (acceleration), impossible speeds, prop surfaces and holds, unknown environments/props, ≥ 2 live details, shot variety & duration, line overlap, audio files present, frame sums, requested-duration drift.
 Media level: resolution, FPS, codec, scene duration, **blackdetect** (empty frames), **freezedetect** (static > 4 s), final duration, audio track, loudness.
 
-## Studio UI
+## Web UI (`node render.mjs ui`)
 
-Left: project list and the *new video* form (language, duration, theme, characters, voice mode, music, style, topic/ideas). Tabs: **Pipeline** (stage buttons, live log, timeline bars, QA), **Script** (edit titles, environments, lines; *Re-render scene*), **Preview** (single frame at any time, scene video, final video), **Assets** (upload narration → auto sync, upload reference images/video/audio, voice prompts, cast).
+A single dependency-free page (`engine/tools/ui.mjs`, `node:http` only) at `http://localhost:7788`:
+
+* **Проекты** — project list with stage status and MP4 readiness (from `state.json`).
+* **Новое видео** — form: topic (free text), duration, language, characters, narrator voice, style, music, template (`auto` / freeform / classic), voice mode, project id, overwrite flag.
+* **Этапы** — one button per stage plus *Запустить всё* / *Остановить* (a stage job runs as a detached `render.mjs` process — the same code path as the CLI), `draft` toggle, progress indicator.
+* **Журнал** — live tail of `projects/<id>/logs/*.log`; download links for `FINAL.mp4` / `DRAFT.mp4` (HTTP Range supported).
+
+Project data stays on disk, so CLI and UI are fully interchangeable: `node render.mjs all <id>` in a terminal does exactly what the button does.
 
 ## Troubleshooting
 
