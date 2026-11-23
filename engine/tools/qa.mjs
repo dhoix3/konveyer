@@ -114,6 +114,12 @@ export function qaPlan(id, plan) {
     }
     if (sc.kind !== 'title' && sc.actors.length === 0) W(S, 'scene without characters');
   }
+  if (plan.production?.kind === 'film') {
+    for (const character of plan.characters) {
+      if (!plan.scenes.some(s=>s.actors.some(a=>a.char===character.id))) E('film', `production character ${character.id} never appears`);
+      if (!plan.scenes.some(s=>s.lines.some(l=>l.voice===character.voice))) E('film', `production character ${character.id} has no dialogue`);
+    }
+  }
   for (const need of ['wide', 'medium', 'close']) if (!kinds.has(need)) W('film', `no "${need}" shots in the film`);
   if (frames !== plan.totalFrames) E('film', `frame sum ${frames} != totalFrames ${plan.totalFrames}`);
   const proj = readJson(path.join(projectDir(id), 'project.json'), null);

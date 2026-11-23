@@ -3,6 +3,7 @@
 // emotional finale -> question) plus a free-form generator for arbitrary
 // topics (see story.mjs).  Narration is second person ("Ты просыпаешься...").
 // Output is project.json.
+import {buildProduction} from './production.mjs';
 import {LIB_CHARS, LIB_VOICES} from '../src/lib/library.ts';
 import {analyzeTopic, buildStoryScenes, storyMeta, T, at, ln, L, S} from './story.mjs';
 
@@ -315,6 +316,7 @@ function localize(sc, sid) {
 const hashId = (s) => { let h = 5381; for (const ch of String(s)) h = ((h << 5) + h + ch.charCodeAt(0)) >>> 0; return h; };
 
 export function buildProject(opts = {}) {
+  if (opts.format) return buildProduction(opts, {estimateLine});
   const lang = opts.language === 'en' ? 'en' : 'ru';
   const duration = Math.max(25, Math.min(180, Number(opts.duration) || 45));
   let topic = String(opts.topic || '').replace(/\s+/g, ' ').trim();
@@ -477,6 +479,13 @@ export function buildProject(opts = {}) {
     }
   });
 
+  // Short cuts may remove optional expert scenes. Keep every requested
+  // character visibly participating in the closing scene without extra speech.
+  const closing = scenes.at(-1);
+  for (const char of castIds) if (!scenes.some(s=>s.actors.some(a=>a.char===char))) {
+    closing.actors.push({char,x:250+closing.actors.length*430,facing:'l'});
+    closing.beats.push({t:0,char,do:'think',emotion:'thinking'});
+  }
   const used = new Set(['hero']);
   castIds.forEach((c) => used.add(c));
   const chars = LIB_CHARS.filter((c) => used.has(c.id));

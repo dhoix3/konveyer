@@ -121,6 +121,15 @@ try {
     if(i===99)assert.fail('voice job timeout');
     await new Promise(r=>setTimeout(r,30));
   }
+  const serial={...payload,id:'serial',name:'Terra',format:'series',duration:90,episodes:3,characters:3};
+  assert.equal((await post('/api/create',{...serial,genre:'invalid'})).status,400);
+  assert.equal((await post('/api/create',serial)).status,200);
+  assert.equal((await post('/api/run',{id:'serial',stage:'all'})).status,400);
+  const scriptData=await fetch(base+'/api/script?id=serial').then(r=>r.json());
+  assert.equal(scriptData.production.episodes.length,3);
+  assert.equal((await post('/api/episode',{id:'serial',episode:99})).status,400);
+  const produced=await fetch(base+'/api/script?id=serial-e01').then(r=>r.json());
+  assert.equal(produced.production.provider,'local-rules-v1');
   console.log('PASS GUI served-script syntax, API JSON/validation/origin, preview, duplicate launch, real voice-none state');
 } finally {
   if(child && child.exitCode===null) {child.kill('SIGTERM');await new Promise(r=>child.once('exit',r));}

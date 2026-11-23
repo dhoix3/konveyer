@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// What If Cine Studio — pipeline CLI.
+// Koveyer Dhoix'a — pipeline CLI.
 // IDEA -> SCRIPT -> VOICE -> TIMELINE -> SCENES -> SOUND -> RENDER -> FINAL.mp4
+import {createSeason, regenerateEpisode} from './tools/series.mjs';
 import {lockProject} from './tools/project-lock.mjs';
 import {prepareBrowser} from './tools/browser.mjs';
 import fs from 'node:fs';
@@ -23,6 +24,7 @@ const cmd = args._[0];
 
 const loadProject = (id) => readJson(path.join(projectDir(id), 'project.json'));
 const loadPlan = (id) => {
+  if (loadProject(id).production?.kind === 'season') throw new Error('Сезон — контейнер. Выберите отдельный эпизод для рендера.');
   const f = path.join(projectDir(id), 'plan.json');
   if (!fs.existsSync(f)) throw new Error(`plan.json missing — run: node render.mjs timeline ${id}`);
   const plan = readJson(f);
@@ -66,15 +68,29 @@ async function cmdNew(id) {
   if (args.duration !== undefined && !Number.isFinite(Number(args.duration))) throw new Error(`--duration must be a number 25-180 (got "${args.duration}")`);
   if (args.duration !== undefined && (Number(args.duration) < 25 || Number(args.duration) > 180)) throw new Error(`--duration must be 25-180 seconds (got "${args.duration}")`);
   if (args.characters !== undefined && !(Number(args.characters) >= 1 && Number(args.characters) <= 3)) throw new Error('--characters must be 1, 2 or 3');
-  if (args.topic && String(args.topic).length > 300) throw new Error('--topic is too long (max 300 characters)');
+  if (!args.format && args.topic && String(args.topic).length > 300) throw new Error('--topic is too long (max 300 characters)');
   if (args.topic && !String(args.topic).trim()) throw new Error('--topic is empty');
 
   const dir = ensure(projectDir(id));
   const log = logger(id, 'script');
-  if (args.topic && String(args.topic).length > 200) log.warn('topic longer than 200 chars — it will be truncated');
+  if (!args.format && args.topic && String(args.topic).length > 200) log.warn('topic longer than 200 chars — it will be truncated');
   const existed = fs.existsSync(path.join(dir, 'project.json'));
   if (existed && !args.force) throw new Error(`project ${id} exists (use --force to overwrite)`);
-  const project = buildProject({id, language: args.lang, duration: args.duration, topic: args.topic, theme: args.theme, characters: args.characters, voiceMode: args.voice, music: args.music, style: args.style, template: args.template === 'auto' ? undefined : args.template});
+  const options = {id, language: args.lang, duration: args.duration, topic: args.topic, theme: args.theme, characters: args.characters, voiceMode: args.voice, music: args.music, style: args.style, template: args.template === 'auto' ? undefined : args.template,
+    voiceModel:args['voice-model'],format:args.format, name:args.name,genre:args.genre,narrative:args.narrative,episodes:args.episodes,season:args.season,
+    sources:args.materials ? readJson(path.resolve(String(args.materials))).sources : undefined,
+    claims:args.materials ? readJson(path.resolve(String(args.materials))).claims : undefined};
+  if(args['continue-from']) {
+    if(!args.format || args.format==='series') throw new Error('Продолжение требует отдельного производственного фильма');
+    const previous=loadProject(String(args['continue-from']));
+    if(previous.production?.kind==='season') throw new Error('Выберите эпизод, а не контейнер сезона');
+    options.characters=previous.characters.length;
+    options.cast=previous.characters;
+    options.context={previousOutcome:previous.production?.outcome || previous.scenes.at(-1)?.lines.at(-1)?.text[previous.language] || previous.mainIdea?.[previous.language]};
+    options.continuationFrom=previous.id;
+  }
+  if (args.format === 'series' && existed) throw new Error('Существующий сезон не перезаписывается: используйте episode для одной серии');
+  const project = args.format === 'series' ? createSeason(options) : buildProject(options);
   writeJson(path.join(dir, 'project.json'), project);
   writeJson(path.join(dir, 'idea.json'), project.idea);
   if (existed && args.force) {
@@ -298,6 +314,7 @@ async function cmdAll(id) {
     log.info('no project yet — creating one from the current options');
     await cmdNew(id);
   }
+  if (loadProject(id).production?.kind==='season') throw new Error('Выберите эпизод сезона: каждый экспортируется отдельно.');
   const stages = [
     ['voice', cmdVoice], ['timeline', cmdTimeline], ['scenes', cmdScenes],
     ['sound', cmdSound], ['render', cmdRender], ['final', cmdFinal], ['qa', cmdQa],
@@ -308,7 +325,7 @@ async function cmdAll(id) {
     await fn(id);
     log.info(`=== stage ${name} done (${((Date.now() - t0) / 1000).toFixed(0)}s total) ===`);
   }
-  const final = path.join(OUTPUT, id, 'FINAL.mp4');
+  const final = path.join(OUTPUT, id, args.draft ? 'DRAFT.mp4' : 'FINAL.mp4');
   if (fs.existsSync(final)) log.info(`pipeline finished: ${final}`);
   else log.warn('pipeline finished but FINAL.mp4 not found — check qa report');
 }
@@ -347,7 +364,7 @@ async function cmdDoctor() {
   if (checks.some((c) => !c.ok)) process.exitCode = 1;
 }
 
-const HELP = `What If Cine Studio — pipeline
+const HELP = `Koveyer Dhoix'a — pipeline
   node render.mjs doctor                         check environment
   node render.mjs ui [--port 7788]               local web UI (create/run/download MP4)
   node render.mjs idea [--lang ru|en] [--theme t] [--count n]
@@ -363,6 +380,7 @@ const HELP = `What If Cine Studio — pipeline
   node render.mjs qa <id> [--plan-only] [--draft]
   node render.mjs frame <id> --scene s01 --t 2.5
   node render.mjs all <id> [--draft]             whole pipeline (stage logs in projects/<id>/logs/all.log)
+  node render.mjs episode <series-id> --episode 2 --force
   node render.mjs list
 templates: ${TEMPLATE_IDS.join(', ')}`;
 
@@ -388,7 +406,9 @@ for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
 process.on('uncaughtException', (e) => { failRunningStage(args._[1], e); console.error(`✘ ${e.message}`); process.exit(1); });
 process.on('unhandledRejection', (e) => { failRunningStage(args._[1], e); console.error(`✘ ${e?.message || e}`); process.exit(1); });
 
-const table = {idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
+async function cmdEpisode(id) { const p=regenerateEpisode(id,Number(args.episode),!!args.force); console.log(`Episode ready: ${p.id}`); }
+
+const table = {episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
 try {
   if (!cmd || !table[cmd]) { console.log(HELP); process.exit(cmd ? 1 : 0); }
   const id = args._[1];

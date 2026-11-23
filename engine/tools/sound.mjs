@@ -48,7 +48,7 @@ export function buildAudioPlan(id, plan, log) {
 }
 
 export function measureLufs(file) {
-  const r = ff(['-i', file, '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json', '-f', 'null', '-'], {allowFail: true});
+  const r = ff(['-i', file, '-vn', '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json', '-f', 'null', '-'], {allowFail: true});
   const m = (r.stderr || '').match(/\{\s*"input_i"[\s\S]*?\}/);
   return m ? JSON.parse(m[0]) : null;
 }
