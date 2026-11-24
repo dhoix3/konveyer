@@ -28,7 +28,7 @@ export function decodeWav(buf) {
   }
   return {samples,rate,duration:samples.length/rate};
 }
-export function analyzeWav(buf,text,{words,phonemes}={}) {
+export function analyzeWav(buf,text,{words,phonemes,wordTiming}={}) {
   const {samples,rate,duration}=decodeWav(buf),step=0.02,window=Math.max(1,Math.round(rate*step)),rms=[];
   for(let i=0;i<samples.length;i+=window){let sum=0;for(let j=i;j<Math.min(samples.length,i+window);j++)sum+=samples[j]**2;rms.push(Math.sqrt(sum/Math.min(window,samples.length-i)));}
   const peak=Math.max(0,...rms),gate=Math.max(0.006,peak*0.07);
@@ -44,7 +44,7 @@ export function analyzeWav(buf,text,{words,phonemes}={}) {
     if(!Number.isFinite(p.start)||!Number.isFinite(p.end)||p.start<0||p.end<p.start||p.end>duration+0.021)throw new Error('Invalid phoneme timing');
     return {start:p.start,end:p.end,shape:/^[mbpмбп]$/i.test(p.phoneme)?'closed':/^[ouоуюё]$/i.test(p.phoneme)?'round':'open'};
   });
-  return {step,values,words:timing,wordTiming:words?'provided':'energy-estimated',...(visemes?{visemes}: {})};
+  return {step,values,words:timing,wordTiming:words?(wordTiming==='aligned'?'aligned':'provided'):'energy-estimated',...(visemes?{visemes}: {})};
 }
 export function analyzeAudio(file,text,metadata={}) {
   if(path.extname(file).toLowerCase()==='.wav')return analyzeWav(fs.readFileSync(file),text,metadata);

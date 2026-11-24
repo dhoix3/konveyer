@@ -1,3 +1,4 @@
+import {alignManifest,clipWords} from './word-alignment.mjs';
 import {profileFor,prosodyFor} from './voice-registry.mjs';
 // VOICE stage: TTS (Piper ONNX, local) | uploaded narration (Whisper ONNX or silence-VAD) | per-line files | none.
 // Uploaded audio is transcribed, split into phrases, aligned to script lines and cut into per-line clips.
@@ -272,7 +273,7 @@ export async function voiceUpload(id, project, audio, log, opts = {}) {
     const e = Math.min(dur, Math.min(r.end + 0.2, (r.end + nextStart) / 2 + 0.05));
     const out = lineFile(id, lines[i].id);
     ff(['-i', wav, '-ss', s.toFixed(3), '-to', Math.max(e, s + 0.3).toFixed(3), '-c:a', 'pcm_s16le', out]);
-    manifestLines[lines[i].id] = {file: path.relative(projectDir(id), out), dur: probe(out).duration, srcStart: r.start, srcEnd: r.end, matched: r.hits};
+    manifestLines[lines[i].id] = {file: path.relative(projectDir(id), out), dur: probe(out).duration, srcStart: r.start, srcEnd: r.end, matched: r.hits,...(source==='whisper'&&r.hits>0?{words:clipWords(transcript.words,s,Math.max(e,s+.3)),wordTiming:'aligned'}:{wordTiming:'energy-estimated'})};
   });
   const phrases = res.map((r, i) => ({line: lines[i].id, start: r.start, end: r.end, text: lines[i].text}));
   const mf = {source, lang: project.language, audio: path.relative(projectDir(id), wav), duration: dur, lines: manifestLines, phrases, transcript: transcript?.text || null};
@@ -281,12 +282,14 @@ export async function voiceUpload(id, project, audio, log, opts = {}) {
   return mf;
 }
 
-export async function runVoice(id, project, log, args = {}) {
-  const mode = args.audio ? 'upload' : args.mode || project.settings.voiceMode || 'tts';
-  log.info(`voice mode: ${mode}`);
-  if (mode === 'upload') return voiceUpload(id, project, path.resolve(String(args.audio)), log, {noWhisper: !!args['no-whisper'], model: args.model});
-  if (mode === 'files') return voiceFiles(id, project, log);
-  if (mode === 'none') { const o = {source: 'none', lines: {}}; writeJson(path.join(ensure(path.join(projectDir(id), 'voice')), 'manifest.json'), o); return o; }
-  return voiceTTS(id, project, log, {...args, force: !!args.force});
+export async function runVoice(id,project,log,args={}) {
+  const mode=args.audio?'upload':args.mode||project.settings.voiceMode||'tts';log.info(`voice mode: ${mode}`);
+  let mf;
+  if(mode==='upload')mf=await voiceUpload(id,project,path.resolve(String(args.audio)),log,{noWhisper:!!args['no-whisper'],model:args.model});
+  else if(mode==='files')mf=voiceFiles(id,project,log);
+  else if(mode==='none'){mf={source:'none',lines:{}};writeJson(path.join(ensure(path.join(projectDir(id),'voice')),'manifest.json'),mf);return mf;}
+  else mf=await voiceTTS(id,project,log,{...args,force:!!args.force});
+  return alignManifest(id,project,mf,log,{disabled:!!args['no-whisper']});
 }
+
 export {FFMPEG, ffmpegEnv, spawnSync};
