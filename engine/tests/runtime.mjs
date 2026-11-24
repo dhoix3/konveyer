@@ -103,14 +103,14 @@ try {
   assert.equal((await fetch(base+'/api/script?id=sample')).status,200);
   assert.equal((await fetch(base+'/api/log?id=sample&stage=../../project')).status,400);
   assert.equal((await post('/api/run',{id:'sample',stage:'bad'})).status,400);
-  assert.equal((await fetch(base+'/api/create',{method:'POST',body:'{'})).status,400);
+  assert.equal((await fetch(base+'/api/create',{method:'POST',headers:{'content-type':'application/json'},body:'{'})).status,400);
   assert.equal((await fetch(base+'/api/run',{method:'POST',headers:{origin:'http://evil.invalid'},body:'{}'})).status,403);
   fs.mkdirSync(path.join(temp,'output','sample'),{recursive:true});
   fs.writeFileSync(path.join(temp,'output','sample','FINAL.mp4'),'0123456789');
   const suffix=await fetch(base+'/file?id=sample&name=FINAL.mp4',{headers:{range:'bytes=-3'}});
   assert.equal(suffix.status,206); assert.equal(await suffix.text(),'789');
   assert.equal((await fetch(base+'/file?id=sample&name=FINAL.mp4',{headers:{range:'bytes=99-100'}})).status,416);
-  assert.equal((await fetch(base+'/api/create',{method:'POST',body:'null'})).status,400);
+  assert.equal((await fetch(base+'/api/create',{method:'POST',headers:{'content-type':'application/json'},body:'null'})).status,400);
   const requests=await Promise.all([post('/api/run',{id:'sample',stage:'voice'}),post('/api/run',{id:'sample',stage:'voice'})]);
   assert.deepEqual(requests.map(r=>r.status).sort(),[200,409]);
   for (let i=0;i<100;i++) {

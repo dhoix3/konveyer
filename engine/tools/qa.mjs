@@ -1,3 +1,5 @@
+import {LIB_CHARS} from '../src/lib/library.ts';
+import {qaDocumentary} from './documentary.mjs';
 // QA stage: static checks on the plan (anatomy, contact, teleport, props, sync, duration) + checks on rendered media.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,9 +26,10 @@ export function parsePropKinds(source) {
 const PROP_KINDS = parsePropKinds(propSrc);
 const AIR_OK = new Set(['jump', 'float', 'cheer', 'run', 'fall']);
 
-export function qaPlan(id, plan) {
+export function qaPlan(id, plan,{project}={}) {
   const errors = [], warnings = [];
   const E = (s, m) => errors.push(`[${s}] ${m}`), W = (s, m) => warnings.push(`[${s}] ${m}`);
+  warnings.push(...(plan.speechWarnings||[]));
   const chars = new Map(plan.characters.map((c) => [c.id, c]));
   const kinds = new Set();
   let frames = 0;
@@ -36,6 +39,9 @@ export function qaPlan(id, plan) {
     if (sc.durFrames < 24) E(S, 'scene shorter than 1 second');
     if (!(sc.env.id in ENVS)) E(S, `unknown environment "${sc.env.id}"`);
     else if (ENVS[sc.env.id] < 2) E(S, `environment "${sc.env.id}" has fewer than 2 live details`);
+    if(sc.crowd) {
+      if(!Number.isInteger(sc.crowd.count)||sc.crowd.count<1||sc.crowd.count>24||!Array.isArray(sc.crowd.presets)||!sc.crowd.presets.length||sc.crowd.presets.some(id=>!LIB_CHARS.some(c=>c.id===id))||sc.crowd.depth<.2||sc.crowd.depth>1.5)E(S,'invalid crowd');
+    }
     // props
     const ids = new Set((sc.props || []).map((p) => p.id));
     for (const p of sc.props || []) {
@@ -122,19 +128,20 @@ export function qaPlan(id, plan) {
   }
   for (const need of ['wide', 'medium', 'close']) if (!kinds.has(need)) W('film', `no "${need}" shots in the film`);
   if (frames !== plan.totalFrames) E('film', `frame sum ${frames} != totalFrames ${plan.totalFrames}`);
-  const proj = readJson(path.join(projectDir(id), 'project.json'), null);
+  const proj = project||readJson(path.join(projectDir(id), 'project.json'), null);
   if (proj) {
     const target = proj.settings.duration;
     if (Math.abs(plan.totalSec - target) / target > 0.3) W('film', `duration ${plan.totalSec.toFixed(1)}s differs from requested ${target}s by more than 30%`);
   }
+  const docQA=qaDocumentary(plan);errors.push(...docQA.errors);warnings.push(...docQA.warnings);
   return {errors, warnings};
 }
 
 export function qaMedia(id, plan, sceneFiles, finalFile, draft = false) {
   const errors = [], warnings = [];
   // Draft renders are half resolution by design — check against that.
-  const W = draft ? WIDTH / 2 : WIDTH;
-  const H = draft ? HEIGHT / 2 : HEIGHT;
+  const W = plan.width*(draft?0.5:1);
+  const H = plan.height*(draft?0.5:1);
   for (const sc of plan.scenes) {
     const f = sceneFiles[sc.id];
     if (!f || !fs.existsSync(f)) { errors.push(`[${sc.id}] scene video missing`); continue; }

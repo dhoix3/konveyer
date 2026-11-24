@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-24T12:43:00.588Z",
+  "stages": [
+    {
+      "name": "smoke",
+      "status": "ok",
+      "ms": 106.50659900000002
+    },
+    {
+      "name": "timeline",
+      "status": "ok",
+      "ms": 55.10460999999998
+    },
+    {
+      "name": "qa",
+      "status": "ok",
+      "ms": 34.304429
+    },
+    {
+      "name": "publish",
+      "status": "ok",
+      "ms": 5.976230999999984
+    }
+  ],
+  "scenes": [],
+  "frames": [],
+  "memory": {
+    "nodePeakRSSBytes": 89841664,
+    "treePeakRSSBytes": 96792576,
+    "samples": 1,
+    "scope": "Node maxRSS; sampled process-tree RSS (shared pages may be counted twice); not system commit"
+  },
+  "errors": [],
+  "context": {
+    "mode": "smoke",
+    "project": "sc-20261124124300115-4f9fe9",
+    "draft": true,
+    "requestedConcurrency": null,
+    "node": "v22.22.3",
+    "platform": "linux",
+    "totalMemoryBytes": 4131278848,
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.60GHz",
+    "sourceHash": "b5908e2e648b3ffd",
+    "concurrency": 1
+  },
+  "elapsedMs": 123.02766599999998,
+  "estimate": null
+}

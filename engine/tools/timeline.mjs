@@ -1,8 +1,10 @@
+import {outputSize,viewport} from '../src/lib/viewport.ts';
+import {analyzeAudio} from './speech-analysis.mjs';
 // TIMELINE stage: project.json + voice manifest -> plan.json (all times numeric, shots generated, scenes sized).
 import {ttsLineHash} from './voice.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
-import {projectDir, readJson, writeJson, sha1, FPS, WIDTH, HEIGHT} from './lib.mjs';
+import {projectDir, readJson, writeJson, sha1, fileSha, FPS} from './lib.mjs';
 import {estimateLine, LEAD, TAIL, GAP} from './script.mjs';
 const MOVES = ['push', 'drift', 'pan', 'dolly', 'pull', 'crane'];
 const TYPE_CYCLE = ['wide', 'medium', 'close'];
@@ -67,13 +69,16 @@ function autoShots(sc, dur) {
   return shots;
 }
 
-export function buildPlan(id) {
+export function buildPlan(id,{aspect,projectOverride,persist=true,ignoreAudio=false}={}) {
   const dir = projectDir(id);
-  const project = readJson(path.join(dir, 'project.json'));
+  const size=outputSize(aspect);
+  const planDir=aspect?path.join(dir,'exports',aspect.replace(':','x')):dir;
+  const project = projectOverride||readJson(path.join(dir, 'project.json'));
   if(project.production?.kind==='season') throw new Error('Сезон — контейнер: выберите отдельный эпизод для таймлайна.');
-  const mf = readJson(path.join(dir, 'voice', 'manifest.json'), {source: 'none', lines: {}});
+  const mf = ignoreAudio?{source:'none',lines:{}}:readJson(path.join(dir, 'voice', 'manifest.json'), {source: 'none', lines: {}});
   const lang = project.language;
   const fps = FPS;
+  const speechWarnings=[];
   let cursor = 0, frameCursor = 0, usedFiles = 0, totalLines = 0;
   const scenes = project.scenes.map((sc, index) => {
     const starts = {};
@@ -92,7 +97,9 @@ export function buildPlan(id) {
       }
       if (file) usedFiles++;
       const dur = file ? m.dur : estimateLine(l.text[lang], l.voice, lang);
-      const rs = {...l, sceneStart: +c.toFixed(3), sceneEnd: +(c + dur).toFixed(3), file};
+      let speech;
+      if(file)try{speech=analyzeAudio(path.resolve(dir,file),l.text[lang],{words:m.words,phonemes:m.phonemes,wordTiming:m.wordTiming});}catch(e){speechWarnings.push(`${l.id}: audio analysis unavailable; legacy lip sync fallback: ${e.message}`);}
+      const rs = {...l, speech, audioHash:file?fileSha(path.resolve(dir,file)):undefined, sceneStart: +c.toFixed(3), sceneEnd: +(c + dur).toFixed(3), file};
       starts[l.id] = rs.sceneStart;
       c += dur + (l.pause ?? GAP);
       return rs;
@@ -120,15 +127,16 @@ export function buildPlan(id) {
   });
   const voiceSource = usedFiles === totalLines && totalLines > 0 ? (mf.source === 'files' ? 'tts' : mf.source) : 'estimated';
   const plan = {
-    version: 1, projectHash: sha1(project), voiceManifestHash: sha1(mf), id: project.id, language: lang, title: project.title, fps, width: WIDTH, height: HEIGHT,
+    version: 1, schemaVersion:2, projectHash: sha1(project), voiceManifestHash: sha1(mf), id: project.id, language: lang, title: project.title, fps, width: size.width, height: size.height, aspect:aspect||'16:9', safeZone:viewport(size.width,size.height).safe,
     totalFrames: frameCursor, totalSec: frameCursor / fps, voiceSource,
-    production: project.production, characters: project.characters, voices: project.voices, scenes, music: {mood: project.settings.music},
+    speechWarnings, production: project.production, characters: project.characters, voices: project.voices, scenes, music: {mood: project.settings.music},
   };
   plan.hash = sha1({...plan, hash: undefined});
-  writeJson(path.join(dir, 'plan.json'), plan);
-  writeJson(path.join(dir, 'timeline.json'), {
+  if(persist){writeJson(path.join(planDir, 'plan.json'), plan);
+  writeJson(path.join(planDir, 'timeline.json'), {
     fps, source: voiceSource, totalSec: plan.totalSec,
     scenes: scenes.map((s) => ({id: s.id, title: s.title, start: s.startSec, duration: s.durSec, startFrame: s.startFrame, frames: s.durFrames, lines: s.lines.map((l) => ({id: l.id, voice: l.voice, text: l.text[lang], start: +l.start.toFixed(3), end: +l.end.toFixed(3), file: l.file || null}))})),
   });
+  }
   return plan;
 }

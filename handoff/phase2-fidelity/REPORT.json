@@ -1,0 +1,143 @@
+{
+  "check": "Conservative lexical names/numbers/dates; not semantic verification",
+  "correction": "Калита: Москва заменена на княжество, как в полной формулировке; не добавлена в claim задним числом",
+  "claims": [
+    {
+      "id": "rurik",
+      "narration": "Призвание Рюрика — спорный летописный рассказ.",
+      "errors": []
+    },
+    {
+      "id": "oleg",
+      "narration": "Захват Киева Олегом: ранние даты условны.",
+      "errors": []
+    },
+    {
+      "id": "treaty",
+      "narration": "Летопись сохранила договор с Византией.",
+      "errors": []
+    },
+    {
+      "id": "igor",
+      "narration": "Повторный сбор дани привёл Игоря к гибели.",
+      "errors": []
+    },
+    {
+      "id": "olga",
+      "narration": "После гибели Игоря Ольга упорядочила дань.",
+      "errors": []
+    },
+    {
+      "id": "olga-baptism",
+      "narration": "Дата крещения Ольги остаётся спорной.",
+      "errors": []
+    },
+    {
+      "id": "sviatoslav",
+      "narration": "Поход Святослава ослабил хазар.",
+      "errors": []
+    },
+    {
+      "id": "sviatoslav-end",
+      "narration": "Святослав погиб в бою с печенегами.",
+      "errors": []
+    },
+    {
+      "id": "vladimir",
+      "narration": "Детали крещения Руси вызывают споры.",
+      "errors": []
+    },
+    {
+      "id": "christianity",
+      "narration": "Христианство укрепило связи с Византией.",
+      "errors": []
+    },
+    {
+      "id": "yaroslav",
+      "narration": "Ярослав поддерживал книжность и строительство.",
+      "errors": []
+    },
+    {
+      "id": "lyubech",
+      "narration": "Любеч закрепил вотчины, но не прекратил усобицы.",
+      "errors": []
+    },
+    {
+      "id": "monomakh",
+      "narration": "Мономах сдерживал княжеские конфликты.",
+      "errors": []
+    },
+    {
+      "id": "fragmentation",
+      "narration": "Разделы владений усиливали раздробленность.",
+      "errors": []
+    },
+    {
+      "id": "yuri",
+      "narration": "Москва упомянута в связи с Юрием Долгоруким.",
+      "errors": []
+    },
+    {
+      "id": "mongols",
+      "narration": "Нашествие привело к зависимости от Орды.",
+      "errors": []
+    },
+    {
+      "id": "nevsky",
+      "narration": "Невский возглавлял войско на Чудском озере.",
+      "errors": []
+    },
+    {
+      "id": "nevsky-horde",
+      "narration": "Он признавал власть ордынских ханов.",
+      "errors": []
+    },
+    {
+      "id": "kalita",
+      "narration": "При Калите позиции княжества усилились.",
+      "errors": []
+    },
+    {
+      "id": "ivan3",
+      "narration": "Иван Третий лишил Новгород самостоятельности.",
+      "errors": []
+    },
+    {
+      "id": "ugra",
+      "narration": "Угра — рубеж конца ордынской зависимости.",
+      "errors": []
+    },
+    {
+      "id": "moscow-line",
+      "narration": "Иван Четвёртый — внук Ивана Третьего и отец Фёдора.",
+      "errors": []
+    },
+    {
+      "id": "ivan4",
+      "narration": "Иван Четвёртый венчался на царство.",
+      "errors": []
+    },
+    {
+      "id": "oprichnina",
+      "narration": "Опричнина сопровождалась разорением.",
+      "errors": []
+    },
+    {
+      "id": "end",
+      "narration": "Пресеклась московская линия, но не весь род.",
+      "errors": []
+    }
+  ],
+  "negative": {
+    "newName": [
+      "name absent from full claim: наполеон"
+    ],
+    "newDate": [
+      "number/date absent from full claim: 1812"
+    ],
+    "newNumber": [
+      "number/date absent from full claim: сто"
+    ]
+  },
+  "ok": true
+}

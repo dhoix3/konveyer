@@ -1,3 +1,5 @@
+import {alignManifest,clipWords} from './word-alignment.mjs';
+import {profileFor,prosodyFor} from './voice-registry.mjs';
 // VOICE stage: TTS (Piper ONNX, local) | uploaded narration (Whisper ONNX or silence-VAD) | per-line files | none.
 // Uploaded audio is transcribed, split into phrases, aligned to script lines and cut into per-line clips.
 import fs from 'node:fs';
@@ -11,7 +13,7 @@ const MODELS = path.join(ENGINE, 'models', 'piper');
 const HF = 'https://huggingface.co/rhasspy/piper-voices/resolve/main';
 // Bump whenever text normalisation or synthesis changes.  Cached voice WAVs
 // from an older version must not be reused: the hash only covers text + voice.
-export const TTS_VERSION = 'tts-3';
+export const TTS_VERSION = 'tts-4';
 
 // Extra Russian Piper voices that can be selected per project without changing
 // the defaults in src/lib/library.ts:
@@ -55,6 +57,7 @@ export async function ensureModel(name, log) {
   const model = path.join(MODELS, `${name}.onnx`);
   const config = path.join(MODELS, `${name}.onnx.json`);
   const good = (f, min) => fs.existsSync(f) && fs.statSync(f).size >= min;
+  if(process.env.WHATIF_OFFLINE==='1'&&(!good(model,100_000)||!good(config,20)))throw new Error('Offline: Piper model/config missing locally; no download attempted');
   if (!good(model, 100_000)) {
     if (log) log.info(`downloading Piper voice ${name}…`);
     await downloadModel(`${HF}/${lc}/${langRegion}/${voice}/${quality}/${name}.onnx`, model, log);
@@ -84,13 +87,13 @@ export function resolveVoiceModel(voice, project, opts = {}) {
       if (id === voice.id && model) return model;
     }
   }
-  return project.settings?.voiceModels?.[voice.id] || fallback;
+  return project.settings?.voiceModels?.[voice.id] || profileFor(voice,project)?.model || fallback;
 }
 
 export function ttsLineHash(line, project, opts = {}) {
   const v = voiceById(line.voice);
   return sha1([TTS_VERSION, project.language, line.text[project.language],
-    resolveVoiceModel(v, project, opts), Number(v.piper.pitch) || 1, Number(v.speed) || 1]);
+    resolveVoiceModel(v, project, opts), prosodyFor(v,project)]);
 }
 
 export const lineFile = (id, lid) => path.join(projectDir(id), 'voice', `${lid}.wav`);
@@ -106,14 +109,13 @@ export async function voiceTTS(id, project, log, {force = false, ...opts} = {}) 
     const v = voiceById(l.voice);
     const text = l.text[project.language];
     const name = resolveVoiceModel(v, project, opts);
-    const pitch = Number(v.piper.pitch) || 1;
-    const speed = Number(v.speed) || 1;
+    const {pitch,speed,noiseScale,noiseW}=prosodyFor(v,project);
     const hash = ttsLineHash(l, project, opts);
     hashes[l.id] = hash;
     const out = lineFile(id, l.id);
     if (!force && mf.lines[l.id]?.hash === hash && fs.existsSync(out)) { valid.add(l.id); continue; }
     try {
-      jobs.push({id: l.id, text, model: await ensureModel(name, log), pitch, speed, lang: project.language, out, hash});
+      jobs.push({id: l.id, text, model: await ensureModel(name, log), pitch, speed, noiseScale, noiseW, lang: project.language, out, hash});
     } catch (e) {
       earlyFailed.push({id: l.id, error: e.message});
     }
@@ -272,7 +274,7 @@ export async function voiceUpload(id, project, audio, log, opts = {}) {
     const e = Math.min(dur, Math.min(r.end + 0.2, (r.end + nextStart) / 2 + 0.05));
     const out = lineFile(id, lines[i].id);
     ff(['-i', wav, '-ss', s.toFixed(3), '-to', Math.max(e, s + 0.3).toFixed(3), '-c:a', 'pcm_s16le', out]);
-    manifestLines[lines[i].id] = {file: path.relative(projectDir(id), out), dur: probe(out).duration, srcStart: r.start, srcEnd: r.end, matched: r.hits};
+    manifestLines[lines[i].id] = {file: path.relative(projectDir(id), out), dur: probe(out).duration, srcStart: r.start, srcEnd: r.end, matched: r.hits,...(source==='whisper'&&r.hits>0?{words:clipWords(transcript.words,s,Math.max(e,s+.3)),wordTiming:'aligned'}:{wordTiming:'energy-estimated'})};
   });
   const phrases = res.map((r, i) => ({line: lines[i].id, start: r.start, end: r.end, text: lines[i].text}));
   const mf = {source, lang: project.language, audio: path.relative(projectDir(id), wav), duration: dur, lines: manifestLines, phrases, transcript: transcript?.text || null};
@@ -281,12 +283,14 @@ export async function voiceUpload(id, project, audio, log, opts = {}) {
   return mf;
 }
 
-export async function runVoice(id, project, log, args = {}) {
-  const mode = args.audio ? 'upload' : args.mode || project.settings.voiceMode || 'tts';
-  log.info(`voice mode: ${mode}`);
-  if (mode === 'upload') return voiceUpload(id, project, path.resolve(String(args.audio)), log, {noWhisper: !!args['no-whisper'], model: args.model});
-  if (mode === 'files') return voiceFiles(id, project, log);
-  if (mode === 'none') { const o = {source: 'none', lines: {}}; writeJson(path.join(ensure(path.join(projectDir(id), 'voice')), 'manifest.json'), o); return o; }
-  return voiceTTS(id, project, log, {...args, force: !!args.force});
+export async function runVoice(id,project,log,args={}) {
+  const mode=args.audio?'upload':args.mode||project.settings.voiceMode||'tts';log.info(`voice mode: ${mode}`);
+  let mf;
+  if(mode==='upload')mf=await voiceUpload(id,project,path.resolve(String(args.audio)),log,{noWhisper:!!args['no-whisper'],model:args.model});
+  else if(mode==='files')mf=voiceFiles(id,project,log);
+  else if(mode==='none'){mf={source:'none',lines:{}};writeJson(path.join(ensure(path.join(projectDir(id),'voice')),'manifest.json'),mf);return mf;}
+  else mf=await voiceTTS(id,project,log,{...args,force:!!args.force});
+  return alignManifest(id,project,mf,log,{disabled:!!args['no-whisper'],model:args.model});
 }
+
 export {FFMPEG, ffmpegEnv, spawnSync};

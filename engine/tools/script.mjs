@@ -8,7 +8,7 @@ import {LIB_CHARS, LIB_VOICES} from '../src/lib/library.ts';
 import {analyzeTopic, buildStoryScenes, storyMeta, T, at, ln, L, S} from './story.mjs';
 
 // Re-exported for render.mjs / UI so option lists live in one place.
-export const MUSIC_MOODS = ['dark_ambient', 'tense', 'mystery', 'epic', 'emotional', 'lofi'];
+export const MUSIC_MOODS = ['dark_ambient', 'tense', 'mystery', 'epic', 'emotional', 'lofi','solemn','pastoral','triumphant','elegiac'];
 export const LANGS = ['ru', 'en'];
 // Video styles: affect music everywhere and the colour grade of free-form
 // stories (template stories keep their carefully chosen per-scene grades).
@@ -16,6 +16,12 @@ export const STYLES = {
   'cinematic-stickman': {label: T('Кинематографичный', 'Cinematic'), grade: null, music: null},
   'noir': {label: T('Нуар', 'Noir'), grade: 'noir', music: 'mystery'},
   'warm': {label: T('Тёплый', 'Warm'), grade: 'warm', music: 'emotional'},
+  'cold': {label:T('Холодный','Cold'),grade:'cold',music:'mystery'},
+  'dawn': {label:T('Рассвет','Dawn'),grade:'dawn',music:'pastoral'},
+  'dusk': {label:T('Сумерки','Dusk'),grade:'dusk',music:'elegiac'},
+  'space': {label:T('Космос','Space'),grade:'space',music:'dark_ambient'},
+  'sepia': {label:T('Сепия','Sepia'),grade:'sepia',music:'solemn'},
+  'silver': {label:T('Серебряный','Silver'),grade:'silver',music:'solemn'},
   'vivid': {label: T('Яркий', 'Vivid'), grade: 'teal_orange', music: 'epic'},
 };
 

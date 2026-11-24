@@ -1,63 +1,79 @@
-# SKILL: Koveyer Dhoix'a
+# SKILL: Koveyer Dhoix’a — current contract
 
-Use this when asked to create a cinematic stickman "What If" video (idea → MP4) or to modify one.
-Working directory for commands: `whatif-cine-studio/engine`. Outputs: `../output/<id>/FINAL.mp4`.
+Run commands from repository `engine/`. Projects: `../projects/<id>/`; exports:
+`../output/<id>/`. Node ≥22. Preserve working models/voices/Piper environments.
+Do not reset user work, remove projects/outputs or claim a film from plan-only QA.
 
 ## Workflow
 
-0. Optional: `node render.mjs ui` — local web form (topic, duration, language, voice, style, music) with stage buttons, live log and MP4 download; everything below works identically from the UI.
-1. `node render.mjs doctor` — must be all ✔.
-2. `node render.mjs idea --lang ru` — pick or invent a topic.
-3. `node render.mjs new <id> --lang ru --duration 50 --characters 2 --music tense [--topic "…"]` — with `--topic` the story is generated around that topic (freeform, domain-aware); without it a template story is built. `--template auto|freeform|no_sleep|gravity|no_internet`.
-4. Review/edit `projects/<id>/project.json` (see *Script format*). Keep the dramaturgy intact.
-5. `node render.mjs voice <id>` (Piper TTS) or `voice <id> --audio narration.mp3` (user recording → Whisper → alignment).
-6. `node render.mjs timeline <id>` — runs plan QA; fix every error it prints.
-7. `node render.mjs scenes <id> --draft`, look at frames (`frame <id> --scene s03 --t 2`), then full quality `scenes <id>`.
-8. `node render.mjs sound <id>` → `render <id>` → `final <id>` → `qa <id>`. Or `all <id>`.
-9. Fix problems from `projects/<id>/qa_report.json` / `logs/*.log`, re-render only what changed: `scenes <id> --only s04`.
+1. `node render.mjs doctor` — record missing components; --fix only detects/saves paths.
+2. `new <id> --topic "…" --duration 45` (legacy), or --format fiction/documentary/
+   reconstruction/series. 25–180s per film/episode; production form cast1–3.
+3. Review project.json in editor (`ui`, default 127.0.0.1:7788) or as text. Historical
+   research expands cast separately: new → research → timeline → qa --plan-only.
+4. `voice <id>` / `voice <id> --audio file`; then `timeline <id>`. Never cut speech to
+   force a target duration. Missing model/alignment is not successful inference.
+5. Only when dependencies are ready: `all <id> --draft --concurrency 1`; inspect/listen
+   to actual outputs, media QA and a range of frames before approving a video.
+6. `subtitles`, `export --aspect 9:16`, `publish`; derivative plans/cache stay isolated.
+7. `selfcheck` gathers evidence/ZIP. Incomplete environment -> exit1, complete=false,
+   no fake PNGs. No automatic upload/install. Review private paths in logs before sharing.
 
-Never claim a result without running QA and looking at at least a few frames.
+No push/PR/merge unless separately authorized. Closing delivery: handoff/final/.
 
-## Script format (project.json)
+## Authoring / anatomy rules
 
-`scenes[]` — each scene: `env {id,time,weather}`, `light {key,x,y,color,rim,intensity,grade,flicker,pulse}`, `actors[] {char,x,facing,start,seatH}`, `beats[]`, `props[]`, `pstates[]`, `shotPlan[]` (or explicit `shots[]`), `lines[]`, `sfx[]`, `counter`, `ambience`, `musicLevel`, `silence`, `overlay`, `transition`, `minDur`.
+- Reuse library IDs and solver; do not alter skeleton/bone lengths for a character.
+  27 library characters share the skeleton, including child/elder/tall/stocky presets.
+- Times are seconds or anchors `{line:"s03_a",off:1.2}`. Keep voice/text/claim semantics.
+- Actors touch ground; seated props need seatH, held items need a prop/grip. Walk/run
+  with physically plausible speed; no teleporting. World ground is y=800.
+- Alternate wide/medium/close, vary movement/angles; no static shot >4s. Environment
+  has ≥2 live details. Plan cadence is not a substitute for rendered freezedetect.
+- Legacy «what if»: hook ≤15s, title, development/stakes/twist/climax/finale/question,
+  second-person narration. Documentary/fiction formats use their own structure; do
+  not force invented dramatic facts into a historical account.
+- 39 environments: 19 general + 20 rus_*. New general mountain/sea/desert/space/lab/
+  cave/medieval-town/forest sets are distinct, not aliases. 10 selectable styles,
+  10 music moods; none is a switch, not an extra mood.
+- Keep text readable (subtitle exporter checks speed/overflow); no claim of visual
+  legibility without rendered review in all required aspect ratios.
 
-* Times are seconds in the scene **or anchors** `{line:"s03_a", off:1.2}` (preferred — keeps action synced with speech).
-* Environments: bedroom, kitchen, street, city, stadium, hospital, office, school, station, nature (+ void for titles).
-* Actions (`beat.do`): idle walk run sit sit_up lie sleep stand_up wave point shrug facepalm cross_arms hands_up cower jump fall knock type drink look_phone think cheer reach clap stretch turn float carry slump.
-  `walk/run/carry` need `to` (x) and optionally `dur`/`speed` (walk ≈ 270 px/s, run ≈ 650 px/s; QA rejects > 900 px/s).
-  Sitting/lying on furniture needs `seatH` = surface height: bed 62, chair 80, sofa 72.
-* Emotions: neutral happy sad angry surprised scared tired thinking smug panic. Looks: forward up down back camera `{x,y}` `{char}` `{prop}`.
-* Props: bed chair desk table sofa door window phone cup laptop box suitcase lamp clock tv sign book flashlight ball letter trophy plant radio bat remote mic crate tablet.
-  A prop rests `on` `"floor"` or another prop's id (e.g. cup `on: "table1"`). `on:"air"` needs `y` and `why` (e.g. zero gravity).
-  Pick up: beat `{hold:{prop,hand:'r'}}`; release: `{hold:null, drop:{x,on}}`. Prop state animation: `pstates {t,prop,key:'open'|'on'|'ring',to,dur}` (doors open, screens switch off).
-* Counters (`counter {label,from,to,format:int|time|percent|money|decimal,unit,danger}`) show progress.
-* Voice ids: narrator, hero, friend, doc, boss, kid (see `src/lib/library.ts`). Text is `{ru,en}`.
+## Storage, security, history
 
-## Art rules (do not break)
+schemaVersion=2 migrates v1/missing-version additively; unknown future versions fail.
+Atomic replacement + fsync, bounded project/plan preimage history (20 per type).
+Editor has separate persisted undo/redo snapshots/revision checks; external locks
+and stale writes must be respected. Seasonal journal/recover is not global ACID.
 
-1. Hook in the first ≤ 15 s (scene 1 states the premise), then a cinematic title scene (`kind:"title"`).
-2. Order: development → rising stakes → unexpected consequence → climax → emotional finale → question to the viewer (`overlay.type:"question"`).
-3. Narration in second person ("Ты просыпаешься…"). No filler; every line must show/advance something.
-4. Cast stays visually constant: reuse ids from the library; never invent limbs, never edit skeleton constants for one scene.
-5. Alternate wide / medium / close shots; every shot moves; never hold a static frame > 4 s; vary angles (`angle: low|high`, `dutch`).
-6. Every action in the script must be visible: the person who is "reaching for a cup" must have a cup prop and `hold`.
-7. Nothing floats: props rest on surfaces, characters touch the ground (the solver does it — give correct `seatH`), no teleporting (use `walk/run` with a believable `dur`).
-8. Each scene needs ≥ 2 live environment details (built into every environment) and light that changes (flicker/pulse/moving shaft).
-9. Use silence deliberately (`silence:true`) before the twist or the finale.
-10. Keep text within ~15 chars/s; 25–60 s total is the sweet spot for a 1080p test render on a small machine.
+GUI default loopback; external bind requires configured bearer token, Host/Origin
+checks. HTTP alone does not encrypt the token. Never put secrets into URLs/logs.
+GUI history/QA/preview is not a multi-user cloud service; active jobs block edits.
 
-## Adding things
+## Knowledge and speech trust boundary
 
-* **New action**: add a case in `src/char/track.ts` (`actionPose`) + name in `ActionName` (`lib/types.ts`) + `SHEET_ACTIONS` in `project/PoseSheet.tsx`. Render the pose sheet: `npx remotion still src/index.ts PoseSheet out.png --props='{"t":1.1}'` and verify anatomy.
-* **New environment**: `reg({id,name,interior,live:[…≥2…],layers})` in `src/bg/envs.tsx`; add surfaces via props, ground is y = 800.
-* **New prop**: entry in `PROPS` (`src/char/props.tsx`) with `top` (surface height) and `grip`.
-* **New story template**: `TEMPLATES` in `tools/script.mjs` (use `opt` to mark droppable scenes, `needs` for required cast). Freeform topic stories come from `tools/story.mjs` (domain detection + scene pools) — extend `DOMAINS`/`EXTRAS` there for richer topics.
-* **New SFX / music mood**: `tools/mixer.py` (`SFX`, `MOODS`).
+Rurikids knowledge: 25 claims, ALL needsReview=true. supported means attributed, not
+independently verified. Review sources/editions/pages/dates; retain disputed status.
+Research mode attaches scene/line claimIds, source register, era and graphical map/
+timeline/tree. Claims QA is lexical/structural, not proof of truth/entailment.
+Legacy brief materials remain compatible but are weaker; see docs/KNOWN_GAPS.md.
 
-## Failure handling
+Whisper local ONNX word times -> aligned only when validated. No cache/mismatch ->
+energy-estimated with warning. env.allowRemoteModels=false; no implicit ASR download.
+RMS gates mouth amplitude; optional phonemes/visemes are not Piper phoneme inference.
+ASR words must never replace authored documentary subtitle facts.
 
-* `timeline` prints plan-QA errors (anatomy, contact, props, anchors). Fix the JSON and rerun.
-* Render interrupted → rerun the same command; verified scenes are skipped.
-* `qa` freeze/black warnings → add motion (camera move, actions) or shorten the scene.
-* Check logs in `projects/<id>/logs/`. Use `DEBUG=1` for stack traces.
+## Measurement and local LLM
+
+`--profile <id>` samples real stills; --profile-all-frames is expensive. Video
+pipeline profiles stage/scene wall time and slowestFrames, not every video capture.
+Sampled process-tree RSS is not exact OS peak; don't sum nested stages. No measured
+render -> estimate=null. Static-layer prerender is OFF (no golden equivalence).
+
+llm-local is explicitly opt-in; default rules require no model. Loopback HTTP only,
+strict dialogue JSON, bounded repair, immutable scene topology/voices/claims and QA.
+Documentary: exact materials match and per-line verbatim allowlist; no novel facts.
+Quality/meaning requires human review. No real model quality claim from stub tests.
+
+References: docs/ARCHITECTURE.md, DOCUMENTARY.md, SCENE_EDITOR.md,
+PROFILE_LOCAL_LLM_SELFCHECK.md, AUDIT_V2.md, KNOWN_GAPS.md and DIAGNOSTICS.md.

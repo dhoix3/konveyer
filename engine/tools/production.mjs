@@ -113,6 +113,7 @@ export function buildProduction(opts, {estimateLine, provider = ruleProvider}) {
   const cast = (opts.cast || [LIB_CHARS.find(c=>c.id==='hero'),LIB_CHARS.find(c=>c.id==='friend'),LIB_CHARS.find(c=>c.id==='doc')].slice(0,b.characters)).map((c,i)=>({...structuredClone(c),productionRole:['protagonist','companion','researcher'][i]}));
   if(cast.length !== b.characters || new Set(cast.map(c=>c.id)).size!==cast.length) throw new Error('continuation cast mismatch');
   const profile = {...VISUAL_PROFILES[b.genre]};
+  if(['cold','dawn','dusk','space','sepia','silver'].includes(b.style))profile.grade=b.style;
   if (b.style === 'noir') profile.grade='noir';
   if (b.style === 'warm') profile.grade='warm';
   if (b.style === 'vivid') profile.grade='teal_orange';

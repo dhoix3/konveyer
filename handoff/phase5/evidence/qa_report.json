@@ -1,0 +1,10 @@
+{
+  "at": "2026-11-24T12:12:39.298Z",
+  "errors": [],
+  "warnings": [
+    "[film] no \"close\" shots in the film",
+    "Knowledge needs manual factual/bibliographic review; supported does not mean independently verified",
+    "Estimated timing only: Piper/audio/render not verified"
+  ],
+  "ok": true
+}

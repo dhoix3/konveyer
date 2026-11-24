@@ -1,0 +1,169 @@
+
+> whatif-cine-engine@1.0.0 test
+> node tests/editor.mjs && node tests/alignment.mjs && node tests/diversity.mjs && node tests/formats.mjs && node tests/speech.mjs && node tests/documentary.mjs && node tests/reliability.mjs && node tests/production.mjs && node tests/runtime.mjs && node tests/regressions.mjs && node tests/topics.mjs --cleanup
+
+PASS live GUI: served JS syntax/RU-EN controls, scene edits/durations/env/camera, optimistic conflicts, persisted history undo/redo, per-scene QA/render rejection, safe SVG/no fake Chrome frame, claim-table wizard preview/commit and resource estimates; no browser visual assertions
+PASS real PCM envelope/pause closure, odd RIFF chunks, optional timed visemes, provided/estimated words, subtitle limits, claim fidelity, historical textnorm and prosody validation
+PASS actual Whisper missing-cache path: zero network calls, fallback required
+PASS injected Whisper exact timestamps -> aligned; no model/mismatch -> energy-estimated; clipped word offsets and mouth closure between aligned words
+PASS 27 common-skeleton characters/4 body-age presets, unchanged bone lengths, 20 historical environments, 10 selectable grades, expanded 18s smoke/crowd/transitions and <=4s shots
+PASS three aspect exports, dimension metadata/safe zones, separate output paths, original project preservation, 18-second smoke map/timeline/tree, SVG/publication/subtitles and actual FFmpeg test-signal cover extraction
+PASS real PCM envelope/pause closure, odd RIFF chunks, optional timed visemes, provided/estimated words, subtitle limits, claim fidelity, historical textnorm and prosody validation
+PASS documentary pack validator; CLI new/research/timeline/QA 120 seconds; claim coverage, cadence, graphics, anachronism rejection, empty offline template and epoch episodes
+PASS schema migration, history rotation/restore, failed replacement preserves original, corrupt JSON not hidden
+PASS interrupted season recovery, idempotence, conflict preservation and explicit stale-context regeneration
+PASS authenticated GUI history listing and actual restore child process
+PASS live LAN-token GUI, login cookie, Host/Origin for GET, missing auth, byte limit and content type
+PASS 30 production plans: RU/EN, 1–3 cast, 25–180s; documentary evidence; season context and episode isolation
+PASS browser discovery, explicit errors, real ensureBrowser without download
+PASS actual FFmpeg conversion and content-based audio cache
+PASS text/model invalidation, corrupt metadata, Piper preparation failure, CLI lock and retry
+PASS GUI served-script syntax, API JSON/validation/origin, preview, duplicate launch, real voice-none state
+PASS ru/25: 26.08s динозавры вернулись в современный мир
+PASS ru/30: 30.08s динозавры вернулись в современный мир
+PASS ru/45: 45.88s динозавры вернулись в современный мир
+PASS ru/90: 92.00s динозавры вернулись в современный мир
+PASS ru/180: 180.25s динозавры вернулись в современный мир
+PASS ru/25: 25.04s что если не спать неделю?
+PASS ru/30: 30.04s что если не спать неделю?
+PASS ru/45: 45.08s что если не спать неделю?
+PASS ru/90: 90.17s что если не спать неделю?
+PASS ru/180: 180.21s что если не спать неделю?
+PASS ru/25: 25.13s что если гравитация исчезнет?
+PASS ru/30: 30.08s что если гравитация исчезнет?
+PASS ru/45: 46.13s что если гравитация исчезнет?
+PASS ru/90: 90.13s что если гравитация исчезнет?
+PASS ru/180: 180.13s что если гравитация исчезнет?
+PASS ru/25: 25.29s что если пропадёт интернет?
+PASS ru/30: 30.13s что если пропадёт интернет?
+PASS ru/45: 47.08s что если пропадёт интернет?
+PASS ru/90: 90.17s что если пропадёт интернет?
+PASS ru/180: 180.17s что если пропадёт интернет?
+PASS en/25: 25.83s what if the ocean boiled?
+PASS en/30: 30.13s what if the ocean boiled?
+PASS en/45: 46.88s what if the ocean boiled?
+PASS en/90: 90.21s what if the ocean boiled?
+PASS en/180: 180.21s what if the ocean boiled?
+PASS en/25: 26.00s what if cats ruled the world?
+PASS en/30: 30.13s what if cats ruled the world?
+PASS en/45: 45.04s what if cats ruled the world?
+PASS en/90: 90.88s what if cats ruled the world?
+PASS en/180: 180.17s what if cats ruled the world?
+PASS: 30 plans, 34 props, CRLF, invalid-kind rejection
+== negative validation ==
+  ✔ duration too small → rejected
+  ✔ duration too large → rejected
+  ✔ characters out of range → rejected
+  ✔ bad lang → rejected
+  ✔ bad template → rejected
+  ✔ bad music → rejected
+  ✔ bad voice mode → rejected
+  ✔ path-traversal id → rejected
+  ✔ empty topic → rejected
+== topic matrix ==
+
+[t-dino] "что если динозавры вернутся?" (ru)
+  ✔ topic reflected in title/logline/lines
+  ✔ narration mentions the topic (1 key lines)
+  · script lines matching topic keys: 1
+  ✔ 5 scenes
+  ✔ hook scene first with narration
+  ✔ title scene present
+  ✔ finale asks the viewer a question
+  ✔ no empty lines
+  ✔ timeline + plan QA passed
+  ✔ duration 45.0s ≈ requested 45s
+  ✔ qa --plan-only passed
+
+[t-fly] "что если люди научились летать?" (ru)
+  ✔ topic reflected in title/logline/lines
+  ✔ narration mentions the topic (1 key lines)
+  · script lines matching topic keys: 1
+  ✔ 5 scenes
+  ✔ hook scene first with narration
+  ✔ title scene present
+  ✔ finale asks the viewer a question
+  ✔ no empty lines
+  ✔ timeline + plan QA passed
+  ✔ duration 45.1s ≈ requested 45s
+  ✔ qa --plan-only passed
+
+[t-wolf] "волки Арктики" (ru)
+  ✔ topic reflected in title/logline/lines
+  ✔ narration mentions the topic (1 key lines)
+  · script lines matching topic keys: 1
+  ✔ 5 scenes
+  ✔ hook scene first with narration
+  ✔ title scene present
+  ✔ finale asks the viewer a question
+  ✔ no empty lines
+  ✔ timeline + plan QA passed
+  ✔ duration 45.1s ≈ requested 45s
+  ✔ qa --plan-only passed
+
+[t-grav] "что если гравитация исчезнет?" (ru)
+  ✔ topic reflected in title/logline/lines
+  ✔ narration mentions the topic (1 key lines)
+  · script lines matching topic keys: 1
+  ✔ 5 scenes
+  ✔ hook scene first with narration
+  ✔ title scene present
+  ✔ finale asks the viewer a question
+  ✔ no empty lines
+  ✔ timeline + plan QA passed
+  ✔ duration 46.1s ≈ requested 45s
+  ✔ qa --plan-only passed
+
+[t-int] "что если пропадёт интернет?" (ru)
+  ✔ topic reflected in title/logline/lines
+  ✔ narration mentions the topic (1 key lines)
+  · script lines matching topic keys: 1
+  ✔ 5 scenes
+  ✔ hook scene first with narration
+  ✔ title scene present
+  ✔ finale asks the viewer a question
+  ✔ no empty lines
+  ✔ timeline + plan QA passed
+  ✔ duration 47.1s ≈ requested 45s
+  ✔ qa --plan-only passed
+
+[t-sleep] "что если не спать неделю?" (ru)
+  ✔ topic reflected in title/logline/lines
+  ✔ narration mentions the topic (1 key lines)
+  · script lines matching topic keys: 1
+  ✔ 4 scenes
+  ✔ hook scene first with narration
+  ✔ title scene present
+  ✔ finale asks the viewer a question
+  ✔ no empty lines
+  ✔ timeline + plan QA passed
+  ✔ duration 45.1s ≈ requested 45s
+  ✔ qa --plan-only passed
+
+[t-cats] "what if cats ruled the world?" (en)
+  ✔ topic reflected in title/logline/lines
+  ✔ narration mentions the topic (1 key lines)
+  · script lines matching topic keys: 1
+  ✔ 5 scenes
+  ✔ hook scene first with narration
+  ✔ title scene present
+  ✔ finale asks the viewer a question
+  ✔ no empty lines
+  ✔ timeline + plan QA passed
+  ✔ duration 45.0s ≈ requested 45s
+  ✔ qa --plan-only passed
+
+[t-ocean] "what if the ocean boiled?" (en)
+  ✔ topic reflected in title/logline/lines
+  ✔ narration mentions the topic (1 key lines)
+  · script lines matching topic keys: 1
+  ✔ 8 scenes
+  ✔ hook scene first with narration
+  ✔ title scene present
+  ✔ finale asks the viewer a question
+  ✔ no empty lines
+  ✔ timeline + plan QA passed
+  ✔ duration 90.2s ≈ requested 90s
+  ✔ qa --plan-only passed
+
+ALL TOPIC TESTS PASSED

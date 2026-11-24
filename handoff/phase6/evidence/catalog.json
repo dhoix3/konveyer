@@ -1,0 +1,454 @@
+{
+  "characters": [
+    {
+      "id": "hero",
+      "name": {
+        "ru": "Алекс",
+        "en": "Alex"
+      },
+      "height": 1,
+      "build": "normal"
+    },
+    {
+      "id": "friend",
+      "name": {
+        "ru": "Мия",
+        "en": "Mia"
+      },
+      "height": 0.94,
+      "build": "slim"
+    },
+    {
+      "id": "max",
+      "name": {
+        "ru": "Макс",
+        "en": "Max"
+      },
+      "height": 1.06,
+      "build": "stocky"
+    },
+    {
+      "id": "doc",
+      "name": {
+        "ru": "Доктор Вега",
+        "en": "Dr. Vega"
+      },
+      "height": 1.08,
+      "build": "slim"
+    },
+    {
+      "id": "boss",
+      "name": {
+        "ru": "Шеф",
+        "en": "The Boss"
+      },
+      "height": 1.04,
+      "build": "stocky"
+    },
+    {
+      "id": "kid",
+      "name": {
+        "ru": "Лёва",
+        "en": "Leo"
+      },
+      "height": 0.74,
+      "build": "slim"
+    },
+    {
+      "id": "astro",
+      "name": {
+        "ru": "Командир Рэй",
+        "en": "Cmdr. Ray"
+      },
+      "height": 1.02,
+      "build": "normal"
+    },
+    {
+      "id": "ensemble1",
+      "name": {
+        "ru": "Летописец 1",
+        "en": "Ensemble 1"
+      },
+      "age": "child",
+      "height": 0.74,
+      "build": "slim",
+      "hairStyle": "braid",
+      "headwear": "fur",
+      "costume": "tunic"
+    },
+    {
+      "id": "ensemble2",
+      "name": {
+        "ru": "Княгиня 2",
+        "en": "Ensemble 2"
+      },
+      "age": "elder",
+      "height": 0.91,
+      "build": "slim",
+      "hairStyle": "curly",
+      "headwear": "fur",
+      "costume": "cloak"
+    },
+    {
+      "id": "ensemble3",
+      "name": {
+        "ru": "Дружинник 3",
+        "en": "Ensemble 3"
+      },
+      "age": "adult",
+      "height": 1.16,
+      "build": "normal",
+      "hairStyle": "bald",
+      "headwear": "fur",
+      "costume": "chainmail"
+    },
+    {
+      "id": "ensemble4",
+      "name": {
+        "ru": "Купец 4",
+        "en": "Ensemble 4"
+      },
+      "age": "adult",
+      "height": 0.86,
+      "build": "stocky",
+      "hairStyle": "long",
+      "headwear": "fur",
+      "costume": "tunic"
+    },
+    {
+      "id": "ensemble5",
+      "name": {
+        "ru": "Ремесленница 5",
+        "en": "Ensemble 5"
+      },
+      "age": "child",
+      "height": 0.74,
+      "build": "slim",
+      "hairStyle": "braid",
+      "headwear": "conical",
+      "costume": "tunic"
+    },
+    {
+      "id": "ensemble6",
+      "name": {
+        "ru": "Старейшина 6",
+        "en": "Ensemble 6"
+      },
+      "age": "elder",
+      "height": 0.91,
+      "build": "slim",
+      "hairStyle": "curly",
+      "headwear": "conical",
+      "costume": "cloak"
+    },
+    {
+      "id": "ensemble7",
+      "name": {
+        "ru": "Посланник 7",
+        "en": "Ensemble 7"
+      },
+      "age": "adult",
+      "height": 1.16,
+      "build": "normal",
+      "hairStyle": "bald",
+      "headwear": "conical",
+      "costume": "chainmail"
+    },
+    {
+      "id": "ensemble8",
+      "name": {
+        "ru": "Лодочник 8",
+        "en": "Ensemble 8"
+      },
+      "age": "adult",
+      "height": 0.86,
+      "build": "stocky",
+      "hairStyle": "long",
+      "headwear": "conical",
+      "costume": "tunic"
+    },
+    {
+      "id": "ensemble9",
+      "name": {
+        "ru": "Ткачиха 9",
+        "en": "Ensemble 9"
+      },
+      "age": "child",
+      "height": 0.74,
+      "build": "slim",
+      "hairStyle": "braid",
+      "headwear": "veil",
+      "costume": "tunic"
+    },
+    {
+      "id": "ensemble10",
+      "name": {
+        "ru": "Ученик 10",
+        "en": "Ensemble 10"
+      },
+      "age": "elder",
+      "height": 0.91,
+      "build": "slim",
+      "hairStyle": "curly",
+      "headwear": "veil",
+      "costume": "cloak"
+    },
+    {
+      "id": "ensemble11",
+      "name": {
+        "ru": "Страж 11",
+        "en": "Ensemble 11"
+      },
+      "age": "adult",
+      "height": 1.16,
+      "build": "normal",
+      "hairStyle": "bald",
+      "headwear": "veil",
+      "costume": "chainmail"
+    },
+    {
+      "id": "ensemble12",
+      "name": {
+        "ru": "Паломница 12",
+        "en": "Ensemble 12"
+      },
+      "age": "adult",
+      "height": 0.86,
+      "build": "stocky",
+      "hairStyle": "long",
+      "headwear": "veil",
+      "costume": "tunic"
+    },
+    {
+      "id": "ensemble13",
+      "name": {
+        "ru": "Гончар 13",
+        "en": "Ensemble 13"
+      },
+      "age": "child",
+      "height": 0.74,
+      "build": "slim",
+      "hairStyle": "braid",
+      "headwear": "hood",
+      "costume": "tunic"
+    },
+    {
+      "id": "ensemble14",
+      "name": {
+        "ru": "Воевода 14",
+        "en": "Ensemble 14"
+      },
+      "age": "elder",
+      "height": 0.91,
+      "build": "slim",
+      "hairStyle": "curly",
+      "headwear": "hood",
+      "costume": "cloak"
+    },
+    {
+      "id": "ensemble15",
+      "name": {
+        "ru": "Садовник 15",
+        "en": "Ensemble 15"
+      },
+      "age": "adult",
+      "height": 1.16,
+      "build": "normal",
+      "hairStyle": "bald",
+      "headwear": "hood",
+      "costume": "chainmail"
+    },
+    {
+      "id": "ensemble16",
+      "name": {
+        "ru": "Певец 16",
+        "en": "Ensemble 16"
+      },
+      "age": "adult",
+      "height": 0.86,
+      "build": "stocky",
+      "hairStyle": "long",
+      "headwear": "hood",
+      "costume": "tunic"
+    },
+    {
+      "id": "ensemble17",
+      "name": {
+        "ru": "Летописец 17",
+        "en": "Ensemble 17"
+      },
+      "age": "child",
+      "height": 0.74,
+      "build": "slim",
+      "hairStyle": "braid",
+      "headwear": "fur",
+      "costume": "tunic"
+    },
+    {
+      "id": "ensemble18",
+      "name": {
+        "ru": "Княгиня 18",
+        "en": "Ensemble 18"
+      },
+      "age": "elder",
+      "height": 0.91,
+      "build": "slim",
+      "hairStyle": "curly",
+      "headwear": "fur",
+      "costume": "cloak"
+    },
+    {
+      "id": "ensemble19",
+      "name": {
+        "ru": "Дружинник 19",
+        "en": "Ensemble 19"
+      },
+      "age": "adult",
+      "height": 1.16,
+      "build": "normal",
+      "hairStyle": "bald",
+      "headwear": "fur",
+      "costume": "chainmail"
+    },
+    {
+      "id": "ensemble20",
+      "name": {
+        "ru": "Купец 20",
+        "en": "Ensemble 20"
+      },
+      "age": "adult",
+      "height": 0.86,
+      "build": "stocky",
+      "hairStyle": "long",
+      "headwear": "fur",
+      "costume": "tunic"
+    }
+  ],
+  "environments": [
+    "bedroom",
+    "kitchen",
+    "street",
+    "city",
+    "stadium",
+    "hospital",
+    "office",
+    "school",
+    "station",
+    "nature",
+    "void",
+    "rus_river",
+    "rus_ladoga",
+    "rus_hall",
+    "rus_camp",
+    "rus_monastery",
+    "rus_veche",
+    "rus_fortress",
+    "rus_steppe",
+    "rus_moscow",
+    "rus_chamber",
+    "rus_market",
+    "rus_port",
+    "rus_scriptorium",
+    "rus_workshop",
+    "rus_gate",
+    "rus_chapel",
+    "rus_harvest",
+    "rus_winter",
+    "rus_hills",
+    "rus_court"
+  ],
+  "styles": {
+    "cinematic-stickman": {
+      "label": {
+        "ru": "Кинематографичный",
+        "en": "Cinematic"
+      },
+      "grade": null,
+      "music": null
+    },
+    "noir": {
+      "label": {
+        "ru": "Нуар",
+        "en": "Noir"
+      },
+      "grade": "noir",
+      "music": "mystery"
+    },
+    "warm": {
+      "label": {
+        "ru": "Тёплый",
+        "en": "Warm"
+      },
+      "grade": "warm",
+      "music": "emotional"
+    },
+    "cold": {
+      "label": {
+        "ru": "Холодный",
+        "en": "Cold"
+      },
+      "grade": "cold",
+      "music": "mystery"
+    },
+    "dawn": {
+      "label": {
+        "ru": "Рассвет",
+        "en": "Dawn"
+      },
+      "grade": "dawn",
+      "music": "pastoral"
+    },
+    "dusk": {
+      "label": {
+        "ru": "Сумерки",
+        "en": "Dusk"
+      },
+      "grade": "dusk",
+      "music": "elegiac"
+    },
+    "space": {
+      "label": {
+        "ru": "Космос",
+        "en": "Space"
+      },
+      "grade": "space",
+      "music": "dark_ambient"
+    },
+    "sepia": {
+      "label": {
+        "ru": "Сепия",
+        "en": "Sepia"
+      },
+      "grade": "sepia",
+      "music": "solemn"
+    },
+    "silver": {
+      "label": {
+        "ru": "Серебряный",
+        "en": "Silver"
+      },
+      "grade": "silver",
+      "music": "solemn"
+    },
+    "vivid": {
+      "label": {
+        "ru": "Яркий",
+        "en": "Vivid"
+      },
+      "grade": "teal_orange",
+      "music": "epic"
+    }
+  },
+  "music": [
+    "dark_ambient",
+    "tense",
+    "mystery",
+    "epic",
+    "emotional",
+    "lofi",
+    "solemn",
+    "pastoral",
+    "triumphant",
+    "elegiac"
+  ]
+}

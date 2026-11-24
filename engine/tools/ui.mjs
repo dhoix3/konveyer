@@ -1,3 +1,6 @@
+import {EDITOR_MARKUP,EDITOR_SCRIPT} from './editor-page.mjs';
+import {catalog,previewProject,editorProject,editScene,travelHistory,documentaryWizard,frameSVG,estimate} from './editor.mjs';
+import {findPack} from './knowledge.mjs';
 // Local web UI for Koveyer Dhoix'a — zero dependencies (node:http only).
 //
 // Serves a single page where the user enters the topic, duration, language,
@@ -7,15 +10,19 @@
 // and the CLI stay fully interchangeable and the architecture is unchanged.
 //
 //   node render.mjs ui [--port 7788]
+import {HttpError, readBody, createSecurity, LOGIN_PAGE} from './ui-security.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
+import {listHistory} from './storage.mjs';
+import {lockProject} from './project-lock.mjs';
+import {recoverAllSeasons, refreshSeasonContexts} from './series.mjs';
 import {normalizeBrief} from './production.mjs';
 import path from 'node:path';
 import http from 'node:http';
 import {spawn, spawnSync} from 'node:child_process';
 import {
   ENGINE, PROJECTS, OUTPUT, projectDir, outDir, ensure, readJson, writeJson,
-  safeId, assertId, markStage,
+  safeId, assertId, markStage,sha1,sourceHash,
 } from './lib.mjs';
 import {MUSIC_MOODS, LANGS, STYLES, TEMPLATE_IDS} from './script.mjs';
 
@@ -34,13 +41,23 @@ function listProjects() {
     if (!fs.existsSync(pj)) continue;
     let p = {};
     try { p = readJson(pj, {}); } catch { continue; }
+    let contextWarning=null;
+    if(p.production?.kind==='season' && !jobs.get(d)?.running) {
+      let unlock;try{unlock=lockProject(d);p=refreshSeasonContexts(d);}catch(e){contextWarning=e.message;}finally{unlock?.();}
+    }
+    if(p.production?.seriesId) {
+      const parent=readJson(path.join(projectDir(p.production.seriesId),'project.json'),null);
+      const entry=parent?.production?.episodes?.find(e=>e.id===d);
+      if(entry?.stale)contextWarning=entry.staleReason;
+    }
+    if(p.production?.seriesId && fs.existsSync(path.join(projectDir(p.production.seriesId),'season-transaction.json')))continue;
     const statePath = path.join(PROJECTS, d, 'state.json');
     const state = readJson(statePath, {stages: {}});
     const job = jobs.get(d);
     let mtime = 0;
     try { mtime = fs.statSync(pj).mtimeMs; } catch {}
     rows.push({
-      id: d,
+      id: d, contextWarning,
       title: p.title || {},
       language: p.language || 'ru',
       scenes: Array.isArray(p.scenes) ? p.scenes.length : 0,
@@ -123,9 +140,6 @@ function stopJob(id) {
   return job;
 }
 
-class HttpError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
-}
 
 function createProject(body) {
   const id = String(body.id || '').trim();
@@ -197,20 +211,12 @@ function json(res, code, obj) {
   res.end(body);
 }
 
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', (c) => { data += c; if (data.length > 1e6) { reject(new Error('body too large')); req.destroy(); } });
-    req.on('end', () => { try { const body = data ? JSON.parse(data) : {}; if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('object required'); resolve(body); } catch { reject(new HttpError(400, 'bad json: expected object')); } });
-    req.on('error', reject);
-  });
-}
 
 function serveFile(req, res, file) {
   if (!fs.existsSync(file)) return json(res, 404, {error: 'file not found'});
   const stat = fs.statSync(file);
   const ext = path.extname(file).toLowerCase();
-  const type = ext === '.mp4' ? 'video/mp4' : ext === '.json' ? 'application/json' : 'application/octet-stream';
+  const type = ext === '.mp4' ? 'video/mp4' : ext === '.png'?'image/png':ext === '.json' ? 'application/json' : 'application/octet-stream';
   const range = req.headers.range;
   if (range) {
     const m = /^bytes=(\d*)-(\d*)$/.exec(range);
@@ -327,6 +333,7 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <h2 id="stageTitle">Этапы</h2>
   <div class="chips" id="chips"><span class="muted">выберите проект</span></div>
   <div class="muted" id="progress" role="status" style="display:none">Генерация выполняется. Этапы и журнал обновляются автоматически.</div>
+  <button class="small secondary" onclick="restoreVersion()">История / восстановить</button>
   <button class="small secondary" onclick="previewScript()">Предпросмотр сценария</button>
   <button class="small secondary" onclick="regenerateEpisode()">Пересоздать эпизод сезона</button>
   <pre id="scriptPreview" style="white-space:pre-wrap" hidden></pre>
@@ -339,8 +346,10 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <h2 style="margin-top:14px">Журнал</h2>
   <pre id="log">&mdash;</pre>
 </section>
+${EDITOR_MARKUP}
 </main>
 <script>
+var UI_LANG='ru';
 var STAGES = ['voice','timeline','scenes','sound','render','final','qa'];
 var LABELS = {voice:'голос',timeline:'таймлайн',scenes:'сцены',sound:'звук',render:'рендер',final:'mux',qa:'QA'};
 var current = null, pollTimer = null, logTimer = null;
@@ -402,7 +411,7 @@ function renderProjects(list){
   for (var i = 0; i < projectsCache.length; i++){
     var p = projectsCache[i];
     var title = (p.title && (p.title[p.language] || p.title.ru)) || p.id;
-    var status = p.job && p.job.running ? '⏳ ' + p.job.stage : (p.final ? 'MP4 сохранён · проверьте этапы' : '…');
+    var status = p.contextWarning ? '⚠ Контекст устарел или недоступен: см. сценарий сезона' : p.job && p.job.running ? '⏳ ' + p.job.stage : (p.final ? 'MP4 сохранён · проверьте этапы' : '…');
     h += '<div class="proj ' + (p.id === current ? 'active' : '') + '" onclick="select(\\'' + p.id + '\\')">' +
       '<div class="t">' + esc(title) + '</div>' +
       '<div class="m">' + esc(p.id) + ' · ' + p.scenes + ' сцен · ' + esc(p.template || 'freeform') + '</div>' +
@@ -488,7 +497,7 @@ function renderStage(){
   var container = p && p.production && p.production.kind==='season';
   el('progress').style.display = running ? 'block' : 'none';
   var title = p ? ((p.title && (p.title[p.language] || p.title.ru)) || current) : current;
-  el('stageTitle').textContent = 'Этапы — ' + title;
+  el('stageTitle').textContent = (UI_LANG==='en'?'Stages — ':'Этапы — ') + title;
   var dl = '';
   if (p && p.final) dl += '<a class="dl" href="/file?id=' + encodeURIComponent(current) + '&name=FINAL.mp4">&#11015; FINAL.mp4</a>';
   if (p && p.draft) dl += '<a class="dl" href="/file?id=' + encodeURIComponent(current) + '&name=DRAFT.mp4">&#11015; DRAFT.mp4</a>';
@@ -498,7 +507,7 @@ function renderStage(){
   if (player.dataset.url !== videoUrl) { player.dataset.url = videoUrl; if (videoUrl) player.src = videoUrl; else player.removeAttribute('src'); }
   player.hidden = !videoUrl;
   var buttons = btns.querySelectorAll('button');
-  for (var j = 0; j < buttons.length; j++) buttons[j].disabled = !!running || !!container;
+  for (var j = 0; j < buttons.length; j++) buttons[j].disabled = !!running || !!container || !!(p && p.contextWarning);
 }
 async function checkReady(){
   msg('Проверка компонентов…');
@@ -518,6 +527,17 @@ async function regenerateEpisode(){
   if(!Number.isInteger(number) || number<1 || !confirm('Пересоздать сценарий только этого эпизода? Другие серии сохранятся.')) return;
   try {await api('/api/episode',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:current,episode:number})});msg('Перегенерация эпизода запущена','ok');}
   catch(e){msg(e.message,'err');}
+}
+async function restoreVersion(){
+  if(!current)return;
+  try {
+    var result=await api('/api/history?id='+encodeURIComponent(current));
+    if(!result.snapshots.length){msg('Снимков пока нет');return;}
+    var index=Number(prompt(result.snapshots.map(function(s,i){return (i+1)+'. '+s.file;}).join(String.fromCharCode(10))));
+    var snapshot=result.snapshots[index-1];if(!snapshot || !confirm('Восстановить снимок? Текущая версия тоже будет сохранена.'))return;
+    await api('/api/restore',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:current,snapshot:snapshot.file})});
+    msg('Восстановление запущено; затем пересоберите voice и timeline','ok');
+  }catch(e){msg(e.message,'err');}
 }
 async function previewScript(){
   if (!current) return;
@@ -541,14 +561,65 @@ async function boot(){
 }
 boot();
 </script>
+${EDITOR_SCRIPT}
 </body></html>`;
 
-export function startUI({port = 7788} = {}) {
+export function startUI({port = 7788, host = '127.0.0.1', token = process.env.KOVEYER_GUI_TOKEN, allowedHosts = []} = {}) {
+  const security=createSecurity({host,token,allowedHosts});
+  recoverAllSeasons();
   const server = http.createServer(async (req, res) => {
     try {
       const u = new URL(req.url, 'http://localhost');
       const p = u.pathname;
-      if (req.method === 'POST' && req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) return json(res, 403, {error:'cross-origin request forbidden'});
+      security.checkBoundary(req,server.address().port);
+      if(req.method==='POST' && p==='/api/login') {
+        const body=await readBody(req,4096);
+        if(!security.login(body.token))return json(res,401,{error:'Unauthorized'});
+        res.setHeader('set-cookie',security.cookie());return json(res,200,{ok:true});
+      }
+      if(!security.authorized(req)) {
+        if(req.method==='GET' && p==='/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end(LOGIN_PAGE);}
+        return json(res,401,{error:'GUI authentication required'});
+      }
+      if(p.startsWith('/api/editor')) {
+        if(req.method==='GET' && p==='/api/editor/catalog')return json(res,200,catalog());
+        if(req.method==='GET' && p==='/api/editor/knowledge') {
+          const pack=findPack(String(u.searchParams.get('topic')||''));
+          if(!pack)return json(res,404,{error:'No offline package: supply materials; no network lookup performed'});
+          return json(res,200,pack);
+        }
+        if(req.method==='GET') {
+          const id=u.searchParams.get('id');if(!safeId(id))return json(res,400,{error:'bad id'});
+          if(p==='/api/editor')return json(res,200,previewProject(id));
+          if(p==='/api/editor/estimate')return json(res,200,estimate(editorProject(id)));
+          if(p==='/api/editor/frame') {
+            const scene=u.searchParams.get('scene');if(!safeId(scene)||!editorProject(id).scenes.some(s=>s.id===scene))return json(res,400,{error:'bad scene'});
+            if(u.searchParams.get('actual')==='1') {
+              const meta=readJson(path.join(outDir(id),'frames',`editor-${scene}.png.meta.json`),null);
+              const latest=jobs.get(id);
+              if(latest?.stage==='preview'&&latest.preview?.scene===scene&&(latest.running||latest.code!==0))return json(res,409,{error:'Current preview job not successful; inspect log'});
+              if(!meta||meta.sourceHash!==sourceHash()||meta.revision!==sha1(editorProject(id)))return json(res,409,{error:'No current Chrome frame: save and run preview; check job log for missing dependencies'});
+              return serveFile(req,res,path.join(outDir(id),'frames',`editor-${scene}.png`));
+            }
+            res.writeHead(200,{'content-type':'image/svg+xml; charset=utf-8','cache-control':'no-store','content-security-policy':"default-src 'none'; style-src 'unsafe-inline'"});return res.end(frameSVG(id,scene));
+          }
+        }
+        if(req.method==='POST') {
+          const body=await readBody(req);if(!safeId(body.id))return json(res,400,{error:'bad id'});
+          if(jobs.get(body.id)?.running)return json(res,409,{error:'Project job running; stop/wait before editing'});
+          if(p==='/api/editor/edit')return json(res,200,editScene(body.id,body));
+          if(p==='/api/editor/history')return json(res,200,travelHistory(body.id,body));
+          if(p==='/api/editor/documentary')return json(res,200,documentaryWizard(body.id,body));
+          if(p==='/api/editor/frame') {
+            const project=editorProject(body.id);
+            if(sha1(project)!==body.revision)return json(res,409,{error:'Project changed; reload'});
+            if(!safeId(body.sceneId)||!project.scenes.some(s=>s.id===body.sceneId)||!Number.isFinite(body.t)||body.t<0||body.t>180)return json(res,400,{error:'bad frame parameters'});
+            const out=path.join(ensure(path.join(outDir(body.id),'frames')),`editor-${body.sceneId}.png`);
+            const job=startJob(body.id,'preview',['--scene',body.sceneId,'--t',String(body.t),'--out',out]);job.preview={scene:body.sceneId,time:body.t};return json(res,200,{ok:true,pid:job.pid});
+          }
+        }
+        return json(res,404,{error:'Unknown editor endpoint'});
+      }
       if (req.method === 'GET' && p === '/api/script') {
         const id = u.searchParams.get('id');
         if (!safeId(id)) return json(res, 400, {error:'bad id'});
@@ -604,13 +675,23 @@ export function startUI({port = 7788} = {}) {
         const job=startJob(id,'episode',['--episode',String(episode),'--force']);
         return json(res,200,{ok:true,pid:job.pid});
       }
+      if(req.method==='GET' && p==='/api/history') {
+        const id=u.searchParams.get('id');if(!safeId(id))return json(res,400,{error:'bad id'});
+        return json(res,200,{snapshots:listHistory(projectDir(id))});
+      }
+      if(req.method==='POST' && p==='/api/restore') {
+        const {id,snapshot}=await readBody(req);
+        if(!safeId(id) || !listHistory(projectDir(id)).some(x=>x.file===snapshot))return json(res,400,{error:'bad snapshot'});
+        startJob(id,'restore',['--snapshot',snapshot]);return json(res,200,{ok:true});
+      }
       if (req.method === 'POST' && p === '/api/run') {
         const {id, stage, draft} = await readBody(req);
         if (!safeId(id)) return json(res, 400, {error: 'bad id'});
         if (stage !== 'all' && !STAGES.includes(stage)) return json(res, 400, {error: 'bad stage'});
         if (!fs.existsSync(path.join(projectDir(id), 'project.json'))) return json(res, 404, {error: 'project not found'});
         if (readJson(path.join(projectDir(id),'project.json')).production?.kind==='season') return json(res,400,{error:'Выберите проект отдельного эпизода'});
-        const extra = draft ? ['--draft'] : [];
+        if(['all','scenes','render','final'].includes(stage)){const review=previewProject(id);if(review.qa.errors.length)return json(res,422,{error:'Fix QA errors before render',qa:review.qa});}
+        const extra = draft ? ['--draft','--concurrency','1'] : ['--concurrency','1'];
         const job = startJob(id, stage, extra);
         return json(res, 200, {ok: true, stage: job.stage, pid: job.pid});
       }
@@ -625,12 +706,13 @@ export function startUI({port = 7788} = {}) {
       json(res, e.status || (e.message?.includes('unknown') || e.message?.includes('требуется') ? 400 : 500), {error: String(e.message || e)});
     }
   });
+  server.headersTimeout=10000;server.requestTimeout=30000;
   server.on('error', (e) => {
     console.error(`ui: ${e.message} (port ${port})`);
     process.exit(1);
   });
-  server.listen(port, '0.0.0.0', () => {
-    console.log(`Koveyer Dhoix'a UI: http://localhost:${port}  (listening on 0.0.0.0)`);
+  server.listen(port, host, () => {
+    console.log(`Koveyer Dhoix'a UI: http://localhost:${server.address().port}  (listening on ${host})`);
     console.log('Ctrl+C to stop. The UI spawns the same render.mjs CLI — logs stay in projects/<id>/logs/.');
   });
   const shutdown = () => {

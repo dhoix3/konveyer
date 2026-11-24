@@ -1,5 +1,5 @@
 import React from 'react';
-import {AbsoluteFill} from 'remotion';
+import {useVideoConfig, AbsoluteFill} from 'remotion';
 import {clamp, easeOut, fmtNumber, lerp, smooth} from '../lib/math.ts';
 import type {CounterDef, Lang, ResolvedScene} from '../lib/types.ts';
 
@@ -27,13 +27,14 @@ export const Counter: React.FC<{c: CounterDef; t: number; dur: number; lang: Lan
 };
 
 export const Subtitles: React.FC<{scene: ResolvedScene; t: number; lang: Lang; fps: number}> = ({scene, t, lang, fps}) => {
+  const {width,height}=useVideoConfig();
   const line = scene.lines.find((l) => t >= l.sceneStart - 0.02 && t <= l.sceneEnd + 0.1);
   if (!line) return null;
   const fade = Math.min(smooth((t - line.sceneStart) / (6 / fps)), 1 - smooth((t - line.sceneEnd) / 0.1));
   const isNarr = line.voice === 'narrator';
   return (
-    <div style={{position: 'absolute', left: 0, right: 0, bottom: 168, display: 'flex', justifyContent: 'center', opacity: fade, fontFamily: FONT}}>
-      <div style={{maxWidth: 1480, textAlign: 'center', fontSize: 42, lineHeight: 1.22, fontWeight: isNarr ? 500 : 700, fontStyle: isNarr ? 'normal' : 'italic', color: isNarr ? '#f3f3f0' : '#ffe9a8', textShadow: '0 2px 3px #000, 0 0 18px #000, 0 0 40px #000a', padding: '0 24px'}}>
+    <div style={{position: 'absolute', left: 0, right: 0, bottom: '16%', display: 'flex', justifyContent: 'center', opacity: fade, fontFamily: FONT}}>
+      <div style={{maxWidth: '84%', textAlign: 'center', fontSize: Math.min(42,width*.039,height*.039), lineHeight: 1.22, fontWeight: isNarr ? 500 : 700, fontStyle: isNarr ? 'normal' : 'italic', color: isNarr ? '#f3f3f0' : '#ffe9a8', textShadow: '0 2px 3px #000, 0 0 18px #000, 0 0 40px #000a', padding: '0 24px'}}>
         {line.text[lang]}
       </div>
     </div>

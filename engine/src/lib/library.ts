@@ -11,6 +11,20 @@ export const LIB_CHARS: CharacterDef[] = [
   {id: 'astro', name: {ru: 'Командир Рэй', en: 'Cmdr. Ray'}, role: 'astronaut', shirt: '#e8e9ee', pants: '#d6d8de', shoes: '#9aa0aa', accessory: 'helmet', height: 1.02, build: 'normal', eyes: 'round', voice: 'hero'},
 ];
 
+export const BODY_PRESETS = {
+  child:{height:0.74,build:'slim',age:'child'}, elder:{height:0.91,build:'slim',age:'elder'},
+  tall:{height:1.16,build:'normal',age:'adult'}, compact:{height:0.86,build:'stocky',age:'adult'},
+} as const;
+const historicalNames=['Летописец','Княгиня','Дружинник','Купец','Ремесленница','Старейшина','Посланник','Лодочник','Ткачиха','Ученик','Страж','Паломница','Гончар','Воевода','Садовник','Певец'];
+for(let i=0;i<20;i++) {
+  const body=Object.values(BODY_PRESETS)[i%4];
+  LIB_CHARS.push({...LIB_CHARS[0],...body,id:`ensemble${i+1}`,name:{ru:historicalNames[i%16]+` ${i+1}`,en:`Ensemble ${i+1}`},
+    role:i<16?'historical-support':'support',shirt:['#704735','#54736d','#a58a4b','#676180','#526947'][i%5],pants:'#3c3932',shoes:'#483c2d',
+    accessory:'none',hairStyle:['braid','curly','bald','long'][i%4] as CharacterDef['hairStyle'],
+    headwear:['fur','conical','veil','hood'][Math.floor(i/4)%4] as CharacterDef['headwear'],
+    costume:['tunic','cloak','chainmail','tunic'][i%4] as CharacterDef['costume'],era:[800,1700],voice:i%3===0?'friend':'hero'});
+}
+
 export const LIB_VOICES: VoiceDef[] = [
   {
     id: 'narrator', label: {ru: 'Диктор', en: 'Narrator'}, gender: 'male', ageRange: '35-50', timbre: 'deep, warm baritone with slight rasp',

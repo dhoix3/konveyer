@@ -1,0 +1,1 @@
+PASS live GUI: served JS syntax/RU-EN controls, scene edits/durations/env/camera, optimistic conflicts, persisted history undo/redo, per-scene QA/render rejection, safe SVG/no fake Chrome frame, claim-table wizard preview/commit and resource estimates; no browser visual assertions

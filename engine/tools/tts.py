@@ -30,7 +30,7 @@ except Exception:
 
 from textnorm import prepare
 
-TTS_VERSION = "tts-3"
+TTS_VERSION = "tts-4"
 TARGET_PEAK_DB = -3.0
 CHUNK_FADE = 0.006          # seconds, de-click at chunk joins
 LEAD_SILENCE = 0.06
@@ -101,8 +101,8 @@ def synthesize_job(voice: PiperVoice, job: dict) -> tuple[np.ndarray, int, dict]
     # existing project files sound the same, but clamp it to a sane range.
     cfg = SynthesisConfig(
         length_scale=max(0.55, min(1.9, pitch / max(speed, 1e-3))),
-        noise_scale=0.667,
-        noise_w_scale=0.8,
+        noise_scale=float(job.get("noiseScale", 0.667)),
+        noise_w_scale=float(job.get("noiseW", 0.8)),
         normalize_audio=False,  # per-sentence normalisation destroys levels
     )
 
