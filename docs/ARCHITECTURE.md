@@ -88,5 +88,15 @@ redo references into history/. Preview plans use buildPlan(projectOverride,
 persist=false,ignoreAudio=true): no unsaved preview can change a live project/plan.
 editor-page.mjs supplies the vanilla GUI panel; ui.mjs applies the existing HTTP
 security boundary to all editor routes. Real still jobs reuse the CLI renderer;
-PNG metadata prevents stale previews. Estimated resources are not profiling (phase
-7 is not implemented). No LLM/provider work (phase 8) is included.
+PNG metadata prevents stale previews. Editor resource estimates remain heuristics, not measured profiling. The separate
+phase 7 CLI measures actual work; phase 8 is a separately opt-in local adapter.
+
+## Measurement/local provider/selfcheck additions
+
+profile.mjs records stage wall timings, real still samples or slowest video frames,
+and sampled process-tree RSS; it makes no renderer optimization/cache changes.
+llm-local.mjs is opt-in, loopback-only, dialogue-schema constrained, preserves scene
+roles/topology and all claims metadata. Documentary text choices are verbatim
+assigned materials, not unverified model paraphrases. selfcheck.mjs runs child CLI
+commands offline and packages only diagnostic artifacts with the stdlib-only
+zip.mjs writer. See docs/PROFILE_LOCAL_LLM_SELFCHECK.md for measurement limits.

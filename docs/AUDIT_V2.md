@@ -187,3 +187,24 @@ Session restoration again preserved accepted files but not their local Git commi
 objects. Commit 12e3f3c is an additive accepted-state checkpoint; phase5 patches
 apply on its equivalent accepted phase4 tree, phase6 follows the phase5 set.
 No resets, branch switches, data removal, push or GitHub changes were performed.
+
+## Phases 7–8 / phase5 discrepancy closure
+
+General environment catalog was only 11 (historical additions did not satisfy the
+requested general scenery). Added 8 distinct multi-plane general sets: now 19
+nonhistorical + 20 historical, including all named requested settings. Catalog,
+QA on all 8 new scene environments and typecheck pass; no visual approval.
+
+Profile CLI captures stage/scene wall time, slow video capture frames, optional
+full-frame still timings and sampled process-tree RSS; all timing bases and limits
+are explicit. No static prerender/optimization enabled or claimed equivalent.
+llm-local is opt-in loopback Ollama/OpenAI, schema+bounded repair, immutable topology/
+roles/claims and QA/timing checks. Documentary new paraphrases/facts rejected using
+verbatim per-line materials allowlist, including legacy brief guard. Stub tests
+and CLI history/no-overwrite pass. No real model inference verified.
+
+selfcheck assembles versions/doctor/smoke/timings/8 actual extracted draft PNGs when
+available into output/selfcheck-<date>/ + ZIP. Linux incomplete path verified (doctor
+fails, plan-only smoke succeeds, frames=[]); Windows/Chrome/Piper/real film review
+not verified. No push/branch switch/data deletion. All old phase2→3→4 patches were
+applied to a temporary index and exactly matched accepted checkpoint 12e3f3c.

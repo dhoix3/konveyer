@@ -447,3 +447,15 @@ See [formats and smoke](docs/EXPORTS.md), [phase 3 report](handoff/phase3/REPORT
 Verified API/structure and synthetic audio tests are not visual approval of a film.
 Portable patches, changed-file lists and limitations are in `handoff/phase5/` and
 `handoff/phase6/`.
+
+### Measurements / local model / Windows diagnostic (phases 7–8)
+
+`node render.mjs --profile <id>` measures real still samples; add
+`--profile-all-frames` for every frame, or use `all <id> --profile` for pipeline
+stage/scene wall time and slow video frames. No static prerender is enabled.
+`llm <id> --provider llm-local --llm-model <name>` opts into a loopback-only
+Ollama/OpenAI adapter with strict JSON and repair/QA; default remains rules.
+`node render.mjs selfcheck` creates a diagnostic directory + ZIP under output/;
+missing dependencies produce an explicitly incomplete bundle, not fake frames.
+Details: [profiling, local LLM and selfcheck](docs/PROFILE_LOCAL_LLM_SELFCHECK.md).
+Final catalog: **19 general + 20 historical environments, 10 styles, 10 moods**.

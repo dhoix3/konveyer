@@ -88,3 +88,15 @@ Scene editor writes use project locks + revision checks + history snapshots; do
 not bypass stale-edit errors or render documentary QA failures. UI RU/EN does not
 translate claims. Resource estimates are heuristics, not hardware benchmarks.
 See docs/SCENE_EDITOR.md and handoff/phase5/REPORT.md, phase6/REPORT.md.
+
+## Phases 7–8
+
+Profiling is measurement-only: distinguish still wall times, scene encode time,
+slowest capture frames and sampled RSS. Never call sampled RSS an exact OS peak,
+or extrapolate a measured final-video speed from estimated audio/still samples.
+Do not enable static-layer prerender without real pixel-equivalence evidence.
+llm-local defaults off; loopback HTTP only, strict JSON, bounded repairs, immutable
+scene/voice roles and metadata. Documentary text must be verbatim assigned materials
+or unchanged authored lines; lexical QA alone is not factual entailment. Preserve
+rules mode without a model. selfcheck must zip incomplete diagnostics on missing
+dependencies; no fake PNGs, auto-downloads/uploads or bundled private projects.

@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import {selfcheck} from './tools/selfcheck.mjs';
+import {generateLocal} from './tools/llm-local.mjs';
+import {Profile} from './tools/profile.mjs';
 import {publishPackage} from './tools/publishing.mjs';
 import {findPack} from './tools/knowledge.mjs';
 import {outputSize} from './src/lib/viewport.ts';
@@ -30,10 +33,13 @@ import {runSound} from './tools/sound.mjs';
 import {qaPlan, qaMedia, writeReport} from './tools/qa.mjs';
 
 applyLocalEnvironment();
-const args = parseArgs(process.argv.slice(2));
+const argv=process.argv.slice(2);if(argv[0]==='--profile')argv[0]='profile';
+const args = parseArgs(argv);
 const aspectKey=()=>{outputSize(args.aspect);return String(args.aspect).replace(':','x');};
 const renderDir=id=>args.aspect?ensure(path.join(outDir(id),aspectKey())):outDir(id);
 const cmd = args._[0];
+let profiler;
+const measured=(name,fn)=>profiler?profiler.stage(name,fn):fn();
 
 const loadProject = (id) => {
   const p=readJson(path.join(projectDir(id),'project.json'));
@@ -99,6 +105,8 @@ async function cmdNew(id) {
   if (!args.format && args.topic && String(args.topic).length > 300) throw new Error('--topic is too long (max 300 characters)');
   if (args.topic && !String(args.topic).trim()) throw new Error('--topic is empty');
 
+  if(args.provider && !['rules','llm-local'].includes(args.provider))throw new Error('Unknown provider');
+  if(args.provider==='llm-local'&&args.format==='series')throw new Error('Select an episode, not series container for llm-local');
   const dir = ensure(projectDir(id));
   const log = logger(id, 'script');
   if (!args.format && args.topic && String(args.topic).length > 200) log.warn('topic longer than 200 chars — it will be truncated');
@@ -119,7 +127,8 @@ async function cmdNew(id) {
     options.continuationFrom=previous.id;
   }
   if (args.format === 'series' && existed) throw new Error('Существующий сезон не перезаписывается: используйте episode для одной серии');
-  const project = args.format === 'series' ? createSeason(options) : buildProject(options);
+  let project = args.format === 'series' ? createSeason(options) : buildProject(options);
+  if(args.provider==='llm-local'){const result=await generateLocal(project,{endpoint:args['llm-endpoint'],model:args['llm-model'],api:args['llm-api']||'ollama',materials:args.materials?readJson(path.resolve(String(args.materials))):undefined,onAttempt:r=>log.info(JSON.stringify(r))});project=result.project;project.generation={provider:'llm-local',attempts:result.attempts,needsReview:true};}
   writeJson(path.join(dir, 'project.json'), project);
   writeJson(path.join(dir, 'idea.json'), project.idea);
   if (existed && args.force) {
@@ -181,6 +190,7 @@ async function cmdScenes(id) {
   let done = 0, skipped = 0;
   try {
   const plan = loadPlan(id);
+  if(profiler)profiler.totalFrames=plan.scenes.reduce((n,s)=>n+s.durFrames,0);
   const draft = !!args.draft;
   const scale = draft ? 0.5 : 1;
   const dir = scenesDir(id, draft);
@@ -196,6 +206,7 @@ async function cmdScenes(id) {
   const ramGB = os.totalmem() / 1e9;
   const autoConc = ramGB < 12 ? 1 : Math.max(1, Math.min(3, Math.floor(os.cpus().length / 2)));
   const conc = Number(args.concurrency ?? autoConc);
+  if(profiler)Object.assign(profiler.data.context,{scale,concurrency:conc,planWidth:plan.width,planHeight:plan.height});
   if (!Number.isInteger(conc) || conc < 1 || conc > 16) throw new Error('--concurrency must be an integer 1–16');
   for (const sc of plan.scenes) {
     if (only && !only.includes(sc.id)) continue;
@@ -216,11 +227,12 @@ async function cmdScenes(id) {
     const comp = await selectComposition({serveUrl, id: 'Scene', inputProps, browserExecutable, chromiumOptions: chromeOpts()});
     const part = file.replace(/\.mp4$/, '.part.mp4');
     let last = -1;
-    await renderMedia({
+    const mediaResult=await renderMedia({
       composition: comp, serveUrl, browserExecutable, codec: 'h264', outputLocation: part, inputProps, muted: true, crf: draft ? 30 : 17, pixelFormat: 'yuv420p',
       imageFormat: 'jpeg', jpegQuality: 92, scale, concurrency: conc, x264Preset: draft ? 'veryfast' : 'medium', chromiumOptions: chromeOpts(), overwrite: true,
       onProgress: ({progress}) => { const p = Math.floor(progress * 10); if (p !== last) { last = p; process.stdout.write(`\r  ${sc.id} ${p * 10}%   `); } },
     });
+    if(profiler)profiler.data.scenes.push({scene:sc.id,frames:sc.durFrames,ms:Date.now()-t0,slowestFrames:mediaResult.slowestFrames,frameTimingBasis:'Remotion slowestFrames capture timings; not all frames'});
     process.stdout.write('\n');
     fs.renameSync(part, file);
     const m = probe(file);
@@ -342,6 +354,28 @@ async function cmdFrame(id,frameOptions={}) {
   console.log(out);
 }
 
+async function cmdLLM(id) {
+ const p=loadProject(id);if(args.provider!=='llm-local')throw new Error('Explicit --provider llm-local required; default remains rules');
+ const result=await generateLocal(p,{endpoint:args['llm-endpoint'],model:args['llm-model'],api:args['llm-api']||'ollama',materials:args.materials?readJson(path.resolve(String(args.materials))):undefined,onAttempt:r=>console.log(JSON.stringify(r))});
+ writeJson(path.join(projectDir(id),'history',`pre-llm-${Date.now()}.json`),p);
+ result.project.generation={provider:'llm-local',attempts:result.attempts,needsReview:true};writeJson(path.join(projectDir(id),'project.json'),result.project);
+ if(result.project.production?.knowledge)writeDocumentaryArtifacts(id,result.project);
+}
+
+async function cmdProfile(id) {
+ if(args['prerender-static'])throw new Error('Static prerender unavailable: no reference-frame equivalence evidence; disabled');
+ const project=loadProject(id),plan=await measured('timeline-sample',()=>buildPlan(id,{projectOverride:project,persist:false,ignoreAudio:true}));
+ profiler.totalFrames=plan.totalFrames||plan.scenes.reduce((n,s)=>n+s.durFrames,0);
+ profiler.data.context={mode:'still-sample',project:id,scale:.5,width:plan.width||project.settings.width,height:plan.height||project.settings.height,concurrency:1,timing:'estimated speech, no TTS, mix or video encode',node:process.version,platform:process.platform,cpus:os.cpus().map(c=>c.model),totalMemoryBytes:os.totalmem(),sourceHash:sourceHash()};
+ const {renderStill,selectComposition}=await import('@remotion/renderer');
+ const browserExecutable=await measured('browser',()=>prepareBrowser(logger(id,'profile')));
+ await measured('assets',ensureAssets);const serveUrl=await measured('bundle',()=>getBundle(logger(id,'profile')));
+ for(const sc of plan.scenes){const t=performance.now();const inputProps={plan,sceneIndex:sc.index,subtitles:true};
+ const comp=await measured(`composition:${sc.id}`,()=>selectComposition({serveUrl,id:'Scene',inputProps,browserExecutable,chromiumOptions:chromeOpts()}));
+ for(const frame of (args['profile-all-frames']?Array.from({length:sc.durFrames},(_,i)=>i):[...new Set([0,Math.floor(sc.durFrames/2),sc.durFrames-1])]))await profiler.frame(sc.id,frame,()=>renderStill({composition:comp,serveUrl,browserExecutable,inputProps,frame,imageFormat:'png',scale:.5,output:path.join(ensure(path.join(profiler.dir,'frames')),`${sc.id}-${frame}.png`),chromiumOptions:chromeOpts()}));
+ profiler.data.scenes.push({scene:sc.id,ms:performance.now()-t,frames:sc.durFrames,sampled:true});}
+}
+
 async function cmdAll(id) {
   const log = logger(id, 'all');
   if (!fs.existsSync(path.join(projectDir(id), 'project.json'))) {
@@ -356,7 +390,7 @@ async function cmdAll(id) {
   const t0 = Date.now();
   for (const [name, fn] of stages) {
     log.info(`=== stage ${name} started ===`);
-    await fn(id);
+    await measured(name,()=>fn(id));
     log.info(`=== stage ${name} done (${((Date.now() - t0) / 1000).toFixed(0)}s total) ===`);
   }
   const final = path.join(renderDir(id), args.draft ? 'DRAFT.mp4' : 'FINAL.mp4');
@@ -400,6 +434,10 @@ async function cmdDoctor() {
 }
 
 const HELP = `Koveyer Dhoix'a — pipeline
+  node render.mjs selfcheck [--plan-only]       offline diagnostic folder + ZIP
+  node render.mjs llm <id> --provider llm-local --llm-model <name> [--materials materials.json]
+  node render.mjs --profile <id>                sample real still timings, no project writes
+  node render.mjs all <id> --profile            measure pipeline stages + slow frames
   node render.mjs doctor [--fix]                 diagnose / save detected paths (no installs)
   node render.mjs ui [--port 7788]               local web UI (create/run/download MP4)
   node render.mjs idea [--lang ru|en] [--theme t] [--count n]
@@ -484,8 +522,8 @@ async function cmdSmoke(id) {
     p.settings.music='solemn';
   }
   writeJson(path.join(dir,'project.json'),p);writeDocumentaryArtifacts(id,p);
-  args.draft=true;args.concurrency=1;
-  if(args['plan-only']){await cmdTimeline(id);await cmdQa(id);await cmdPublish(id);}
+  args.draft=true;args.concurrency=1;if(profiler)Object.assign(profiler.data.context,{draft:true,concurrency:1});
+  if(args['plan-only']){await measured('timeline',()=>cmdTimeline(id));await measured('qa',()=>cmdQa(id));await measured('publish',()=>cmdPublish(id));}
   else {await cmdAll(id);await cmdPublish(id);}
   console.log(`Smoke project: ${id}; output: ${renderDir(id)}`);
 }
@@ -538,16 +576,19 @@ async function cmdHistory(id) {console.log(JSON.stringify(listHistory(projectDir
 async function cmdRestore(id) {console.log(`Restored ${restoreSnapshot(projectDir(id),String(args.snapshot || ''))}`);}
 async function cmdEpisode(id) { const p=regenerateEpisode(id,Number(args.episode),!!args.force); console.log(`Episode ready: ${p.id}`); }
 
-const table = {preview:cmdPreview,smoke:cmdSmoke,export:cmdExport,publish:cmdPublish,voices:cmdVoices,subtitles:cmdSubtitles,research:cmdResearch,recover:cmdRecover,history:cmdHistory,restore:cmdRestore,episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
+const table = {selfcheck:async()=>{const r=await selfcheck({planOnly:!!args['plan-only']});if(!r.complete)process.exitCode=1;},llm:cmdLLM,profile:cmdProfile,preview:cmdPreview,smoke:cmdSmoke,export:cmdExport,publish:cmdPublish,voices:cmdVoices,subtitles:cmdSubtitles,research:cmdResearch,recover:cmdRecover,history:cmdHistory,restore:cmdRestore,episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
 try {
   if (!cmd || !table[cmd]) { console.log(HELP); process.exit(cmd ? 1 : 0); }
+  if(cmd==='smoke'&&args.profile&&!args._[1])args._[1]=`smoke-${Date.now()}`;
   const id = args._[1];
-  if (!['smoke','voices', 'idea', 'list', 'doctor', 'new', 'ui', 'restore', 'history', 'recover'].includes(cmd)) need(id);
-  if (!['voices','idea', 'list', 'doctor', 'ui'].includes(cmd) && id) {
+  if (!['selfcheck','smoke','voices', 'idea', 'list', 'doctor', 'new', 'ui', 'restore', 'history', 'recover'].includes(cmd)) need(id);
+  if (!['selfcheck','voices','idea', 'list', 'doctor', 'ui'].includes(cmd) && id) {
     const unlock = lockProject(id,{createDir:cmd!=='smoke'});
     process.on('exit', unlock);
   }
-  await table[cmd](id, args);
+  if(args['prerender-static'])throw new Error('Static prerender disabled: reference-frame tolerance not validated');
+  if(args.profile||cmd==='profile'){if(!id)throw new Error('--profile requires a project id');profiler=new Profile(path.join(outDir(id),'profile',new Date().toISOString().replace(/[:.]/g,'-')));profiler.data.context={mode:cmd,project:id,draft:!!args.draft,requestedConcurrency:args.concurrency||null,node:process.version,platform:process.platform,totalMemoryBytes:os.totalmem(),cpu:os.cpus()[0]?.model,sourceHash:sourceHash()};}
+  let profileError;try{await measured(cmd,()=>table[cmd](id,args));}catch(e){profileError=e;throw e;}finally{if(profiler)await profiler.finish(profileError);}
   process.exit(process.exitCode || 0);
 } catch (e) {
   console.error(`✘ ${e.message}`);

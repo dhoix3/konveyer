@@ -299,3 +299,15 @@ history undo/redo across server restart, per-scene QA and render blocking, safe
 schematic/no stale real PNG, wizard preview-no-write/commit and estimates. npm test
 and typecheck PASS. Missing Chrome/Piper/Denis/numpy remains doctor exit 1; GUI
 visual usability and real frame rendering/Windows execution remain unverified.
+
+## Phases 7–8 and general-environment correction
+
+General environments expanded 11→19 (including mountains/sea/desert/space/lab/cave/
+medieval town/forest); total 39 with 20 Rus sets. 10 selectable styles (9 explicit
+non-default grades), 10 renderer grades, 10 music moods. Catalog assertions PASS.
+Local loopback stub verifies JSON schema/repair, roles/topology/timing/materials,
+OpenAI/Ollama, redirect rejection and CLI history/failure-no-overwrite. Real model
+not available. Profiling records actual CPU-side stages and honest missing Chrome
+failure; no rendered-frame speed or static-layer equivalence is claimed. Windows
+selfcheck code tested in Linux plan-only mode: ZIP valid, doctor incomplete, smoke
+successful, complete=false, no PNGs. Not Windows execution or visual approval.
