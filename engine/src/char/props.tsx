@@ -31,6 +31,13 @@ const glow = (id: string, color: string, r: number, op = 0.8) => (
 );
 
 export const PROPS: Record<string, PropKind> = {
+  scroll: {top: 0, grip: [0,-40], layer: 'front', draw: o => <path d="M-60 -90 H60 V-10 H-60Z M-40 -65 H40 M-40 -45 H30" fill={o.color} stroke="#352d26" strokeWidth={5}/>},
+  round_shield: {top: 0, grip: [0,-40], layer: 'front', draw: o => <path d="M0 -130 Q95 -90 0 0 Q-95 -90 0 -130Z" fill={o.color} stroke="#352d26" strokeWidth={5}/>},
+  spear: {top: 0, grip: [0,-40], layer: 'front', draw: o => <path d="M0 0 V-180 M-15 -160 L0 -210 L15 -160Z" fill={o.color} stroke="#352d26" strokeWidth={5}/>},
+  chronicle: {top: 0, grip: [0,-40], layer: 'front', draw: o => <path d="M-65 -85 H65 V-5 H-65Z M0 -85 V-5" fill={o.color} stroke="#352d26" strokeWidth={5}/>},
+  wooden_boat: {top: 0, grip: [0,-40], layer: 'front', draw: o => <path d="M-110 -45 Q0 70 110 -45Z" fill={o.color} stroke="#352d26" strokeWidth={5}/>},
+  banner: {top: 0, grip: [0,-40], layer: 'front', draw: o => <path d="M0 0 V-180 L85 -155 L0 -120" fill={o.color} stroke="#352d26" strokeWidth={5}/>},
+
   bed: {
     top: 62, grip: [0, 0], layer: 'back',
     draw: ({color}) => (

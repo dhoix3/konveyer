@@ -1,3 +1,6 @@
+import {viewport} from '../lib/viewport.ts';
+import {mouthAt} from '../lib/lipsync.ts';
+import {DocumentaryGraphics} from '../doc/DocumentaryGraphics.tsx';
 import React, {useMemo} from 'react';
 import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
 import type {Plan, ResolvedScene, PropDef, CharacterDef, LookSpec} from '../lib/types.ts';
@@ -65,6 +68,7 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
   const {fps} = useVideoConfig();
   const scene = plan.scenes[sceneIndex];
   const t = frame / fps;
+  const view=viewport(plan.width,plan.height);
   const env = getEnv(scene.env.id);
   const lang = plan.language;
   const ctx = useScene(plan, scene);
@@ -85,8 +89,10 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
       const p = ctx.propMap.get(f.prop);
       if (p) return {x: p.x, y: surfaceY(ctx.propMap, p.on, 0) - propTop(p.kind, p.scale ?? 1) - 30 - (PROPS[p.kind]?.top ? 0 : 20) + (p.on === 'air' ? ((p.y ?? 500) - GROUND) : 0)};
     }
-    return {x: f.x ?? 960, y: f.y ?? 520};
-  }, [ctx]);
+    const actor=scene.actors[0];
+    if(plan.width<plan.height && actor && ctx.tracks.has(actor.char)) {const {sk}=ctx.skAt(actor.char,tt);return {x:sk.hip.x,y:(sk.head.y+sk.lowest)/2};}
+    return {x: f.x ?? WORLD.w/2, y: f.y ?? 520};
+  }, [ctx,scene,plan.width,plan.height]);
   const camFn = useMemo(() => compileCamera(scene, focusFn), [scene, focusFn]);
   const cam = camFn(t);
 
@@ -132,7 +138,7 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
 
   const talkOf = (def: CharacterDef) => {
     const l = scene.lines.find((ln) => ln.voice === def.voice && t >= ln.sceneStart && t <= ln.sceneEnd);
-    return l ? 1 : 0;
+    return l?.speech ? mouthAt(l.speech,t-l.sceneStart) : l ? 1 : 0;
   };
 
   // --- props
@@ -226,8 +232,8 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
   return (
     <AbsoluteFill style={{background: '#000', overflow: 'hidden'}}>
       <AbsoluteFill>
-        <svg width={1920} height={1080} viewBox="0 0 1920 1080" style={{position: 'absolute', left: 0, top: 0}}>
-          <g transform={`translate(960,540) rotate(${cam.rot}) scale(${cam.zoom}) translate(${-cam.cx},${-cam.cy})`}>
+        <svg width="100%" height="100%" viewBox={`0 0 ${view.w} ${view.h}`} style={{position: 'absolute', left: 0, top: 0}}>
+          <g transform={`translate(${view.cx},${view.cy}) rotate(${cam.rot}) scale(${cam.zoom}) translate(${-cam.cx},${-cam.cy})`}>
             {layers.map((l) => (
               <g key={l.key} transform={`translate(${(cam.cx - 960) * (1 - l.depth)},${(cam.cy - 540) * (1 - l.depth) * 0.5})`}>{l.node}</g>
             ))}
@@ -242,6 +248,8 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
                 blink={blinkAt(c.a.char, t)}
                 look={lookFor(c)}
                 talk={talkOf(c.def)}
+                audioDriven={scene.lines.find(l=>l.voice===c.def.voice&&t>=l.sceneStart&&t<l.sceneEnd)?.speech ? true : !scene.lines.some(l=>l.voice===c.def.voice&&t>=l.sceneStart&&t<l.sceneEnd) && scene.lines.some(l=>l.voice===c.def.voice&&!!l.speech)}
+                viseme={scene.lines.flatMap(l=>l.voice===c.def.voice?(l.speech?.visemes||[]).map(v=>({...v,start:v.start+l.sceneStart,end:v.end+l.sceneStart})):[]).find(v=>t>=v.start&&t<v.end)?.shape}
                 t={t}
                 groundY={GROUND}
                 light={scene.light}
@@ -260,11 +268,12 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
         <Vignette />
         <Grain frame={frame} />
       </AbsoluteFill>
+      {scene.doc && <DocumentaryGraphics doc={scene.doc} />}
       {isTitle && <TitleCard title={plan.title[lang]} sub={scene.overlay?.text[lang]} kicker={lang === 'ru' ? 'А ЧТО ЕСЛИ' : 'WHAT IF'} t={t} dur={scene.durSec} />}
       {!isTitle && scene.counter && <Counter c={scene.counter} t={t} dur={scene.durSec} lang={lang} />}
       {!isTitle && scene.overlay?.type === 'question' && <Question text={scene.overlay.text[lang]} t={t} t0={scene.overlay.t} dur={scene.durSec} />}
       {subtitles && !isTitle && <Subtitles scene={scene} t={t} lang={lang} fps={fps} />}
-      <Letterbox bar={WORLD.bar} />
+      <Letterbox bar={plan.width/plan.height>1.5?WORLD.bar*plan.height/WORLD.h:0} />
       <AbsoluteFill style={{background: '#000', opacity: black, pointerEvents: 'none'}} />
     </AbsoluteFill>
   );

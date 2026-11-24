@@ -8,7 +8,7 @@ import {qaPlan, parsePropKinds} from '../tools/qa.mjs';
 import {ENGINE, projectDir} from '../tools/lib.mjs';
 const source = fs.readFileSync(path.join(ENGINE, 'src/char/props.tsx'), 'utf8');
 const kinds = parsePropKinds(source);
-assert.equal(kinds.size, 28);
+assert.equal(kinds.size, 34);
 assert.deepEqual(parsePropKinds(source.replace(/\r?\n/g, '\r\n')), kinds);
 assert.throws(() => parsePropKinds(''), /PROPS/);
 const topics = ['динозавры вернулись в современный мир', 'что если не спать неделю?', 'что если гравитация исчезнет?', 'что если пропадёт интернет?', 'what if the ocean boiled?', 'what if cats ruled the world?'];
@@ -48,4 +48,4 @@ for (const topic of topics) for (const duration of [25, 30, 45, 90, 180]) {
     console.log(`PASS ${language}/${duration}: ${plan.totalSec.toFixed(2)}s ${topic}`);
   } finally { fs.rmSync(dir,{recursive:true,force:true}); }
 }
-console.log(`PASS: ${count} plans, 28 props, CRLF, invalid-kind rejection`);
+console.log(`PASS: ${count} plans, 34 props, CRLF, invalid-kind rejection`);

@@ -61,3 +61,19 @@ Never claim a result without running QA and looking at at least a few frames.
 * Render interrupted → rerun the same command; verified scenes are skipped.
 * `qa` freeze/black warnings → add motion (camera move, actions) or shorten the scene.
 * Check logs in `projects/<id>/logs/`. Use `DEBUG=1` for stack traces.
+
+## Documentary rules v2
+
+Для офлайн-истории сначала `new ... --format documentary --genre history`, затем
+`research <id> --topic "Рюриковичи"`, timeline и qa --plan-only. Не выдавать
+needsReview=true за фактологическую проверку, estimated за реальный WAV или
+CONTACT_SHEET.svg за отрендеренные кадры. Описание: docs/DOCUMENTARY.md.
+
+## Phases 3–4
+
+Audio-linked timeline lines have speech envelope/wordTiming/optional timed visemes.
+Do not call energy-estimated words ASR/forced alignment. WAV analysis fallback
+is explicitly logged in plan.speechWarnings. Claims narration must not introduce
+names/dates/numbers absent from full claim. `subtitles --strict` checks presentation.
+`export --aspect` isolates derivatives; `smoke` is a non-overwriting Windows draft
+check. Instructions and remaining visual checks: docs/EXPORTS.md.

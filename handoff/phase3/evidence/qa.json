@@ -1,0 +1,12 @@
+{
+  "cues": [
+    {
+      "text": "Привет мир",
+      "start": 0.2,
+      "end": 1.6,
+      "timing": "energy-estimated"
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

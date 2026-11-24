@@ -7,8 +7,12 @@
 // and the CLI stay fully interchangeable and the architecture is unchanged.
 //
 //   node render.mjs ui [--port 7788]
+import {HttpError, readBody, createSecurity, LOGIN_PAGE} from './ui-security.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
+import {listHistory} from './storage.mjs';
+import {lockProject} from './project-lock.mjs';
+import {recoverAllSeasons, refreshSeasonContexts} from './series.mjs';
 import {normalizeBrief} from './production.mjs';
 import path from 'node:path';
 import http from 'node:http';
@@ -34,13 +38,23 @@ function listProjects() {
     if (!fs.existsSync(pj)) continue;
     let p = {};
     try { p = readJson(pj, {}); } catch { continue; }
+    let contextWarning=null;
+    if(p.production?.kind==='season' && !jobs.get(d)?.running) {
+      let unlock;try{unlock=lockProject(d);p=refreshSeasonContexts(d);}catch(e){contextWarning=e.message;}finally{unlock?.();}
+    }
+    if(p.production?.seriesId) {
+      const parent=readJson(path.join(projectDir(p.production.seriesId),'project.json'),null);
+      const entry=parent?.production?.episodes?.find(e=>e.id===d);
+      if(entry?.stale)contextWarning=entry.staleReason;
+    }
+    if(p.production?.seriesId && fs.existsSync(path.join(projectDir(p.production.seriesId),'season-transaction.json')))continue;
     const statePath = path.join(PROJECTS, d, 'state.json');
     const state = readJson(statePath, {stages: {}});
     const job = jobs.get(d);
     let mtime = 0;
     try { mtime = fs.statSync(pj).mtimeMs; } catch {}
     rows.push({
-      id: d,
+      id: d, contextWarning,
       title: p.title || {},
       language: p.language || 'ru',
       scenes: Array.isArray(p.scenes) ? p.scenes.length : 0,
@@ -123,9 +137,6 @@ function stopJob(id) {
   return job;
 }
 
-class HttpError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
-}
 
 function createProject(body) {
   const id = String(body.id || '').trim();
@@ -197,14 +208,6 @@ function json(res, code, obj) {
   res.end(body);
 }
 
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', (c) => { data += c; if (data.length > 1e6) { reject(new Error('body too large')); req.destroy(); } });
-    req.on('end', () => { try { const body = data ? JSON.parse(data) : {}; if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('object required'); resolve(body); } catch { reject(new HttpError(400, 'bad json: expected object')); } });
-    req.on('error', reject);
-  });
-}
 
 function serveFile(req, res, file) {
   if (!fs.existsSync(file)) return json(res, 404, {error: 'file not found'});
@@ -327,6 +330,7 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <h2 id="stageTitle">Этапы</h2>
   <div class="chips" id="chips"><span class="muted">выберите проект</span></div>
   <div class="muted" id="progress" role="status" style="display:none">Генерация выполняется. Этапы и журнал обновляются автоматически.</div>
+  <button class="small secondary" onclick="restoreVersion()">История / восстановить</button>
   <button class="small secondary" onclick="previewScript()">Предпросмотр сценария</button>
   <button class="small secondary" onclick="regenerateEpisode()">Пересоздать эпизод сезона</button>
   <pre id="scriptPreview" style="white-space:pre-wrap" hidden></pre>
@@ -402,7 +406,7 @@ function renderProjects(list){
   for (var i = 0; i < projectsCache.length; i++){
     var p = projectsCache[i];
     var title = (p.title && (p.title[p.language] || p.title.ru)) || p.id;
-    var status = p.job && p.job.running ? '⏳ ' + p.job.stage : (p.final ? 'MP4 сохранён · проверьте этапы' : '…');
+    var status = p.contextWarning ? '⚠ Контекст устарел или недоступен: см. сценарий сезона' : p.job && p.job.running ? '⏳ ' + p.job.stage : (p.final ? 'MP4 сохранён · проверьте этапы' : '…');
     h += '<div class="proj ' + (p.id === current ? 'active' : '') + '" onclick="select(\\'' + p.id + '\\')">' +
       '<div class="t">' + esc(title) + '</div>' +
       '<div class="m">' + esc(p.id) + ' · ' + p.scenes + ' сцен · ' + esc(p.template || 'freeform') + '</div>' +
@@ -498,7 +502,7 @@ function renderStage(){
   if (player.dataset.url !== videoUrl) { player.dataset.url = videoUrl; if (videoUrl) player.src = videoUrl; else player.removeAttribute('src'); }
   player.hidden = !videoUrl;
   var buttons = btns.querySelectorAll('button');
-  for (var j = 0; j < buttons.length; j++) buttons[j].disabled = !!running || !!container;
+  for (var j = 0; j < buttons.length; j++) buttons[j].disabled = !!running || !!container || !!(p && p.contextWarning);
 }
 async function checkReady(){
   msg('Проверка компонентов…');
@@ -518,6 +522,17 @@ async function regenerateEpisode(){
   if(!Number.isInteger(number) || number<1 || !confirm('Пересоздать сценарий только этого эпизода? Другие серии сохранятся.')) return;
   try {await api('/api/episode',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:current,episode:number})});msg('Перегенерация эпизода запущена','ok');}
   catch(e){msg(e.message,'err');}
+}
+async function restoreVersion(){
+  if(!current)return;
+  try {
+    var result=await api('/api/history?id='+encodeURIComponent(current));
+    if(!result.snapshots.length){msg('Снимков пока нет');return;}
+    var index=Number(prompt(result.snapshots.map(function(s,i){return (i+1)+'. '+s.file;}).join(String.fromCharCode(10))));
+    var snapshot=result.snapshots[index-1];if(!snapshot || !confirm('Восстановить снимок? Текущая версия тоже будет сохранена.'))return;
+    await api('/api/restore',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:current,snapshot:snapshot.file})});
+    msg('Восстановление запущено; затем пересоберите voice и timeline','ok');
+  }catch(e){msg(e.message,'err');}
 }
 async function previewScript(){
   if (!current) return;
@@ -543,12 +558,23 @@ boot();
 </script>
 </body></html>`;
 
-export function startUI({port = 7788} = {}) {
+export function startUI({port = 7788, host = '127.0.0.1', token = process.env.KOVEYER_GUI_TOKEN, allowedHosts = []} = {}) {
+  const security=createSecurity({host,token,allowedHosts});
+  recoverAllSeasons();
   const server = http.createServer(async (req, res) => {
     try {
       const u = new URL(req.url, 'http://localhost');
       const p = u.pathname;
-      if (req.method === 'POST' && req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) return json(res, 403, {error:'cross-origin request forbidden'});
+      security.checkBoundary(req,server.address().port);
+      if(req.method==='POST' && p==='/api/login') {
+        const body=await readBody(req,4096);
+        if(!security.login(body.token))return json(res,401,{error:'Unauthorized'});
+        res.setHeader('set-cookie',security.cookie());return json(res,200,{ok:true});
+      }
+      if(!security.authorized(req)) {
+        if(req.method==='GET' && p==='/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end(LOGIN_PAGE);}
+        return json(res,401,{error:'GUI authentication required'});
+      }
       if (req.method === 'GET' && p === '/api/script') {
         const id = u.searchParams.get('id');
         if (!safeId(id)) return json(res, 400, {error:'bad id'});
@@ -604,6 +630,15 @@ export function startUI({port = 7788} = {}) {
         const job=startJob(id,'episode',['--episode',String(episode),'--force']);
         return json(res,200,{ok:true,pid:job.pid});
       }
+      if(req.method==='GET' && p==='/api/history') {
+        const id=u.searchParams.get('id');if(!safeId(id))return json(res,400,{error:'bad id'});
+        return json(res,200,{snapshots:listHistory(projectDir(id))});
+      }
+      if(req.method==='POST' && p==='/api/restore') {
+        const {id,snapshot}=await readBody(req);
+        if(!safeId(id) || !listHistory(projectDir(id)).some(x=>x.file===snapshot))return json(res,400,{error:'bad snapshot'});
+        startJob(id,'restore',['--snapshot',snapshot]);return json(res,200,{ok:true});
+      }
       if (req.method === 'POST' && p === '/api/run') {
         const {id, stage, draft} = await readBody(req);
         if (!safeId(id)) return json(res, 400, {error: 'bad id'});
@@ -625,12 +660,13 @@ export function startUI({port = 7788} = {}) {
       json(res, e.status || (e.message?.includes('unknown') || e.message?.includes('требуется') ? 400 : 500), {error: String(e.message || e)});
     }
   });
+  server.headersTimeout=10000;server.requestTimeout=30000;
   server.on('error', (e) => {
     console.error(`ui: ${e.message} (port ${port})`);
     process.exit(1);
   });
-  server.listen(port, '0.0.0.0', () => {
-    console.log(`Koveyer Dhoix'a UI: http://localhost:${port}  (listening on 0.0.0.0)`);
+  server.listen(port, host, () => {
+    console.log(`Koveyer Dhoix'a UI: http://localhost:${server.address().port}  (listening on ${host})`);
     console.log('Ctrl+C to stop. The UI spawns the same render.mjs CLI — logs stay in projects/<id>/logs/.');
   });
   const shutdown = () => {

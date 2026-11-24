@@ -46,3 +46,6 @@ __pycache__/
 
 # Local render-test dependencies (not production assets)
 /engine/.cache/
+
+# Machine-local detected paths (no tokens)
+/engine/local-environment.json

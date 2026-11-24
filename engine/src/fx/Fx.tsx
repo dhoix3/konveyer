@@ -1,12 +1,18 @@
+import {WORLD} from '../lib/types.ts';
+import {viewport} from '../lib/viewport.ts';
 import React from 'react';
-import {AbsoluteFill, staticFile} from 'remotion';
+import {AbsoluteFill, staticFile, useVideoConfig} from 'remotion';
 import {rnd, clamp} from '../lib/math.ts';
 import type {LightDef} from '../lib/types.ts';
 
+const FxCanvas: React.FC<{children: React.ReactNode}> = ({children}) => {
+  const {width,height}=useVideoConfig(),view=viewport(width,height);
+  return <svg width="100%" height="100%" viewBox={`0 0 ${view.w} ${WORLD.h}`} style={{position:'absolute',inset:0}}>{children}</svg>;
+};
 export const Rain: React.FC<{t: number; heavy?: boolean}> = ({t, heavy}) => {
   const n = heavy ? 230 : 130;
   return (
-    <svg width={1920} height={1080} style={{position: 'absolute', inset: 0}}>
+    <FxCanvas>
       <g stroke="#cfe0ff" strokeLinecap="round">
         {Array.from({length: n}, (_, i) => {
           const sp = 1500 + rnd(i + 1) * 900;
@@ -16,50 +22,50 @@ export const Rain: React.FC<{t: number; heavy?: boolean}> = ({t, heavy}) => {
           return <line key={i} x1={(x + 2200) % 2200 - 150} y1={y} x2={(x + 2200) % 2200 - 150 - l * 0.24} y2={y + l} strokeWidth={1 + rnd(i + 9) * 1.4} opacity={0.12 + rnd(i + 2) * 0.22} />;
         })}
       </g>
-    </svg>
+    </FxCanvas>
   );
 };
 
 export const Snow: React.FC<{t: number}> = ({t}) => (
-  <svg width={1920} height={1080} style={{position: 'absolute', inset: 0}}>
+  <FxCanvas>
     {Array.from({length: 120}, (_, i) => {
       const y = (rnd(i + 3) * 1300 + t * (60 + rnd(i) * 90)) % 1300 - 100;
       const x = rnd(i + 8) * 2000 - 40 + Math.sin(t * (0.6 + rnd(i)) + i) * 30;
       return <circle key={i} cx={x} cy={y} r={1.6 + rnd(i + 4) * 3} fill="#fff" opacity={0.35 + rnd(i) * 0.5} />;
     })}
-  </svg>
+  </FxCanvas>
 );
 
 export const Fog: React.FC<{t: number; color?: string; density?: number}> = ({t, color = '#b8c6d8', density = 0.2}) => (
-  <svg width={1920} height={1080} style={{position: 'absolute', inset: 0}}>
+  <FxCanvas>
     <defs>
       <radialGradient id="fogg"><stop offset="0" stopColor={color} stopOpacity={density} /><stop offset="1" stopColor={color} stopOpacity={0} /></radialGradient>
     </defs>
     {[0, 1, 2, 3, 4].map((i) => (
       <ellipse key={i} cx={((i * 560 + t * (14 + i * 4)) % 2700) - 400} cy={700 + (i % 3) * 110} rx={620} ry={160} fill="url(#fogg)" />
     ))}
-  </svg>
+  </FxCanvas>
 );
 
 // floating dust motes in screen space (drift + slow parallax)
 export const Dust: React.FC<{t: number; color?: string; n?: number; speed?: number}> = ({t, color = '#fff', n = 46, speed = 1}) => (
-  <svg width={1920} height={1080} style={{position: 'absolute', inset: 0}}>
+  <FxCanvas>
     {Array.from({length: n}, (_, i) => {
       const x = (rnd(i + 1) * 2000 + t * (6 + rnd(i + 2) * 14) * speed) % 2000 - 40;
       const y = (rnd(i + 3) * 1200 - t * (4 + rnd(i + 4) * 10) * speed + 2400) % 1200 - 60;
       const r = 1 + rnd(i + 5) * 2.4;
       return <circle key={i} cx={x} cy={y} r={r} fill={color} opacity={(0.1 + rnd(i + 6) * 0.3) * (0.6 + 0.4 * Math.sin(t * 1.3 + i))} />;
     })}
-  </svg>
+  </FxCanvas>
 );
 
 export const Embers: React.FC<{t: number}> = ({t}) => (
-  <svg width={1920} height={1080} style={{position: 'absolute', inset: 0}}>
+  <FxCanvas>
     {Array.from({length: 40}, (_, i) => {
       const life = (t * (0.15 + rnd(i) * 0.2) + rnd(i + 3)) % 1;
       return <circle key={i} cx={rnd(i + 5) * 1900 + Math.sin(t + i) * 30} cy={1100 - life * 1200} r={1.5 + rnd(i + 7) * 2.5} fill="#ffa24d" opacity={0.8 * Math.sin(Math.PI * life)} />;
     })}
-  </svg>
+  </FxCanvas>
 );
 
 export const Grain: React.FC<{frame: number; amount?: number}> = ({frame, amount = 0.06}) => {

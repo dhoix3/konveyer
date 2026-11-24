@@ -1,0 +1,11 @@
+{
+  "coverScene": "s01",
+  "coverTime": 4.291666666666667,
+  "realFrame": false,
+  "safeZone": {
+    "left": 86.4,
+    "right": 993.6,
+    "top": 86.4,
+    "bottom": 907.1999999999999
+  }
+}

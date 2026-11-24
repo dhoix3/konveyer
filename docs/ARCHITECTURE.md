@@ -48,3 +48,26 @@ Zero-dependency `node:http` server started with `node render.mjs ui [--port 7788
 * Story generation: freeform topics are handled by `tools/story.mjs` (12 detected domains with dedicated scene pools) and the 3 classic templates remain available via `--template`; `idea` output is still template-based. Add domains/pools in `story.mjs`, full templates in `tools/script.mjs`.
 * Piper voices are synthetic; use `--audio` for human narration.
 * 1080p SVG rendering is CPU-heavy (≈ 2–8 min per minute of video on 4 cores).
+
+## Knowledge/documentary v2
+
+knowledge/*.json → tools/knowledge.mjs (validation, offline lookup/research) →
+tools/documentary.mjs (epoch scenes, claim-linked narration, source/storyboard
+artifacts) → existing timeline → existing qa + qaDocumentary. Scene.doc feeds
+src/doc/DocumentaryGraphics.tsx in the existing SceneRenderer; optional costume
+fields add SVG details without changing skeleton/IK. Legacy providers remain.
+No network or LLM is used. See DOCUMENTARY.md for trust boundaries and limitations.
+
+## Audio-driven speech / derivative output
+
+speech-analysis.mjs traverses RIFF chunks and produces 20ms RMS + gated amplitude,
+provided or energy-estimated word times, optional timed-phoneme visemes. Timeline
+embeds this data and an audio content hash; lipsync.ts is shared pure runtime
+logic. Audio-driven faces close in silence, legacy plans keep their old behaviour.
+voice-registry.mjs provides explicit profiles/prosody and participates in TTS cache
+hashing. subtitles.mjs exports SRT/VTT/ASS with timing/readability QA.
+
+viewport.ts separates output aspect from the existing WORLD coordinate system.
+Derivative plans/output directories isolate formats; scene cache includes dimensions.
+publishing.mjs selects a cover time deterministically and embeds a real frame only
+when matching video exists; otherwise all previews remain labelled schematics.

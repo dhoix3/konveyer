@@ -407,3 +407,26 @@ numpy; пользовательский Piper/Denis не переустанав�
 `output/transform-season-e01/DRAFT.mp4` и `output/transform-season-e02/DRAFT.mp4`.
 Оба — 25.125 секунды, 603 кадра, 960×540 H.264/AAC, без речи, около −14.01 LUFS;
 QA и полное декодирование FFmpeg прошли. Подробный отчёт — `DIAGNOSTICS.md`.
+
+### Офлайн-документалистика V2
+
+`new <id> --format documentary --genre history --topic "Рюриковичи" --duration 120`,
+затем `research <id> --topic "Рюриковичи"`, `timeline <id>`, `qa <id> --plan-only`
+(из `engine/`). Пакет: 25 claims, источники и обязательная ручная проверка.
+Без подходящего пакета research создаёт честный пустой офлайн-шаблон.
+Подробности, формат знаний и ограничения: [DOCUMENTARY](docs/DOCUMENTARY.md).
+Переносимые результаты фазы 2: `handoff/phase2/`.
+
+### Sound-driven speech and multi-format export
+
+- `voices` / `voices --download ru-narrator` / `voices --preview ru-narrator`:
+  local Piper role registry; downloads only on a synthesis/download request.
+- `timeline` analyses actual voice audio into a 20ms mouth envelope; supplied word
+  times/phonemes are optional. Without alignment, word times are **energy-estimated**.
+- `subtitles <id> --strict`: SRT/VTT/ASS and overflow/reading-speed checks.
+- `export <id> --aspect 9:16` (also 16:9, 1:1): isolated plan/publication package;
+  add `--render --draft` only when dependencies and voice are ready.
+- Windows: `node .\render.mjs smoke win-smoke-01` from engine produces an 18s draft
+  with map/timeline/tree (estimated until local audio is measured), concurrency 1.
+
+See [formats and smoke](docs/EXPORTS.md), [phase 3 report](handoff/phase3/REPORT.md).

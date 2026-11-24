@@ -1,3 +1,4 @@
+import {qaDocumentary} from './documentary.mjs';
 // QA stage: static checks on the plan (anatomy, contact, teleport, props, sync, duration) + checks on rendered media.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -27,6 +28,7 @@ const AIR_OK = new Set(['jump', 'float', 'cheer', 'run', 'fall']);
 export function qaPlan(id, plan) {
   const errors = [], warnings = [];
   const E = (s, m) => errors.push(`[${s}] ${m}`), W = (s, m) => warnings.push(`[${s}] ${m}`);
+  warnings.push(...(plan.speechWarnings||[]));
   const chars = new Map(plan.characters.map((c) => [c.id, c]));
   const kinds = new Set();
   let frames = 0;
@@ -127,14 +129,15 @@ export function qaPlan(id, plan) {
     const target = proj.settings.duration;
     if (Math.abs(plan.totalSec - target) / target > 0.3) W('film', `duration ${plan.totalSec.toFixed(1)}s differs from requested ${target}s by more than 30%`);
   }
+  const docQA=qaDocumentary(plan);errors.push(...docQA.errors);warnings.push(...docQA.warnings);
   return {errors, warnings};
 }
 
 export function qaMedia(id, plan, sceneFiles, finalFile, draft = false) {
   const errors = [], warnings = [];
   // Draft renders are half resolution by design — check against that.
-  const W = draft ? WIDTH / 2 : WIDTH;
-  const H = draft ? HEIGHT / 2 : HEIGHT;
+  const W = plan.width*(draft?0.5:1);
+  const H = plan.height*(draft?0.5:1);
   for (const sc of plan.scenes) {
     const f = sceneFiles[sc.id];
     if (!f || !fs.existsSync(f)) { errors.push(`[${sc.id}] scene video missing`); continue; }

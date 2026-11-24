@@ -1,3 +1,4 @@
+import {mouthOpening} from '../lib/lipsync.ts';
 import React from 'react';
 import {BONES, solve} from './skeleton.ts';
 import type {Skeleton, Pt} from './skeleton.ts';
@@ -92,6 +93,12 @@ const Body: React.FC<BodyProps> = ({def, sk, mode, rimColor}) => {
       {/* neck */}
       <path d={P(neckBase, lerpPt(neckBase, sk.head, 0.75))} stroke={ink} strokeWidth={lw * 0.8 + O} strokeLinecap="round" />
       {!rim && <path d={P(neckBase, lerpPt(neckBase, sk.head, 0.75))} stroke={INK} strokeWidth={lw * 0.8} strokeLinecap="round" />}
+      {!rim && def.costume && <g>
+        <path d={P(lerpPt(sk.hip,neckBase,0.1),lerpPt(sk.hip,neckBase,0.9))} stroke={def.costume==='chainmail'?'#8b9090':def.shirt} strokeWidth={tw+4} />
+        <path d={P({x:sk.hip.x-tw/2,y:sk.hip.y},{x:sk.hip.x+tw/2,y:sk.hip.y})} stroke="#b99961" strokeWidth={5*s}/>
+        {def.costume==='cloak' && <path d={P(neckBase,{x:sk.hip.x-tw,y:sk.hip.y+15*s},sk.hip)} fill={shade(def.shirt,-0.25)} stroke={INK} strokeWidth={2}/>}
+        {def.costume==='chainmail' && [0.3,0.5,0.7].map(v=><circle key={v} cx={lerpPt(sk.hip,neckBase,v).x} cy={lerpPt(sk.hip,neckBase,v).y} r={3*s} fill="none" stroke="#41494a"/>)}
+      </g>}
       {def.accessory === 'tie' && !rim && (
         <path d={P(lerpPt(sk.hip, neckBase, 0.9), lerpPt(sk.hip, neckBase, 0.45))} stroke={def.accessoryColor || '#b0252c'} strokeWidth={5 * s} strokeLinecap="round" />
       )}
@@ -110,11 +117,13 @@ interface FaceProps {
   blink: number;
   closed: number;
   look: {x: number; y: number};
+  viseme?: string;
+  audioDriven?: boolean;
   talk: number; // 0..1 mouth movement
   t: number;
 }
 
-const Face: React.FC<FaceProps> = ({def, sk, fx, face, blink, closed, look, talk, t}) => {
+const Face: React.FC<FaceProps> = ({def, sk, fx, face, blink, closed, look, talk, t, audioDriven, viseme}) => {
   const s = def.height;
   const R = BONES.headR * s;
   const sgn = fx >= 0 ? 1 : -1;
@@ -144,7 +153,7 @@ const Face: React.FC<FaceProps> = ({def, sk, fx, face, blink, closed, look, talk
   };
   const mw = 7.5 * s;
   const my = 15 * s;
-  const mouthOpen = clamp(face.mouthO + talk * (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 22))));
+  const mouthOpen = mouthOpening(talk,face.mouthO,t,audioDriven);
   const curve = face.mouthC * 6 * s;
   const mc = c * 0.9;
   const leftIsInner = 1; // for eye at c-h inner end is the right side
@@ -155,7 +164,7 @@ const Face: React.FC<FaceProps> = ({def, sk, fx, face, blink, closed, look, talk
         {eye(c - h, leftIsInner, 'e1')}
         {eye(c + h, -leftIsInner, 'e2')}
         {mouthOpen > 0.08 ? (
-          <ellipse cx={mc} cy={my + curve * 0.3} rx={mw * (0.45 + mouthOpen * 0.2)} ry={1.5 + mouthOpen * 6 * s} fill="#f4f1ec" />
+          <ellipse cx={mc} cy={my + curve * 0.3} rx={mw * (viseme==='round'?0.3:0.45 + mouthOpen * 0.2)} ry={1.5 + mouthOpen * 6 * s} fill="#f4f1ec" />
         ) : (
           <path d={`M${mc - mw},${my} Q${mc},${my + curve} ${mc + mw},${my}`} stroke="#f4f1ec" strokeWidth={2.2 * s} fill="none" strokeLinecap="round" />
         )}
@@ -217,6 +226,8 @@ export interface CharacterProps {
   face: FaceParams;
   blink: number;
   look: {x: number; y: number};
+  viseme?: string;
+  audioDriven?: boolean;
   talk: number;
   t: number;
   groundY: number;
@@ -224,7 +235,7 @@ export interface CharacterProps {
   opacity?: number;
 }
 
-export const Character: React.FC<CharacterProps> = ({def, state, sk, face, blink, look, talk, t, groundY, light, opacity = 1}) => {
+export const Character: React.FC<CharacterProps> = ({def, state, sk, face, blink, look, talk, t, groundY, light, opacity = 1, audioDriven, viseme}) => {
   const lx = light.x - sk.hip.x;
   const dirL = Math.sign(lx) || 1;
   const rimC = light.rim;
@@ -242,7 +253,7 @@ export const Character: React.FC<CharacterProps> = ({def, state, sk, face, blink
         <Body def={def} sk={sk} mode="rim" rimColor={rimC} />
       </g>
       <Body def={def} sk={sk} mode="main" />
-      <Face def={def} sk={sk} fx={state.fx} face={face} blink={blink} closed={state.eyeClosed} look={look} talk={talk} t={t} />
+      <Face def={def} sk={sk} fx={state.fx} face={face} blink={blink} closed={state.eyeClosed} look={look} talk={talk} t={t} audioDriven={audioDriven} viseme={viseme} />
     </g>
   );
 };

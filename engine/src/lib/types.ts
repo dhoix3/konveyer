@@ -23,6 +23,8 @@ export type LookSpec =
   | {prop: string};
 
 export interface CharacterDef {
+  costume?: 'tunic' | 'cloak' | 'chainmail' | 'robe';
+  era?: [number, number];
   id: string;
   name: L10n;
   role: string;
@@ -104,6 +106,7 @@ export interface Shot {
 }
 
 export interface Line {
+  speech?: import('./lipsync.ts').SpeechData;
   id: string;
   voice: string; // voice id (narrator or character voice)
   text: L10n;
@@ -143,6 +146,7 @@ export interface LightDef {
 }
 
 export interface SceneSpec {
+  doc?: import('../doc/DocumentaryGraphics.tsx').DocumentaryGraphic;
   id: string;
   kind?: 'story' | 'title';
   title: L10n;

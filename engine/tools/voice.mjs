@@ -1,3 +1,4 @@
+import {profileFor,prosodyFor} from './voice-registry.mjs';
 // VOICE stage: TTS (Piper ONNX, local) | uploaded narration (Whisper ONNX or silence-VAD) | per-line files | none.
 // Uploaded audio is transcribed, split into phrases, aligned to script lines and cut into per-line clips.
 import fs from 'node:fs';
@@ -11,7 +12,7 @@ const MODELS = path.join(ENGINE, 'models', 'piper');
 const HF = 'https://huggingface.co/rhasspy/piper-voices/resolve/main';
 // Bump whenever text normalisation or synthesis changes.  Cached voice WAVs
 // from an older version must not be reused: the hash only covers text + voice.
-export const TTS_VERSION = 'tts-3';
+export const TTS_VERSION = 'tts-4';
 
 // Extra Russian Piper voices that can be selected per project without changing
 // the defaults in src/lib/library.ts:
@@ -84,13 +85,13 @@ export function resolveVoiceModel(voice, project, opts = {}) {
       if (id === voice.id && model) return model;
     }
   }
-  return project.settings?.voiceModels?.[voice.id] || fallback;
+  return project.settings?.voiceModels?.[voice.id] || profileFor(voice,project)?.model || fallback;
 }
 
 export function ttsLineHash(line, project, opts = {}) {
   const v = voiceById(line.voice);
   return sha1([TTS_VERSION, project.language, line.text[project.language],
-    resolveVoiceModel(v, project, opts), Number(v.piper.pitch) || 1, Number(v.speed) || 1]);
+    resolveVoiceModel(v, project, opts), prosodyFor(v,project)]);
 }
 
 export const lineFile = (id, lid) => path.join(projectDir(id), 'voice', `${lid}.wav`);
@@ -106,14 +107,13 @@ export async function voiceTTS(id, project, log, {force = false, ...opts} = {}) 
     const v = voiceById(l.voice);
     const text = l.text[project.language];
     const name = resolveVoiceModel(v, project, opts);
-    const pitch = Number(v.piper.pitch) || 1;
-    const speed = Number(v.speed) || 1;
+    const {pitch,speed,noiseScale,noiseW}=prosodyFor(v,project);
     const hash = ttsLineHash(l, project, opts);
     hashes[l.id] = hash;
     const out = lineFile(id, l.id);
     if (!force && mf.lines[l.id]?.hash === hash && fs.existsSync(out)) { valid.add(l.id); continue; }
     try {
-      jobs.push({id: l.id, text, model: await ensureModel(name, log), pitch, speed, lang: project.language, out, hash});
+      jobs.push({id: l.id, text, model: await ensureModel(name, log), pitch, speed, noiseScale, noiseW, lang: project.language, out, hash});
     } catch (e) {
       earlyFailed.push({id: l.id, error: e.message});
     }

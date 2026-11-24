@@ -240,3 +240,43 @@ engine/package.json, engine/render.mjs, engine/tests/{production,runtime}.mjs,
 engine/tools/{production,series,script,ui,timeline,qa,sound}.mjs.
 Пользовательские файлы не удалены; модели, тестовые библиотеки и MP4 не в Git.
 Commit, push, merge, смена ветки и операции stash не выполнялись.
+
+## Capital V2 — надёжность и безопасный GUI
+
+Локальные Linux regression/typecheck проходят, включая tests/reliability.mjs:
+проверки сети, истории/GUI restore, отказа дисковой замены, recovery сезона и stale
+контекста. Подробности и ограничения: docs/AUDIT_V2.md. Windows пока не проверен.
+
+Windows (из engine): `powershell -File .\setup.ps1`, затем `.\start.bat`.
+Повторная диагностика: `node render.mjs doctor --fix` (без установок).
+История: `node render.mjs history <id>`;
+восстановление: `node render.mjs restore <id> --snapshot <имя-из-history>`.
+Незавершённый сезон: `node render.mjs recover <season-id>`.
+Сетевой GUI: задать KOVEYER_GUI_TOKEN и явно передать `--host 0.0.0.0`;
+не использовать публичный HTTP, токен не передавать в URL и не коммитить.
+В этом sandbox doctor сообщает отсутствие numpy/Piper/Denis/Chrome: это не
+свидетельство отсутствия этих компонентов на пользовательском Windows.
+
+## Фаза 2: документалистика
+
+Проверено: 120-секундный estimated план «Рюриковичи», 14 сцен, 10 исторических
+сред, 19 cast records (рассказчик + исторические/коллективные роли), 25 claims.
+new/research/timeline/qa --plan-only: 0 ошибок, 2 предупреждения (needsReview,
+estimated audio). npm test и typecheck PASS. Негативные anachronism/evidence
+тесты включены. Полные доказательства: handoff/phase2/evidence, отчёт REPORT.md.
+Не проверено: реальные кадры/MP4/Piper/Chrome, независимая сверка библиографии.
+CONTACT_SHEET.svg — storyboard, не отрендеренные кадры. Все claims needsReview=true.
+
+## Phases 3–4
+
+Claim fidelity: 25/25 Rurikids short narrations pass names/numbers/dates check;
+added-name/date/number negative cases fail. New Rurikids plan QA: 0 errors, 2
+explicit needsReview/estimated warnings. One short Kalita narration corrected.
+
+Verified locally: synthetic PCM envelope and pause mouth closure, chunked WAV,
+optional timed visemes, subtitle limits and exports; three aspect plans/packages,
+18-second plan-only smoke, FFmpeg cover extraction from a synthetic PNG test video.
+This FFmpeg test signal is NOT engine-rendered footage. npm test/typecheck and
+textnorm self-test (14/14) pass. Windows and real Chrome/Piper not executed.
+Doctor still reports missing numpy/Piper/models/Chrome. Full logs and limitations:
+handoff/phase3/REPORT.md, handoff/phase4/REPORT.md; Windows: docs/EXPORTS.md.

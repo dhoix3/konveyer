@@ -1,3 +1,4 @@
+import {WORLD} from '../lib/types.ts';
 import React from 'react';
 import {AbsoluteFill} from 'remotion';
 import type {ActionName, CharacterDef, ResolvedScene} from '../lib/types.ts';
@@ -25,7 +26,7 @@ export const PoseSheet: React.FC<{t: number}> = ({t}) => {
   const def: CharacterDef = LIB_CHARS[0];
   return (
     <AbsoluteFill style={{background: '#1b2030'}}>
-      <svg width={1920} height={1080}>
+      <svg width="100%" height="100%" viewBox={`0 0 ${WORLD.w} ${WORLD.h}`} preserveAspectRatio="xMidYMid meet">
         {SHEET_ACTIONS.map((a, i) => {
           const col = i % 7;
           const row = Math.floor(i / 7);

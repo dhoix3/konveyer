@@ -1,4 +1,5 @@
 // Shared helpers for the What If Cine Studio pipeline.
+import {atomicJson, migrateDocument} from './storage.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -58,20 +59,15 @@ export function sourceHash() {
 }
 
 export const readJson = (f, fallback) => {
+  let raw;
+  try { raw=fs.readFileSync(f,'utf8'); }
+  catch(e) { if(e.code==='ENOENT' && fallback!==undefined)return fallback; throw new Error(`Cannot read JSON: ${f}: ${e.message}`); }
   try {
-    return JSON.parse(fs.readFileSync(f, 'utf8'));
-  } catch {
-    if (fallback !== undefined) return fallback;
-    throw new Error(`Cannot read JSON: ${f}`);
-  }
+    const value=JSON.parse(raw);
+    return ['project.json','plan.json'].includes(path.basename(f)) ? migrateDocument(value) : value;
+  } catch(e) { throw new Error(`Invalid JSON: ${f}: ${e.message}`); }
 };
-
-export const writeJson = (f, data) => {
-  ensure(path.dirname(f));
-  const tmp = f + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
-  fs.renameSync(tmp, f);
-};
+export const writeJson = atomicJson;
 
 export const sha1 = (x) => crypto.createHash('sha1')
   .update(typeof x === 'string' ? x : JSON.stringify(x)).digest('hex');
@@ -86,7 +82,7 @@ export function logger(id, stage) {
   const write = (lvl, msg) => {
     const text = typeof msg === 'string' ? msg : JSON.stringify(msg);
     const line = `[${new Date().toISOString()}] [${lvl}] ${text}`;
-    try { fs.appendFileSync(file, line + '\n'); } catch {}
+    try { fs.appendFileSync(file, line + '\n'); } catch(e) { console.error(`log write failed: ${file}: ${e.message}`); }
     (lvl === 'ERROR' ? console.error : console.log)(`[${stage}] ${text}`);
   };
 
@@ -174,7 +170,7 @@ export function ff(args, opts = {}) {
 
   if (r.error) throw new Error(`ffmpeg could not start: ${r.error.message}`);
   if (r.status !== 0 && !opts.allowFail) {
-    throw new Error(`ffmpeg failed (${r.status}): ${(r.stderr || r.stdout || '').split('\n').slice(-10).join('\n')}`);
+    throw new Error(`ffmpeg failed (${r.status}): ${String(r.stderr || r.stdout || '').split('\n').slice(-10).join('\n')}`);
   }
 
   return r;
