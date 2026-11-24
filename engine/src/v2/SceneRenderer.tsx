@@ -1,6 +1,8 @@
 import {Crowd} from '../char/Crowd.tsx';
 import {viewport} from '../lib/viewport.ts';
 import {mouthAt} from '../lib/lipsync.ts';
+import {LocalFonts} from '../lib/LocalFonts.tsx';
+import {documentaryLayout,fitActor} from '../doc/layout.ts';
 import {DocumentaryGraphics} from '../doc/DocumentaryGraphics.tsx';
 import React, {useMemo} from 'react';
 import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
@@ -231,12 +233,23 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
   const reveal=inT==='wipe'?Math.min(1,t/.6):inT==='iris'?Math.min(1,t/.7):1;
   const conceal=outT==='wipe'||outT==='iris'?Math.max(0,1-(scene.durSec-t)/.6):0;
 
+  const activeLine=scene.lines.find(l=>t>=l.sceneStart&&t<l.sceneEnd)||scene.lines[0];
+  const activeClaim=plan.production?.knowledge?.claims.find(c=>activeLine?.claimIds?.includes(c.id));
+  const activeSubject=scene.doc?.subjects?.find(c=>activeLine?.claimIds?.includes(c.id))||(activeClaim?{name:activeClaim.person||'Исторический эпизод',years:activeClaim.date.value,status:activeClaim.status,sources:activeClaim.sources.join(', ')}:scene.doc?.subjects?.[0]);
   const sorted = [...chars];
+  const docBox=scene.doc?documentaryLayout(plan.width,plan.height).actors:null;
+  const focusChar=sorted.find(c=>c.def.namedPerson===activeSubject?.name||c.def.name[lang]===activeSubject?.name)||sorted.find(c=>c.a.char===scene.shots[cam.shot]?.focus?.char)||sorted[0];
+  const sk=focusChar?.sk;
+  const fit=docBox&&sk?fitActor(docBox,{left:sk.hip.x-140,right:sk.hip.x+140,top:sk.head.y-70,bottom:sk.lowest+12}):null;
+  const shotType=scene.shots[cam.shot]?.type;
+  const portraitZoom=shotType==='close'?1.75:shotType==='medium'?1.25:1;
+  const docTransform=fit&&docBox&&sk?`translate(${docBox.w/2},${docBox.h/2}) scale(${fit.scale*portraitZoom*(1+.02*Math.sin(t*.4))}) translate(${-sk.hip.x},${-(shotType==='close'?sk.head.y+30:shotType==='medium'?sk.neck.y+90:(sk.head.y+sk.lowest)/2)})`:null;
   return (
     <AbsoluteFill style={{background: '#000', overflow: 'hidden'}}>
+      <LocalFonts/>
       <AbsoluteFill>
-        <svg width="100%" height="100%" viewBox={`0 0 ${view.w} ${view.h}`} style={{position: 'absolute', left: 0, top: 0}}>
-          <g transform={`translate(${view.cx},${view.cy}) rotate(${cam.rot}) scale(${cam.zoom}) translate(${-cam.cx},${-cam.cy})`}>
+        <svg width="100%" height="100%" viewBox={docBox?`0 0 ${docBox.w} ${docBox.h}`:`0 0 ${view.w} ${view.h}`} style={{position:'absolute',left:docBox?.x??0,top:docBox?.y??0,width:docBox?.w??'100%',height:docBox?.h??'100%',overflow:'hidden'}}>
+          <g transform={docTransform||`translate(${view.cx},${view.cy}) rotate(${cam.rot}) scale(${cam.zoom}) translate(${-cam.cx},${-cam.cy})`}>
             {layers.map((l) => (
               <g key={l.key} transform={`translate(${(cam.cx - 960) * (1 - l.depth)},${(cam.cy - 540) * (1 - l.depth) * 0.5})`}>{l.node}</g>
             ))}
@@ -272,12 +285,12 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
         <Vignette />
         <Grain frame={frame} />
       </AbsoluteFill>
-      {scene.doc && <DocumentaryGraphics doc={scene.doc} />}
+      {scene.doc && <DocumentaryGraphics doc={{...scene.doc,...activeSubject}} />}
       {isTitle && <TitleCard title={plan.title[lang]} sub={scene.overlay?.text[lang]} kicker={lang === 'ru' ? 'А ЧТО ЕСЛИ' : 'WHAT IF'} t={t} dur={scene.durSec} />}
       {!isTitle && scene.counter && <Counter c={scene.counter} t={t} dur={scene.durSec} lang={lang} />}
       {!isTitle && scene.overlay?.type === 'question' && <Question text={scene.overlay.text[lang]} t={t} t0={scene.overlay.t} dur={scene.durSec} />}
       {subtitles && !isTitle && <Subtitles scene={scene} t={t} lang={lang} fps={fps} />}
-      <Letterbox bar={plan.width/plan.height>1.5?WORLD.bar*plan.height/WORLD.h:0} />
+      <Letterbox bar={!scene.doc&&plan.width/plan.height>1.5?WORLD.bar*plan.height/WORLD.h:0} />
       {(inT==='wipe'||outT==='wipe') && <AbsoluteFill style={{background:'#000',clipPath:`inset(0 0 0 ${(1-Math.max(1-reveal,conceal))*100}%)`,opacity:Math.max(1-reveal,conceal)>0?1:0,pointerEvents:'none'}}/>}
       {(inT==='iris'||outT==='iris') && <AbsoluteFill style={{background:`radial-gradient(circle, transparent ${Math.max(0,Math.min(reveal,1-conceal))*100}%, #000 101%)`,opacity:reveal<1||conceal>0?1:0,pointerEvents:'none'}}/>}
       <AbsoluteFill style={{background: '#000', opacity: black, pointerEvents: 'none'}} />

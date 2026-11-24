@@ -1,0 +1,805 @@
+{
+  "rendered": false,
+  "base": "42a25b7",
+  "qa": {
+    "errors": [],
+    "warnings": [
+      "Knowledge needs manual factual/bibliographic review; supported does not mean independently verified",
+      "Estimated timing only: Piper/audio/render not verified"
+    ]
+  },
+  "layouts": {
+    "1920x1080": {
+      "header": {
+        "x": 76.8,
+        "y": 32.4,
+        "w": 1766.4,
+        "h": 86.4
+      },
+      "graphics": {
+        "x": 76.8,
+        "y": 140.4,
+        "w": 1152,
+        "h": 648
+      },
+      "actors": {
+        "x": 1305.6000000000001,
+        "y": 140.4,
+        "w": 537.6,
+        "h": 648
+      },
+      "footer": {
+        "x": 76.8,
+        "y": 820.8,
+        "w": 1766.4,
+        "h": 86.4
+      },
+      "subtitles": {
+        "x": 76.8,
+        "y": 928.8,
+        "w": 1766.4,
+        "h": 118.8
+      },
+      "font": 30
+    },
+    "1080x1920": {
+      "header": {
+        "x": 43.2,
+        "y": 57.599999999999994,
+        "w": 993.6,
+        "h": 153.6
+      },
+      "graphics": {
+        "x": 43.2,
+        "y": 249.60000000000002,
+        "w": 993.6,
+        "h": 668.16
+      },
+      "actors": {
+        "x": 43.2,
+        "y": 939.36,
+        "w": 993.6,
+        "h": 462.23999999999995
+      },
+      "footer": {
+        "x": 43.2,
+        "y": 1459.2,
+        "w": 993.6,
+        "h": 153.6
+      },
+      "subtitles": {
+        "x": 43.2,
+        "y": 1651.2,
+        "w": 993.6,
+        "h": 211.2
+      },
+      "font": 30
+    },
+    "1080x1080": {
+      "header": {
+        "x": 43.2,
+        "y": 32.4,
+        "w": 993.6,
+        "h": 86.4
+      },
+      "graphics": {
+        "x": 43.2,
+        "y": 140.4,
+        "w": 993.6,
+        "h": 375.84
+      },
+      "actors": {
+        "x": 43.2,
+        "y": 537.84,
+        "w": 993.6,
+        "h": 250.55999999999997
+      },
+      "footer": {
+        "x": 43.2,
+        "y": 820.8,
+        "w": 993.6,
+        "h": 86.4
+      },
+      "subtitles": {
+        "x": 43.2,
+        "y": 928.8,
+        "w": 993.6,
+        "h": 118.8
+      },
+      "font": 30
+    }
+  },
+  "frames": 2880,
+  "estimate": {
+    "frames": 2880,
+    "draftSeconds": 1008,
+    "finalSeconds": 4032,
+    "draftSecondsPerFrame": 0.35,
+    "finalSecondsPerFrame": 1.4,
+    "draftBasis": "user Windows selfcheck observation: ~0.35s/frame at 960x540; not sandbox measurement",
+    "finalBasis": "UNMEASURED extrapolation x4 pixel area from draft, not a benchmark",
+    "caveat": "historical local samples may predate source/resolution/hardware changes; remeasure after reviewing frames",
+    "excludes": "TTS, asset/bundle warmup, mixing/mux/QA; cache and scene complexity change time"
+  },
+  "scenes": [
+    {
+      "id": "s01",
+      "era": [
+        862,
+        882
+      ],
+      "footer": [
+        {
+          "id": "rurik",
+          "name": "Рюрик",
+          "years": "862",
+          "status": "disputed",
+          "sources": "pvl"
+        },
+        {
+          "id": "oleg",
+          "name": "Олег",
+          "years": "882",
+          "status": "disputed",
+          "sources": "pvl"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian1",
+          "name": "Рюрик",
+          "anonymous": false,
+          "costume": "cloak"
+        },
+        {
+          "id": "historian2",
+          "name": "Олег",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian19",
+          "name": "Дружинник",
+          "anonymous": true,
+          "costume": "chainmail"
+        }
+      ],
+      "shots": [
+        "wide",
+        "close",
+        "wide"
+      ],
+      "actions": [
+        "point",
+        "think",
+        "think"
+      ]
+    },
+    {
+      "id": "s02",
+      "era": [
+        911,
+        945
+      ],
+      "footer": [
+        {
+          "id": "treaty",
+          "name": "Олег",
+          "years": "911",
+          "status": "supported",
+          "sources": "pvl"
+        },
+        {
+          "id": "igor",
+          "name": "Игорь",
+          "years": "945",
+          "status": "supported",
+          "sources": "pvl"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian2",
+          "name": "Олег",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian3",
+          "name": "Игорь",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian20",
+          "name": "Летописец",
+          "anonymous": true,
+          "costume": "tunic"
+        }
+      ],
+      "shots": [
+        "medium",
+        "close",
+        "medium"
+      ],
+      "actions": [
+        "type",
+        "think",
+        "think"
+      ]
+    },
+    {
+      "id": "s03",
+      "era": [
+        900,
+        999
+      ],
+      "footer": [
+        {
+          "id": "olga",
+          "name": "Ольга",
+          "years": "X век",
+          "status": "supported",
+          "sources": "pvl"
+        },
+        {
+          "id": "olga-baptism",
+          "name": "Ольга",
+          "years": "X век",
+          "status": "disputed",
+          "sources": "franklin"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian4",
+          "name": "Ольга",
+          "anonymous": false,
+          "costume": "chainmail"
+        },
+        {
+          "id": "historian21",
+          "name": "Горожанин",
+          "anonymous": true,
+          "costume": "cloak"
+        }
+      ],
+      "shots": [
+        "close",
+        "medium",
+        "close"
+      ],
+      "actions": [
+        "wave",
+        "think"
+      ]
+    },
+    {
+      "id": "s04",
+      "era": [
+        965,
+        972
+      ],
+      "footer": [
+        {
+          "id": "sviatoslav",
+          "name": "Святослав",
+          "years": "965",
+          "status": "supported",
+          "sources": "pvl"
+        },
+        {
+          "id": "sviatoslav-end",
+          "name": "Святослав",
+          "years": "972",
+          "status": "supported",
+          "sources": "pvl"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian5",
+          "name": "Святослав",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian19",
+          "name": "Дружинник",
+          "anonymous": true,
+          "costume": "chainmail"
+        }
+      ],
+      "shots": [
+        "wide",
+        "close",
+        "wide"
+      ],
+      "actions": [
+        "point",
+        "think"
+      ]
+    },
+    {
+      "id": "s05",
+      "era": [
+        980,
+        1099
+      ],
+      "footer": [
+        {
+          "id": "vladimir",
+          "name": "Владимир",
+          "years": "988",
+          "status": "disputed",
+          "sources": "franklin"
+        },
+        {
+          "id": "christianity",
+          "name": "Владимир",
+          "years": "конец X–XI век",
+          "status": "supported",
+          "sources": "franklin"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian6",
+          "name": "Владимир",
+          "anonymous": false,
+          "costume": "cloak"
+        },
+        {
+          "id": "historian20",
+          "name": "Летописец",
+          "anonymous": true,
+          "costume": "tunic"
+        }
+      ],
+      "shots": [
+        "medium",
+        "close",
+        "medium"
+      ],
+      "actions": [
+        "type",
+        "think"
+      ]
+    },
+    {
+      "id": "s06",
+      "era": [
+        1019,
+        1054
+      ],
+      "footer": [
+        {
+          "id": "yaroslav",
+          "name": "Ярослав",
+          "years": "1019–1054",
+          "status": "supported",
+          "sources": "franklin"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian7",
+          "name": "Ярослав",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian21",
+          "name": "Горожанин",
+          "anonymous": true,
+          "costume": "cloak"
+        }
+      ],
+      "shots": [
+        "close",
+        "medium",
+        "close"
+      ],
+      "actions": [
+        "wave",
+        "think"
+      ]
+    },
+    {
+      "id": "s07",
+      "era": [
+        1097,
+        1125
+      ],
+      "footer": [
+        {
+          "id": "lyubech",
+          "name": "Князья в Любече",
+          "years": "1097",
+          "status": "supported",
+          "sources": "pvl"
+        },
+        {
+          "id": "monomakh",
+          "name": "Владимир Мономах",
+          "years": "1113–1125",
+          "status": "supported",
+          "sources": "martin"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian8",
+          "name": "Князья в Любече",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian9",
+          "name": "Владимир Мономах",
+          "anonymous": false,
+          "costume": "chainmail"
+        },
+        {
+          "id": "historian19",
+          "name": "Дружинник",
+          "anonymous": true,
+          "costume": "chainmail"
+        }
+      ],
+      "shots": [
+        "wide",
+        "close",
+        "wide"
+      ],
+      "actions": [
+        "point",
+        "think",
+        "think"
+      ]
+    },
+    {
+      "id": "s08",
+      "era": [
+        1100,
+        1199
+      ],
+      "footer": [
+        {
+          "id": "fragmentation",
+          "name": "Князья Руси",
+          "years": "XII век",
+          "status": "supported",
+          "sources": "martin"
+        },
+        {
+          "id": "yuri",
+          "name": "Юрий Долгорукий",
+          "years": "1147",
+          "status": "supported",
+          "sources": "hypatian"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian10",
+          "name": "Князья Руси",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian11",
+          "name": "Юрий Долгорукий",
+          "anonymous": false,
+          "costume": "cloak"
+        },
+        {
+          "id": "historian20",
+          "name": "Летописец",
+          "anonymous": true,
+          "costume": "tunic"
+        }
+      ],
+      "shots": [
+        "medium",
+        "close",
+        "medium"
+      ],
+      "actions": [
+        "type",
+        "think",
+        "think"
+      ]
+    },
+    {
+      "id": "s09",
+      "era": [
+        1237,
+        1242
+      ],
+      "footer": [
+        {
+          "id": "mongols",
+          "name": "Бату",
+          "years": "1237–1240",
+          "status": "supported",
+          "sources": "martin"
+        },
+        {
+          "id": "nevsky",
+          "name": "Александр Невский",
+          "years": "1242",
+          "status": "supported",
+          "sources": "novgorod"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian12",
+          "name": "Бату",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian13",
+          "name": "Александр Невский",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian21",
+          "name": "Горожанин",
+          "anonymous": true,
+          "costume": "cloak"
+        }
+      ],
+      "shots": [
+        "close",
+        "medium",
+        "close"
+      ],
+      "actions": [
+        "wave",
+        "think",
+        "think"
+      ]
+    },
+    {
+      "id": "s10",
+      "era": [
+        1200,
+        1299
+      ],
+      "footer": [
+        {
+          "id": "nevsky-horde",
+          "name": "Александр Невский",
+          "years": "XIII век",
+          "status": "supported",
+          "sources": "martin"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian13",
+          "name": "Александр Невский",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian19",
+          "name": "Дружинник",
+          "anonymous": true,
+          "costume": "chainmail"
+        }
+      ],
+      "shots": [
+        "wide",
+        "close",
+        "wide"
+      ],
+      "actions": [
+        "point",
+        "think"
+      ]
+    },
+    {
+      "id": "s11",
+      "era": [
+        1300,
+        1478
+      ],
+      "footer": [
+        {
+          "id": "kalita",
+          "name": "Иван Калита",
+          "years": "XIV век",
+          "status": "supported",
+          "sources": "martin"
+        },
+        {
+          "id": "ivan3",
+          "name": "Иван III",
+          "years": "1478",
+          "status": "supported",
+          "sources": "martin"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian14",
+          "name": "Иван Калита",
+          "anonymous": false,
+          "costume": "chainmail"
+        },
+        {
+          "id": "historian15",
+          "name": "Иван III",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian20",
+          "name": "Летописец",
+          "anonymous": true,
+          "costume": "tunic"
+        }
+      ],
+      "shots": [
+        "medium",
+        "close",
+        "medium"
+      ],
+      "actions": [
+        "type",
+        "think",
+        "think"
+      ]
+    },
+    {
+      "id": "s12",
+      "era": [
+        1480,
+        1480
+      ],
+      "footer": [
+        {
+          "id": "ugra",
+          "name": "Иван III",
+          "years": "1480",
+          "status": "supported",
+          "sources": "martin"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian15",
+          "name": "Иван III",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian21",
+          "name": "Горожанин",
+          "anonymous": true,
+          "costume": "cloak"
+        }
+      ],
+      "shots": [
+        "close",
+        "medium",
+        "close"
+      ],
+      "actions": [
+        "wave",
+        "think"
+      ]
+    },
+    {
+      "id": "s13",
+      "era": [
+        1460,
+        1598
+      ],
+      "footer": [
+        {
+          "id": "moscow-line",
+          "name": "Василий III",
+          "years": "XV–XVI века",
+          "status": "supported",
+          "sources": "martin, dunning"
+        },
+        {
+          "id": "ivan4",
+          "name": "Иван IV",
+          "years": "1547",
+          "status": "supported",
+          "sources": "skrynnikov"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian16",
+          "name": "Василий III",
+          "anonymous": false,
+          "costume": "cloak"
+        },
+        {
+          "id": "historian17",
+          "name": "Иван IV",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian19",
+          "name": "Дружинник",
+          "anonymous": true,
+          "costume": "chainmail"
+        }
+      ],
+      "shots": [
+        "wide",
+        "close",
+        "wide"
+      ],
+      "actions": [
+        "point",
+        "think",
+        "think"
+      ]
+    },
+    {
+      "id": "s14",
+      "era": [
+        1565,
+        1598
+      ],
+      "footer": [
+        {
+          "id": "oprichnina",
+          "name": "Иван IV",
+          "years": "1565–1572",
+          "status": "supported",
+          "sources": "skrynnikov"
+        },
+        {
+          "id": "end",
+          "name": "Фёдор Иванович",
+          "years": "1598",
+          "status": "supported",
+          "sources": "dunning"
+        }
+      ],
+      "actors": [
+        {
+          "id": "historian17",
+          "name": "Иван IV",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian18",
+          "name": "Фёдор Иванович",
+          "anonymous": false,
+          "costume": "tunic"
+        },
+        {
+          "id": "historian20",
+          "name": "Летописец",
+          "anonymous": true,
+          "costume": "tunic"
+        }
+      ],
+      "shots": [
+        "medium",
+        "close",
+        "medium"
+      ],
+      "actions": [
+        "type",
+        "think",
+        "think"
+      ]
+    }
+  ]
+}

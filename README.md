@@ -154,3 +154,12 @@ sampled RSS разделены. Без успешных замеров оцен�
 `handoff/final/evidence/COMMANDS.md` — таблица запуска из чистого checkout итогового
 HEAD; `handoff/final/APPLY.md` — Windows и применение; `PR_DESCRIPTION.md` — описание
 для PR. Наличие структурной QA/тестов не означает проверку реального фильма.
+
+## Windows quality fixes 1
+
+After real Windows selfcheck: shared documentary safe-zones/claim footer/epoch-safe
+cast, richer schematic graphics/local OFL Cyrillic font, distinct silhouettes and
+medium/close coverage. `frames <id> --per-scene 3` produces real PNG stills + contact
+sheet through your Chrome; `models fetch whisper-tiny` requires explicit download
+permission. `all` logs measured/historical draft/final timing estimates. **No new
+visual results claimed in the sandbox**. Commands/licensing/limits: [FIXES_1](docs/FIXES_1.md).

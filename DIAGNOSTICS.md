@@ -55,3 +55,7 @@ preliminary-evidence сохранён; в финальном прогоне npm 
   не сравнивались. Не включать по умолчанию и не заявлять ускорение.
 - Независимая проверка источников/семантической истинности, все legacy documentary
   ручные изменения, удалённый GitHub CI/PR (push не выполнялся).
+
+Fixes1 follow-up: shared bbox/layout/font/claim/epoch/camera/data tests are run
+separately in handoff/fixes-1/evidence/. This does not change the unverified visual
+status above. Actual Windows Chrome/Piper working is user-reported; do not reinstall.

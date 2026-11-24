@@ -1,0 +1,11 @@
+{
+  "frames": 2886,
+  "draftSeconds": 1010,
+  "finalSeconds": 4040,
+  "draftSecondsPerFrame": 0.35,
+  "finalSecondsPerFrame": 1.4,
+  "draftBasis": "user Windows selfcheck observation: ~0.35s/frame at 960x540; not sandbox measurement",
+  "finalBasis": "UNMEASURED extrapolation x4 pixel area from draft, not a benchmark",
+  "caveat": "historical local samples may predate source/resolution/hardware changes; remeasure after reviewing frames",
+  "excludes": "TTS, asset/bundle warmup, mixing/mux/QA; cache and scene complexity change time"
+}

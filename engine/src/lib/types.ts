@@ -23,6 +23,9 @@ export type LookSpec =
   | {prop: string};
 
 export interface CharacterDef {
+  namedPerson?:string;
+  anonymous?:boolean;
+  beard?:boolean;
   age?: 'child'|'adult'|'elder';
   hairStyle?: 'braid'|'curly'|'bald'|'long';
   headwear?: 'fur'|'conical'|'veil'|'hood';
@@ -109,6 +112,7 @@ export interface Shot {
 }
 
 export interface Line {
+  claimIds?:string[];
   speech?: import('./lipsync.ts').SpeechData;
   id: string;
   voice: string; // voice id (narrator or character voice)
@@ -220,6 +224,7 @@ export interface ResolvedScene extends Omit<SceneSpec, 'beats' | 'shots' | 'line
 }
 
 export interface Plan {
+  production?:{knowledge?:{claims:{id:string;person?:string;date:{value:string};status:string;sources:string[]}[]}};
   version: number;
   id: string;
   language: Lang;

@@ -13,3 +13,5 @@
 *.zip binary
 *.safetensors binary
 *.gguf binary
+
+*.ttf binary
