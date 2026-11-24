@@ -1,6 +1,8 @@
+import {STUDIO_STYLE,STUDIO_SCRIPT} from './studio-page.mjs';
+import {prepareMaterials} from './research-materials.mjs';
 import {EDITOR_MARKUP,EDITOR_SCRIPT} from './editor-page.mjs';
 import {catalog,previewProject,editorProject,editScene,travelHistory,documentaryWizard,frameSVG,estimate} from './editor.mjs';
-import {findPack} from './knowledge.mjs';
+import {findPack,validatePack} from './knowledge.mjs';
 // Local web UI for Koveyer Dhoix'a — zero dependencies (node:http only).
 //
 // Serves a single page where the user enters the topic, duration, language,
@@ -40,19 +42,19 @@ function listProjects() {
     const pj = path.join(PROJECTS, d, 'project.json');
     if (!fs.existsSync(pj)) continue;
     let p = {};
-    try { p = readJson(pj, {}); } catch { continue; }
-    let contextWarning=null;
+    try { p = readJson(pj, {});if(!p||typeof p!=='object'||Array.isArray(p))throw new Error('ожидается объект проекта'); } catch(e) {p={__uiError:'Повреждён project.json: '+e.message,title:{ru:'Повреждённый проект · '+d}};}
+    let contextWarning=p.__uiError||null;
     if(p.production?.kind==='season' && !jobs.get(d)?.running) {
       let unlock;try{unlock=lockProject(d);p=refreshSeasonContexts(d);}catch(e){contextWarning=e.message;}finally{unlock?.();}
     }
     if(p.production?.seriesId) {
-      const parent=readJson(path.join(projectDir(p.production.seriesId),'project.json'),null);
+      let parent;try{parent=readJson(path.join(projectDir(p.production.seriesId),'project.json'),null);}catch(e){contextWarning='Повреждён контекст сезона: '+e.message;}
       const entry=parent?.production?.episodes?.find(e=>e.id===d);
       if(entry?.stale)contextWarning=entry.staleReason;
     }
     if(p.production?.seriesId && fs.existsSync(path.join(projectDir(p.production.seriesId),'season-transaction.json')))continue;
     const statePath = path.join(PROJECTS, d, 'state.json');
-    const state = readJson(statePath, {stages: {}});
+    let state;try{state=readJson(statePath,{stages:{}})||{stages:{}};}catch(e){state={stages:{}};contextWarning='Повреждён state.json: восстановите из истории; '+e.message;}
     const job = jobs.get(d);
     let mtime = 0;
     try { mtime = fs.statSync(pj).mtimeMs; } catch {}
@@ -65,6 +67,7 @@ function listProjects() {
       production:p.production ? {kind:p.production.kind,seriesId:p.production.seriesId,episodes:p.production.episodes,format:p.production.brief?.format} : null,
       topic: p.idea?.topic,
       stages: state.stages || {},
+      elapsedSeconds:jobs.get(d)?.running?Math.floor((Date.now()-jobs.get(d).started)/1000):null,
       final: fs.existsSync(path.join(OUTPUT, d, 'FINAL.mp4')),
       draft: fs.existsSync(path.join(OUTPUT, d, 'DRAFT.mp4')),
       job: job ? {stage: job.stage, running: job.running, code: job.code, started: job.started} : null,
@@ -145,6 +148,7 @@ function createProject(body) {
   const id = String(body.id || '').trim();
   if (!safeId(id)) throw new HttpError(400, 'некорректный id проекта: разрешены буквы, цифры, «-» и «_», до 40 символов');
   if (jobs.get(id)?.running) throw new HttpError(409, 'Нельзя перезаписать выполняющийся проект');
+  if(body.aspect&&!['16:9','9:16','1:1'].includes(body.aspect))throw new HttpError(400,'Неизвестное соотношение сторон');
   const narrator = String(body.narrator || '');
   if (narrator && !MODEL_RE.test(narrator)) throw new HttpError(400, 'некорректная модель голоса');
   const topic = String(body.topic ?? '').trim();
@@ -173,8 +177,10 @@ function createProject(body) {
   let scratch;
   if (body.format) {
     const materials=body.materials || {};
+    if(body.format==='documentary'&&materials.schemaVersion===1){try{validatePack(materials);}catch(e){throw new HttpError(400,e.message);}}
+    const canonical=body.format==='documentary'&&materials.schemaVersion===1;
     try { normalizeBrief({name:body.name,topic,format:body.format,genre:body.genre,narrative:body.narrative,episodes:body.episodes,
-      language:lang,duration,characters,sources:materials.sources,claims:materials.claims}); } catch(e) { throw new HttpError(400,e.message); }
+      language:lang,duration,characters,sources:canonical?[]:materials.sources,claims:canonical?[]:materials.claims}); } catch(e) { throw new HttpError(400,e.message); }
     if(narrator) args.push('--voice-model',narrator);
     args.push('--format',body.format,'--name',body.name || topic,'--genre',body.genre || 'drama','--narrative',body.narrative || 'chronological','--episodes',String(body.episodes || 3));
     scratch=fs.mkdtempSync(path.join(os.tmpdir(),'koveyer-materials-'));
@@ -195,6 +201,7 @@ function createProject(body) {
     p.settings.voiceModels = {...(p.settings.voiceModels || {}), narrator};
     writeJson(pj, p);
   }
+  if(body.aspect){const file=path.join(projectDir(id),'project.json');const p=readJson(file);p.settings.aspect=body.aspect;writeJson(file,p);}
   let summary = null;
   try {
     const p = readJson(path.join(projectDir(id), 'project.json'));
@@ -278,7 +285,7 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
 .bar i{display:block;height:100%;background:linear-gradient(90deg,#1f6feb,#58a6ff);width:30%;animation:slide 1.1s infinite}
 @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
 .muted{color:var(--dim);font-size:12px}
-</style></head><body>
+</style>${STUDIO_STYLE}</head><body>
 <header><h1>&#127916; Koveyer Dhoix'a</h1><span class="sub">идея &rarr; сценарий &rarr; голос &rarr; сцены &rarr; звук &rarr; MP4</span></header>
 <main>
 <section>
@@ -296,6 +303,7 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <textarea id="topic" maxlength="4000" placeholder="Тема, конфликт, события и желаемое завершение"></textarea>
   <label for="continueFrom">Продолжение проекта (id, необязательно)</label><input id="continueFrom" maxlength="40" placeholder="Например: terra-e01">
   <h3>2. Производство</h3>
+  <label for="aspect">Соотношение сторон</label><select id="aspect"><option value="16:9">16:9 · горизонтальное</option><option value="9:16">9:16 · вертикальное</option><option value="1:1">1:1 · квадрат</option></select>
   <div class="row"><div><label for="episodes">Эпизодов (только сериал)</label><input id="episodes" type="number" min="1" max="12" value="3"></div><div><label for="narrative">Повествование</label><select id="narrative"><option value="chronological">Хронология</option><option value="investigation">Исследование</option><option value="character">От лица героев</option></select></div></div>
   <div class="row">
     <div><label for="duration">Длительность, сек</label><input id="duration" type="number" min="25" max="180" value="90"></div>
@@ -340,7 +348,7 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <video id="player" controls preload="none" style="width:100%;max-height:440px;margin-top:12px" hidden></video>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="stageBtns"></div>
   <label style="display:flex;gap:6px;align-items:center;color:var(--dim);font-size:12px;margin:0 0 8px">
-    <input type="checkbox" id="draft" style="width:auto"> draft (быстрый черновик, half-res)
+    <input type="checkbox" id="draft" style="width:auto"> Быстрый черновик · половинное разрешение
   </label>
   <div id="downloads"></div>
   <h2 style="margin-top:14px">Журнал</h2>
@@ -351,7 +359,7 @@ ${EDITOR_MARKUP}
 <script>
 var UI_LANG='ru';
 var STAGES = ['voice','timeline','scenes','sound','render','final','qa'];
-var LABELS = {voice:'голос',timeline:'таймлайн',scenes:'сцены',sound:'звук',render:'рендер',final:'mux',qa:'QA'};
+var LABELS = {voice:'голос',timeline:'таймлайн',scenes:'сцены',sound:'звук',render:'рендер',final:'сборка MP4',qa:'контроль качества'};
 var current = null, pollTimer = null, logTimer = null;
 var projectsCache = [];
 function el(id){ return document.getElementById(id); }
@@ -385,7 +393,7 @@ function fillNarrator(){
   var lang = el('lang').value;
   var opts = lang === 'ru'
     ? [['','по умолчанию (denis)'],['ru_RU-dmitri-medium','dmitri'],['ru_RU-ruslan-medium','ruslan'],['ru_RU-irina-medium','irina (женский)']]
-    : [['','по умолчанию (ryan)'],['en_US-amy-medium','amy (female)']];
+    : [['','по умолчанию (ryan)'],['en_US-amy-medium','amy (женский)']];
   var h = '';
   for (var i = 0; i < opts.length; i++) h += '<option value="' + opts[i][0] + '">' + opts[i][1] + '</option>';
   el('narrator').innerHTML = h;
@@ -444,7 +452,7 @@ async function create(){
     var body = {
       continueFrom:el('continueFrom').value,name:el('projectName').value,format:el('format').value,genre:el('genre').value,narrative:el('narrative').value,episodes:el('episodes').value,
       materials:JSON.parse(el('materials').value || '{}'),
-      topic: el('topic').value, duration: el('duration').value, lang: el('lang').value,
+      aspect:el('aspect').value, topic: el('topic').value, duration: el('duration').value, lang: el('lang').value,
       characters: el('characters').value, style: el('style').value, music: el('music').value,
       template: el('template').value, voiceMode: el('voiceMode').value, narrator: el('narrator').value,
       force: el('force').checked
@@ -511,7 +519,7 @@ function renderStage(){
 }
 async function checkReady(){
   msg('Проверка компонентов…');
-  try { var result = await api('/api/check', {method:'POST'});
+  try { var result = await api('/api/check', {method:'POST',headers:{'content-type':'application/json'},body:'{}'});
     el('log').textContent = result.report;
     msg(result.ready ? 'Компоненты готовы' : 'Есть проблемы: см. журнал проверки', result.ready ? 'ok' : 'err');
   } catch(e){ msg(e.message, 'err'); }
@@ -562,6 +570,7 @@ async function boot(){
 boot();
 </script>
 ${EDITOR_SCRIPT}
+${STUDIO_SCRIPT}
 </body></html>`;
 
 export function startUI({port = 7788, host = '127.0.0.1', token = process.env.KOVEYER_GUI_TOKEN, allowedHosts = []} = {}) {
@@ -581,6 +590,7 @@ export function startUI({port = 7788, host = '127.0.0.1', token = process.env.KO
         if(req.method==='GET' && p==='/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end(LOGIN_PAGE);}
         return json(res,401,{error:'GUI authentication required'});
       }
+      if(req.method==='POST'&&p==='/api/materials/prepare'){const body=await readBody(req);try{return json(res,200,prepareMaterials(body));}catch(e){throw new HttpError(400,e.message);}}
       if(p.startsWith('/api/editor')) {
         if(req.method==='GET' && p==='/api/editor/catalog')return json(res,200,catalog());
         if(req.method==='GET' && p==='/api/editor/knowledge') {
@@ -633,7 +643,7 @@ export function startUI({port = 7788, host = '127.0.0.1', token = process.env.KO
         return res.end(PAGE);
       }
       if (req.method === 'POST' && p === '/api/check') {
-        const check = spawnSync(process.execPath, [path.join(ENGINE,'render.mjs'), 'doctor'], {cwd:ENGINE, encoding:'utf8', timeout:30000});
+        const check = await new Promise(resolve=>{const child=spawn(process.execPath,[path.join(ENGINE,'render.mjs'),'doctor'],{cwd:ENGINE,windowsHide:true});let stdout='',stderr='';const timer=setTimeout(()=>child.kill(),30000);child.stdout.on('data',b=>{stdout=(stdout+b).slice(-100000);});child.stderr.on('data',b=>{stderr=(stderr+b).slice(-100000);});child.on('error',error=>{clearTimeout(timer);resolve({status:null,error});});child.on('close',status=>{clearTimeout(timer);resolve({status,stdout,stderr});});});
         return json(res, 200, {ready:check.status === 0, report:(check.stdout || '') + (check.stderr || '') + (check.error?.message || '')});
       }
       if (req.method === 'POST' && p === '/api/open') {

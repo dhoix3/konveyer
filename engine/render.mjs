@@ -115,10 +115,12 @@ async function cmdNew(id) {
   if(args.format==='series' && fs.existsSync(path.join(dir,'season-transaction.json'))) {const recovered=recoverSeason(id);log.info('Season recovered');return recovered;}
   const existed = fs.existsSync(path.join(dir, 'project.json'));
   if (existed && !args.force) throw new Error(`project ${id} exists (use --force to overwrite)`);
+  const suppliedMaterials=args.materials?readJson(path.resolve(String(args.materials))):null;
+  const documentaryMaterials=args.format==='documentary'&&suppliedMaterials?.schemaVersion===1;
   const options = {id, language: args.lang, duration: args.duration, topic: args.topic, theme: args.theme, characters: args.characters, voiceMode: args.voice, music: args.music, style: args.style, template: args.template === 'auto' ? undefined : args.template,
     voiceModel:args['voice-model'],format:args.format, name:args.name,genre:args.genre,narrative:args.narrative,episodes:args.episodes,season:args.season,
-    sources:args.materials ? readJson(path.resolve(String(args.materials))).sources : undefined,
-    claims:args.materials ? readJson(path.resolve(String(args.materials))).claims : undefined};
+    sources:documentaryMaterials?[]:suppliedMaterials?.sources,
+    claims:documentaryMaterials?[]:suppliedMaterials?.claims};
   if(args['continue-from']) {
     if(!args.format || args.format==='series') throw new Error('Продолжение требует отдельного производственного фильма');
     const previous=loadProject(String(args['continue-from']));
@@ -131,7 +133,9 @@ async function cmdNew(id) {
   if (args.format === 'series' && existed) throw new Error('Существующий сезон не перезаписывается: используйте episode для одной серии');
   let project = args.format === 'series' ? createSeason(options) : buildProject(options);
   if(args.provider==='llm-local'){const result=await generateLocal(project,{endpoint:args['llm-endpoint'],model:args['llm-model'],api:args['llm-api']||'ollama',materials:args.materials?readJson(path.resolve(String(args.materials))):undefined,onAttempt:r=>log.info(JSON.stringify(r))});project=result.project;project.generation={provider:'llm-local',attempts:result.attempts,needsReview:true};}
+  if(documentaryMaterials)project=buildDocumentary(project,suppliedMaterials);
   writeJson(path.join(dir, 'project.json'), project);
+  if(documentaryMaterials)writeDocumentaryArtifacts(id,project);
   writeJson(path.join(dir, 'idea.json'), project.idea);
   if (existed && args.force) {
     // A forced rebuild starts a new film: drop stale stage/scene state so the
@@ -236,11 +240,12 @@ async function cmdScenes(id) {
     });
     if(profiler)profiler.data.scenes.push({scene:sc.id,frames:sc.durFrames,ms:Date.now()-t0,slowestFrames:mediaResult.slowestFrames,frameTimingBasis:'Remotion slowestFrames capture timings; not all frames'});
     process.stdout.write('\n');
+    const m = probe(part);
+    if(Math.abs(m.duration-sc.durFrames/FPS)>=.1||m.vcodec!=='h264'||m.width!==plan.width*scale||m.height!==plan.height*scale)throw new Error(`${sc.id}: staged render validation failed; previous ready scene preserved: ${part}`);
     fs.renameSync(part, file);
-    const m = probe(file);
     const exp = sc.durFrames / FPS;
     if (Math.abs(m.duration - exp) > 0.1) throw new Error(`${sc.id}: rendered ${m.duration}s, expected ${exp}s`);
-    state.scenes[key] = {hash: h, file: path.relative(ROOT_OUT(), file), sha: fileSha(file), frames: sc.durFrames, seconds: +((Date.now() - t0) / 1000).toFixed(1), at: new Date().toISOString()};
+    state.scenes[key] = {context:{source:sourceHash(),width:plan.width,height:plan.height,cpu:os.cpus()[0]?.model,node:process.versions.node.split('.')[0]},hash: h, file: path.relative(ROOT_OUT(), file), sha: fileSha(file), frames: sc.durFrames, seconds: +((Date.now() - t0) / 1000).toFixed(1), at: new Date().toISOString()};
     saveState(id, state);
     done++;
     log.info(`${sc.id}: done in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
@@ -280,8 +285,11 @@ async function cmdRender(id) {
     const list = path.join(renderDir(id), draft ? 'concat_draft.txt' : 'concat.txt');
     fs.writeFileSync(list, plan.scenes.map((s) => `file '${files[s.id].replace(/'/g, "'\\''")}'`).join('\n'));
     const video = path.join(renderDir(id), draft ? 'video_draft.mp4' : 'video.mp4');
-    ff(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', video]);
-    const m = probe(video);
+    const part=video.replace(/\.mp4$/,'.part.mp4');
+    ff(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', part]);
+    const m = probe(part);
+    if(Math.abs(m.duration-plan.totalSec)>.25||m.vcodec!=='h264')throw new Error('Staged concatenation validation failed; previous video preserved');
+    fs.renameSync(part,video);
     log.info(`concatenated video: ${m.duration.toFixed(2)}s ${m.width}x${m.height} @${m.fps}fps`);
     markStage(id, 'render', 'done', {video});
   } catch (e) {
@@ -304,8 +312,9 @@ async function cmdFinal(id) {
     const out = path.join(renderDir(id), draft ? 'DRAFT.mp4' : 'FINAL.mp4');
     const tmp = out.replace(/\.mp4$/, '.part.mp4');
     ff(['-i', video, '-i', audio, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'libx264', '-crf', draft ? '28' : '21', '-preset', draft ? 'veryfast' : 'medium', '-pix_fmt', 'yuv420p', '-r', '24', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-t', plan.totalSec.toFixed(3), '-movflags', '+faststart', tmp]);
+    const m = probe(tmp);
+    if(!m.hasAudio||m.vcodec!=='h264'||m.acodec!=='aac'||Math.abs(m.duration-plan.totalSec)>.25)throw new Error('Final staged media validation failed; previous MP4 preserved');
     fs.renameSync(tmp, out);
-    const m = probe(out);
     log.info(`${path.basename(out)}: ${m.duration.toFixed(2)}s ${m.width}x${m.height} @${m.fps}fps ${m.vcodec}/${m.acodec} (${(fs.statSync(out).size / 1e6).toFixed(1)} MB)`);
     markStage(id, 'final', 'done', {file: out, seconds: m.duration});
   } catch (e) {
@@ -399,7 +408,8 @@ async function cmdAll(id) {
     await cmdNew(id);
   }
   if (loadProject(id).production?.kind==='season') throw new Error('Выберите эпизод сезона: каждый экспортируется отдельно.');
-  const estimate=renderEstimate(buildPlan(id,{projectOverride:loadProject(id),persist:false,ignoreAudio:true}).totalFrames,loadState(id));
+  const estimatePlan=buildPlan(id,{projectOverride:loadProject(id),persist:false,ignoreAudio:true});
+  const estimate=renderEstimate(estimatePlan.totalFrames,loadState(id),{source:sourceHash(),width:estimatePlan.width,height:estimatePlan.height,cpu:os.cpus()[0]?.model,node:process.versions.node.split('.')[0]});
   log.info('Render estimate (not total pipeline): '+JSON.stringify(estimate));writeJson(path.join(outDir(id),'render-estimate.json'),estimate);
   const stages = [
     ['voice', cmdVoice], ['timeline', cmdTimeline], ['scenes', cmdScenes],

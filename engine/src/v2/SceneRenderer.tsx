@@ -15,7 +15,7 @@ import {emotionAt, blinkAt} from '../char/emotions.ts';
 import {Character, solveChar} from '../char/Character.tsx';
 import type {Skeleton} from '../char/skeleton.ts';
 import {PROPS, PROP_COLORS, PropShape, propTop} from '../char/props.tsx';
-import {compileCamera} from '../cine/camera.ts';
+import {SHOT_ZOOM,compileCamera} from '../cine/camera.ts';
 import {getEnv} from '../bg/envs.tsx';
 import {Rain, Snow, Fog, Dust, Embers, Grain, Vignette, Grade, KeyGlow} from '../fx/Fx.tsx';
 import {Counter, Subtitles, Question, TitleCard, Letterbox} from '../hud/Hud.tsx';
@@ -243,7 +243,9 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
   const fit=docBox&&sk?fitActor(docBox,{left:sk.hip.x-140,right:sk.hip.x+140,top:sk.head.y-70,bottom:sk.lowest+12}):null;
   const shotType=scene.shots[cam.shot]?.type;
   const portraitZoom=shotType==='close'?1.75:shotType==='medium'?1.25:1;
-  const docTransform=fit&&docBox&&sk?`translate(${docBox.w/2},${docBox.h/2}) scale(${fit.scale*portraitZoom*(1+.02*Math.sin(t*.4))}) translate(${-sk.hip.x},${-(shotType==='close'?sk.head.y+30:shotType==='medium'?sk.neck.y+90:(sk.head.y+sk.lowest)/2)})`:null;
+  const shotStart=camFn(scene.shots[cam.shot]?.t??0);
+  const baseZoom=SHOT_ZOOM[shotType||'wide']??1;
+  const docTransform=fit&&docBox&&sk?`translate(${docBox.w/2},${docBox.h/2}) rotate(${cam.rot}) scale(${fit.scale*portraitZoom*cam.zoom/baseZoom}) translate(${-sk.hip.x-(cam.cx-shotStart.cx)},${-(shotType==='close'?sk.head.y+30:shotType==='medium'?sk.neck.y+90:(sk.head.y+sk.lowest)/2)-(cam.cy-shotStart.cy)})`:null;
   return (
     <AbsoluteFill style={{background: '#000', overflow: 'hidden'}}>
       <LocalFonts/>

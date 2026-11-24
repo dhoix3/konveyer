@@ -57,7 +57,7 @@ export async function ensureModel(name, log) {
   const model = path.join(MODELS, `${name}.onnx`);
   const config = path.join(MODELS, `${name}.onnx.json`);
   const good = (f, min) => fs.existsSync(f) && fs.statSync(f).size >= min;
-  if(process.env.WHATIF_OFFLINE==='1'&&(!good(model,100_000)||!good(config,20)))throw new Error('Offline: Piper model/config missing locally; no download attempted');
+  if(process.env.WHATIF_OFFLINE==='1'&&(!good(model,100_000)||!good(config,200)))throw new Error(`Piper: локальная пара отсутствует или неполна. Модель: ${model} (>=100000 байт); конфигурация: ${config} (>=200 байт). WHATIF_OFFLINE=1: сеть не использовалась; переустановка Piper не требуется.`);
   if (!good(model, 100_000)) {
     if (log) log.info(`downloading Piper voice ${name}…`);
     await downloadModel(`${HF}/${lc}/${langRegion}/${voice}/${quality}/${name}.onnx`, model, log);

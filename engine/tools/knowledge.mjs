@@ -1,3 +1,4 @@
+import {validateGraphics} from './project-graphics.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import {ENGINE,projectDir,readJson,writeJson} from './lib.mjs';
@@ -15,7 +16,9 @@ export function validatePack(p) {
     if(c.era!==undefined && (!Array.isArray(c.era)||c.era.length!==2||!c.era.every(Number.isInteger)||c.era[0]>c.era[1]))fail('invalid era');
     if(!Array.isArray(c.sources) || c.sources.some(s=>!sources.has(s)) || (c.status!=='unknown' && !c.sources.length))fail('missing or unknown source');
   }
+  for(const c of p.claims)if(c.quote!==undefined&&(typeof c.quote!=='string'||!c.quote.trim()||!c.sources.some(id=>p.sources.find(s=>s.id===id)?.excerpt?.includes(c.quote))))fail('quote must be an exact excerpt from a referenced source');
   for(const link of p.causalLinks||[])if(!ids.has(link.cause)||!ids.has(link.consequence)||!link.qualification)fail('invalid causal link');
+  validateGraphics(p);
   return p;
 }
 export function findPack(topic) {
@@ -30,5 +33,5 @@ export function research(id,topic) {
   validatePack(pack);writeJson(path.join(dir,'knowledge.json'),pack);return pack;
 }
 export function sourceMarkdown(p) {
-  return `# SOURCES\n\n${p.topic}\n\n${p.verification}\n\nAI-authored knowledge requires manual review. No invented quotations. Visuals: schematic, stylized people, not portrait reconstructions.\n\n`+p.sources.map(s=>`- **${s.id}**: ${s.title}`).join('\n')+'\n\n## Claims\n\n'+p.claims.map(c=>`- **${c.id}** [${c.status}; confidence=${c.confidence}; needsReview=${c.needsReview}] ${c.date.value} (${c.date.precision}), ${c.place}: ${c.text} Sources: ${c.sources.join(', ')}.`).join('\n')+'\n';
+  return `# SOURCES\n\n${p.topic}\n\n${p.verification}\n\nAI-authored knowledge requires manual review. No invented quotations. Visuals: schematic, stylized people, not portrait reconstructions.\n\n`+p.sources.map(s=>`- **${s.id}**: ${s.title}${s.url?' — '+s.url:''}${s.provenance?' ('+s.provenance+')':''}${s.excerpt?'\n\n  Выдержка пользователя: '+s.excerpt.replaceAll('\n','\n  '):''}`).join('\n')+'\n\n## Claims\n\n'+p.claims.map(c=>`- **${c.id}** [${c.status}; confidence=${c.confidence}; needsReview=${c.needsReview}] ${c.date.value} (${c.date.precision}), ${c.place}: ${c.text} Sources: ${c.sources.join(', ')}.`).join('\n')+'\n';
 }

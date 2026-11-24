@@ -1,6 +1,6 @@
 // Word-level Whisper ONNX; local cache only by default. Never fabricate missing timestamps.
 import fs from 'node:fs';
-import {whisperDir} from './models.mjs';
+import {whisperDir,whisperStatus} from './models.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import {ff} from './lib.mjs';
@@ -8,6 +8,7 @@ import {decodeWav} from './speech-analysis.mjs';
 import {checkedWords} from './word-alignment.mjs';
 export async function transcribe(wavFile,{language='ru',model=process.env.WHISPER_MODEL_PATH||process.env.WHISPER_MODEL||(fs.existsSync(path.join(whisperDir(),'config.json'))?whisperDir():'Xenova/whisper-tiny'),localOnly=true}={}) {
   if(!localOnly)throw new Error('Whisper recognition is offline-only; prepare the model cache separately');
+  if(fs.existsSync(model)||process.env.WHISPER_MODEL_PATH===model){const status=whisperStatus(model);if(!status.ready)throw new Error(`Whisper: неполные локальные файлы в ${status.directory}: ${status.missing.join(', ')}. Распознавание не выполнялось; используется честная оценка синхронизации. ${status.action}`);}
   const {pipeline,env}=await import('@huggingface/transformers');
   // Transformers v4 model-registry preflight may omit local_files_only. Enforce
   // the offline boundary globally as well; Piper downloads are a separate API.
