@@ -631,6 +631,35 @@ reg({id: 'rus_court', name: {ru: 'court', en: 'rus_court'}, interior: true,
  {depth:1.35,key:'near',node:<g><path d="M-800 830 Q700 866 2700 850 V1500 H-800Z" fill="#5c6548"/>{[0,1,2,3,4,5].map(i=><path key={i} d={`M${i*390-100} 950 q${Math.sin(c.t+i)*12} -80 15 -110`} stroke="#8d966c" fill="none" strokeWidth={4}/>)}</g>}
  ]});
 
+// General-purpose sets: independent from dated Rus documentary locations.
+// Distinct silhouettes, three depth planes; deterministic animated details.
+function generalLayers(kind:string,c:EnvCtx):EnvLayer[] {
+ const t=c.t,space=kind==='space',cave=kind==='cave',lab=kind==='laboratory';
+ const sky=space?'#090c2b':cave?'#211d29':lab?'#b9d4d9':'#91b9cc';
+ const far=<g><rect x={-1000} y={-600} width={4000} height={2200} fill={sky}/>{space?Array.from({length:55},(_,i)=><circle key={i} cx={rnd(i)*2200-100} cy={rnd(i+70)*800} r={1+rnd(i+90)*3} fill="white" opacity={.5+.4*Math.sin(t+i)}/>):<Clouds p={palette(c.time)} t={t} y={100} />}</g>;
+ let mid:React.ReactNode;
+ switch(kind){
+ case 'mountains':mid=<g>{[0,1,2,3].map(i=><g key={i}><path d={`M${i*600-400} 850 l440 -650 440 650Z`} fill={i%2?'#667b8e':'#4a6176'}/><path d={`M${i*600-65} 355 l105 -155 105 155 -105 -40Z`} fill="#e3edf1"/></g>)}</g>;break;
+ case 'sea':mid=<g><rect x={-1000} y={380} width={4000} height={850} fill="#276d91"/>{Array.from({length:12},(_,i)=><path key={i} d={`M-900 ${430+i*45} q400 ${Math.sin(t+i)*22} 800 0 t800 0 t800 0 t800 0`} stroke="#a1d4df" strokeWidth={5} fill="none"/>)}</g>;break;
+ case 'desert':mid=<g><circle cx={1500} cy={140} r={65} fill="#ffe4a1"/>{[0,1,2].map(i=><path key={i} d={`M-1000 ${650+i*110} Q${200+i*500} ${200+i*90} 2800 ${700+i*100} V1500 H-1000Z`} fill={['#c29353','#d6ac69','#e0bb79'][i]}/>)}</g>;break;
+ case 'space':mid=<g><circle cx={1300} cy={360} r={230} fill="#82648e"/><ellipse cx={1300} cy={360} rx={370} ry={50} fill="none" stroke="#c6b1a2" strokeWidth={22} transform="rotate(-18 1300 360)"/><circle cx={500+Math.sin(t*.1)*20} cy={280} r={55} fill="#98c7dc"/></g>;break;
+ case 'laboratory':mid=<g>{[0,1,2,3].map(i=><g key={i} transform={`translate(${i*480},0)`}><rect x={20} y={220} width={390} height={500} rx={20} fill="#445b66"/><rect x={45} y={250} width={340} height={190} fill="#122e39"/><path d={`M60 340 l60 ${Math.sin(t*3+i)*60} 60 -40 60 70 60 -30`} fill="none" stroke="#79ebbd" strokeWidth={6}/><circle cx={120} cy={540} r={45} fill="#63b9ba"/><circle cx={260} cy={540} r={45} fill="#b9d86f"/></g>)}</g>;break;
+ case 'cave':mid=<g><path d="M-1000 -500 H3000 V420 L1700 180 1400 420 900 130 700 390 200 210 -1000 600Z" fill="#514657"/>{[0,1,2,3,4].map(i=><path key={i} d={`M${i*480} 180 l80 330 80 -330Z`} fill="#6f6070"/>)}<ellipse cx={1350} cy={650} rx={210} ry={45+Math.sin(t)*3} fill="#5d97ac"/></g>;break;
+ case 'medieval_town':mid=<g>{[0,1,2,3,4].map(i=><g key={i} transform={`translate(${i*410-200},0)`}><rect x={0} y={350} width={320} height={420} fill={i%2?'#ae9270':'#a7a28b'}/><path d="M-30 350 L160 170 350 350Z" fill="#6a4240"/><path d="M0 420 H320 M60 350 V770 M260 350 V770 M0 420 L260 640" stroke="#493e35" strokeWidth={14}/><path d={`M160 220 q${Math.sin(t*2+i)*15} 20 90 40 v50 l-90 -25Z`} fill="#987346"/></g>)}</g>;break;
+ default:mid=<g>{[0,1,2,3,4,5].map(i=><g key={i} transform={`translate(${i*380},0) rotate(${Math.sin(t+i)*1.5},0,850)`}><rect x={-14} y={300} width={28} height={550} fill="#574b3a"/><ellipse cx={0} cy={300} rx={180} ry={240} fill="#436e57"/></g>)}</g>;
+ }
+ const near=<g><path d="M-1000 900 Q400 780 3000 920 V1800 H-1000Z" fill={space?'#42435c':cave?'#3c3344':lab?'#6b8994':kind==='desert'?'#b8864e':kind==='sea'?'#b8a97c':'#58614e'}/>{[0,1,2,3,4].map(i=><circle key={i} cx={(i*520+t*11)%2600-200} cy={870+Math.sin(t+i)*12} r={3} fill="#dedbc3" opacity={.5}/>)}</g>;
+ return [{depth:.15,key:'far',node:far},{depth:.65,key:'mid',node:mid},{depth:1.4,key:'near',node:near}];
+}
+reg({id: 'mountains', name:{ru:'Горы',en:'Mountains'}, interior:false, live: ['moving atmospheric particles', 'animated water, foliage or light'], layers:c=>generalLayers('mountains',c)});
+reg({id: 'sea', name:{ru:'Море',en:'Sea'}, interior:false, live: ['moving atmospheric particles', 'animated water, foliage or light'], layers:c=>generalLayers('sea',c)});
+reg({id: 'desert', name:{ru:'Пустыня',en:'Desert'}, interior:false, live: ['moving atmospheric particles', 'animated water, foliage or light'], layers:c=>generalLayers('desert',c)});
+reg({id: 'space', name:{ru:'Космос',en:'Space'}, interior:false, live: ['moving atmospheric particles', 'animated water, foliage or light'], layers:c=>generalLayers('space',c)});
+reg({id: 'laboratory', name:{ru:'Лаборатория',en:'Laboratory'}, interior:true, live: ['moving atmospheric particles', 'animated water, foliage or light'], layers:c=>generalLayers('laboratory',c)});
+reg({id: 'cave', name:{ru:'Пещера',en:'Cave'}, interior:true, live: ['moving atmospheric particles', 'animated water, foliage or light'], layers:c=>generalLayers('cave',c)});
+reg({id: 'medieval_town', name:{ru:'Средневековый город',en:'Medieval Town'}, interior:false, live: ['moving atmospheric particles', 'animated water, foliage or light'], layers:c=>generalLayers('medieval_town',c)});
+reg({id: 'forest', name:{ru:'Лес',en:'Forest'}, interior:false, live: ['moving atmospheric particles', 'animated water, foliage or light'], layers:c=>generalLayers('forest',c)});
+
 export const ENV_LIST = Object.values(ENVS);
 export const getEnv = (id: string): EnvDef => ENVS[id] || ENVS.bedroom;
 export const hasEnv = (id: string) => !!ENVS[id];
