@@ -289,7 +289,7 @@ export async function runVoice(id,project,log,args={}) {
   else if(mode==='files')mf=voiceFiles(id,project,log);
   else if(mode==='none'){mf={source:'none',lines:{}};writeJson(path.join(ensure(path.join(projectDir(id),'voice')),'manifest.json'),mf);return mf;}
   else mf=await voiceTTS(id,project,log,{...args,force:!!args.force});
-  return alignManifest(id,project,mf,log,{disabled:!!args['no-whisper']});
+  return alignManifest(id,project,mf,log,{disabled:!!args['no-whisper'],model:args.model});
 }
 
 export {FFMPEG, ffmpegEnv, spawnSync};

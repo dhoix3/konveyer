@@ -77,3 +77,17 @@ QA сравнивает краткую narration и каждую реплику 
 проверка, не доказательство семантической эквивалентности; омонимы, намеренное
 написание имён строчными и сложная морфология требуют редактора.
 Звуковой и subtitle контракт описан в handoff/phase3/REPORT.md.
+
+## Whisper timestamps
+
+When local Whisper ONNX assets are available, voice preparation stores actual ASR
+word times in manifest lines with wordTiming=aligned and alignment-report.json.
+Upload clip times are rebased. Invalid/missing/mismatched ASR remains explicitly
+energy-estimated. No timestamp end is invented. Transformers v4 preflight is also
+globally forced offline (local_files_only alone is insufficient in that version).
+`--no-whisper` opts out; `--model` or WHISPER_MODEL_PATH/WHISPER_MODEL selects local
+assets, WHISPER_CACHE_DIR selects their cache. Models are not installed/committed.
+Whisper times gate the mouth plus actual RMS amplitude. ASR is not factual evidence:
+subtitles retain authored script text, never add ASR-recognised names/numbers.
+Real-model inference remains unverified here; deterministic timestamp tests and
+actual missing-cache/no-network fallback are verified.

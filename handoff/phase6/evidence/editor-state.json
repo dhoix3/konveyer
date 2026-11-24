@@ -1,0 +1,217 @@
+{
+  "revision": "a14e7d8d3dc8431b00cbb8bd1fd47c311aaf5ad5",
+  "qa": {
+    "errors": [],
+    "warnings": [
+      "[film] no \"close\" shots in the film",
+      "Knowledge needs manual factual/bibliographic review; supported does not mean independently verified",
+      "Estimated timing only: Piper/audio/render not verified"
+    ]
+  },
+  "sceneQA": {
+    "s01": {
+      "errors": [],
+      "warnings": [
+        "Claims in this scene need manual factual review"
+      ]
+    },
+    "s02": {
+      "errors": [],
+      "warnings": [
+        "Claims in this scene need manual factual review"
+      ]
+    },
+    "s03": {
+      "errors": [],
+      "warnings": [
+        "Claims in this scene need manual factual review"
+      ]
+    }
+  },
+  "estimate": {
+    "seconds": 18,
+    "frames": 432,
+    "concurrency": 1,
+    "renderSecondsRange": [
+      29,
+      288
+    ],
+    "memoryMiBRange": [
+      768,
+      1726
+    ],
+    "availableMemoryMiB": 3604,
+    "estimated": true,
+    "basis": "CPU concurrency=1 heuristic, not measured on this machine"
+  },
+  "scenes": [
+    {
+      "id": "s01",
+      "env": {
+        "id": "rus_market",
+        "time": "day"
+      },
+      "cast": [
+        {
+          "char": "historian1",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian2",
+          "x": 1110,
+          "facing": "l"
+        },
+        {
+          "char": "historian3",
+          "x": 1370,
+          "facing": "l"
+        },
+        {
+          "char": "historian4",
+          "x": 1630,
+          "facing": "l"
+        }
+      ],
+      "doc": {
+        "mode": "map",
+        "chapter": "Как менялась власть Рюриковичей?",
+        "name": "Олег / Василий III / Иван IV / Участник 4",
+        "years": "911",
+        "sources": "pvl",
+        "status": "supported",
+        "labels": [
+          "Константинополь"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "camera": [
+        {
+          "type": "wide",
+          "move": "drift"
+        },
+        {
+          "type": "medium",
+          "move": "push"
+        },
+        {
+          "type": "close",
+          "move": "pull"
+        }
+      ]
+    },
+    {
+      "id": "s02",
+      "env": {
+        "id": "rus_port",
+        "time": "day"
+      },
+      "cast": [
+        {
+          "char": "historian2",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian1",
+          "x": 1110,
+          "facing": "l"
+        },
+        {
+          "char": "historian3",
+          "x": 1370,
+          "facing": "l"
+        },
+        {
+          "char": "historian4",
+          "x": 1630,
+          "facing": "l"
+        }
+      ],
+      "doc": {
+        "mode": "timeline",
+        "chapter": "Царство и конец московской линии",
+        "name": "Василий III / Олег / Иван IV / Участник 4",
+        "years": "XV–XVI века",
+        "sources": "martin, dunning",
+        "status": "supported",
+        "labels": [
+          "XV–XVI века: Москва"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "camera": [
+        {
+          "type": "wide",
+          "move": "drift"
+        },
+        {
+          "type": "medium",
+          "move": "push"
+        },
+        {
+          "type": "close",
+          "move": "pull"
+        }
+      ]
+    },
+    {
+      "id": "s03",
+      "env": {
+        "id": "rus_scriptorium",
+        "time": "day"
+      },
+      "cast": [
+        {
+          "char": "historian3",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian1",
+          "x": 1110,
+          "facing": "l"
+        },
+        {
+          "char": "historian2",
+          "x": 1370,
+          "facing": "l"
+        },
+        {
+          "char": "historian4",
+          "x": 1630,
+          "facing": "l"
+        }
+      ],
+      "doc": {
+        "mode": "tree",
+        "chapter": "Итог: московская линия, не весь род",
+        "name": "Иван IV / Олег / Василий III / Участник 4",
+        "years": "1547",
+        "sources": "skrynnikov",
+        "status": "supported",
+        "labels": [
+          "Иван III",
+          "Василий III",
+          "Иван IV",
+          "Фёдор Иванович"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "camera": [
+        {
+          "type": "wide",
+          "move": "drift"
+        },
+        {
+          "type": "medium",
+          "move": "push"
+        },
+        {
+          "type": "close",
+          "move": "pull"
+        }
+      ]
+    }
+  ]
+}

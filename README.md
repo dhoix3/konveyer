@@ -430,3 +430,20 @@ QA и полное декодирование FFmpeg прошли. Подроб�
   with map/timeline/tree (estimated until local audio is measured), concurrency 1.
 
 See [formats and smoke](docs/EXPORTS.md), [phase 3 report](handoff/phase3/REPORT.md).
+
+### Ensemble and scene editor (phases 5–6)
+
+- Library: 27 common-skeleton characters, body/age/hair/headwear presets, 20
+  historical environments total, background crowd, new transitions and audio moods.
+- Windows extended draft: `node .\render.mjs smoke win-ensemble-01 --extended`
+  (new id; add `--plan-only` to inspect without Chrome/Piper).
+- GUI: `node render.mjs ui --port 7788` → select project → Scene editor; edit
+  dialogue/duration/environment/cast/camera, undo/redo, see scene QA and estimates.
+- Documentary wizard: topic/materials → editable claims table → script preview →
+  save → render. See [scene editor](docs/SCENE_EDITOR.md).
+- Local Whisper word times use status **aligned**; unavailable/mismatched output
+  falls back to **energy-estimated**. No ASR model network download is implicit.
+
+Verified API/structure and synthetic audio tests are not visual approval of a film.
+Portable patches, changed-file lists and limitations are in `handoff/phase5/` and
+`handoff/phase6/`.

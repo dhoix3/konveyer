@@ -280,3 +280,22 @@ This FFmpeg test signal is NOT engine-rendered footage. npm test/typecheck and
 textnorm self-test (14/14) pass. Windows and real Chrome/Piper not executed.
 Doctor still reports missing numpy/Piper/models/Chrome. Full logs and limitations:
 handoff/phase3/REPORT.md, handoff/phase4/REPORT.md; Windows: docs/EXPORTS.md.
+
+## Phases 5–6
+
+Verified: 27 shared-skeleton characters, sampled bone-length checks, 20 historical
+environments, extended 18s plan-only smoke with crowd/age presets/new transitions;
+NumPy synthesis of three new SFX and four 0.2s mood probes (isolated ignored test
+path, not the user's Piper environment). No rendered visual claims.
+
+Whisper: injected exact word-time tests -> aligned; actual missing-cache test ->
+energy-estimated with ZERO network calls. A Transformers v4 preflight ignored the
+per-call offline option; global allowRemoteModels=false now closes that path.
+No ASR model inference/accuracy was verified. Authored captions, not ASR text, are
+published. Machine status evidence: handoff/phase5/evidence/alignment-status.json.
+
+Real HTTP tests: editor/cast/camera/duration/environment edits, conflict rejection,
+history undo/redo across server restart, per-scene QA and render blocking, safe
+schematic/no stale real PNG, wizard preview-no-write/commit and estimates. npm test
+and typecheck PASS. Missing Chrome/Piper/Denis/numpy remains doctor exit 1; GUI
+visual usability and real frame rendering/Windows execution remain unverified.

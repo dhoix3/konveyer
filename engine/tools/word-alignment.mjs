@@ -12,7 +12,7 @@ export function checkedWords(words,duration) {
 export function clipWords(words,start,end) {
   return words.filter(w=>w.start>=start&&w.end<=end).map(w=>({...w,start:+(w.start-start).toFixed(6),end:+(w.end-start).toFixed(6)}));
 }
-export async function alignManifest(id,project,manifest,log,{transcriber,disabled=false}={}) {
+export async function alignManifest(id,project,manifest,log,{transcriber,disabled=false,model}={}) {
   if(manifest.source==='none')return manifest;
   const rows=[];let unavailable=false;
   for(const line of project.scenes.flatMap(s=>s.lines)) {
@@ -21,7 +21,7 @@ export async function alignManifest(id,project,manifest,log,{transcriber,disable
     m.wordTiming='energy-estimated';delete m.words;
     if(!disabled&&!unavailable)try {
       const transcribe=transcriber||(await import('./whisper.mjs')).transcribe;
-      const tr=await transcribe(path.resolve(projectDir(id),m.file),{language:project.language,localOnly:true});
+      const tr=await transcribe(path.resolve(projectDir(id),m.file),{language:project.language,localOnly:true,model});
       const words=checkedWords(tr.words,m.dur),script=tokens(line.text[project.language]),recognised=tokens(words.map(w=>w.text).join(' '));
       const matches=script.filter(t=>recognised.includes(t)).length;
       if(!script.length||matches/script.length<.65)throw new Error('Whisper/script mismatch; not marked aligned');

@@ -321,9 +321,10 @@ async function cmdQa(id) {
   }
 }
 
-async function cmdFrame(id) {
+async function cmdFrame(id,frameOptions={}) {
   const log = logger(id, 'frame');
-  const plan = loadPlan(id);
+  const plan = frameOptions.previewPlan||loadPlan(id);
+  const previewSource=sourceHash();
   const sc = plan.scenes.find((s) => s.id === (args.scene || plan.scenes[0].id));
   if (!sc) throw new Error('scene not found');
   const t = Number(args.t ?? 1);
@@ -336,6 +337,7 @@ async function cmdFrame(id) {
   const comp = await selectComposition({serveUrl, id: 'Scene', inputProps, browserExecutable, chromiumOptions: chromeOpts()});
   const out = args.out ? path.resolve(String(args.out)) : path.join(ensure(path.join(renderDir(id), 'frames')), `${sc.id}_f${String(frame).padStart(4, '0')}.png`);
   await renderStill({composition: comp, serveUrl, browserExecutable, output: out, frame, inputProps, imageFormat: 'png', scale: Number(args.scale) || 1, chromiumOptions: chromeOpts()});
+  if(frameOptions.previewPlan)writeJson(out+'.meta.json',{revision:plan.projectHash,sourceHash:previewSource,scene:sc.id,frame,time:t});
   log.info(`frame -> ${out}`);
   console.log(out);
 }
@@ -411,6 +413,7 @@ const HELP = `Koveyer Dhoix'a — pipeline
   node render.mjs render <id> [--draft]          scenes + lossless concat
   node render.mjs final <id> [--draft]           mux audio -> FINAL.mp4
   node render.mjs qa <id> [--plan-only] [--draft]
+  node render.mjs preview <id> --scene s01 --t 1    single Chrome frame, estimated timings
   node render.mjs frame <id> --scene s01 --t 2.5
   node render.mjs all <id> [--draft]             whole pipeline (stage logs in projects/<id>/logs/all.log)
   node render.mjs episode <series-id> --episode 2 --force
@@ -448,6 +451,7 @@ for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
 process.on('uncaughtException', (e) => { failRunningStage(args._[1], e); console.error(`✘ ${e.message}`); process.exit(1); });
 process.on('unhandledRejection', (e) => { failRunningStage(args._[1], e); console.error(`✘ ${e?.message || e}`); process.exit(1); });
 
+async function cmdPreview(id){const project=loadProject(id);assertSeriesContext(project);const plan=buildPlan(id,{projectOverride:project,persist:false,ignoreAudio:true});return cmdFrame(id,{previewPlan:plan});}
 async function cmdPublish(id) {
   const plan=loadPlan(id),dir=ensure(path.join(renderDir(id),'publish'));
   const video=path.join(renderDir(id),args.draft?'DRAFT.mp4':'FINAL.mp4');
@@ -534,7 +538,7 @@ async function cmdHistory(id) {console.log(JSON.stringify(listHistory(projectDir
 async function cmdRestore(id) {console.log(`Restored ${restoreSnapshot(projectDir(id),String(args.snapshot || ''))}`);}
 async function cmdEpisode(id) { const p=regenerateEpisode(id,Number(args.episode),!!args.force); console.log(`Episode ready: ${p.id}`); }
 
-const table = {smoke:cmdSmoke,export:cmdExport,publish:cmdPublish,voices:cmdVoices,subtitles:cmdSubtitles,research:cmdResearch,recover:cmdRecover,history:cmdHistory,restore:cmdRestore,episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
+const table = {preview:cmdPreview,smoke:cmdSmoke,export:cmdExport,publish:cmdPublish,voices:cmdVoices,subtitles:cmdSubtitles,research:cmdResearch,recover:cmdRecover,history:cmdHistory,restore:cmdRestore,episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
 try {
   if (!cmd || !table[cmd]) { console.log(HELP); process.exit(cmd ? 1 : 0); }
   const id = args._[1];

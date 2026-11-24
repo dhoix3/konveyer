@@ -26,7 +26,7 @@ export function parsePropKinds(source) {
 const PROP_KINDS = parsePropKinds(propSrc);
 const AIR_OK = new Set(['jump', 'float', 'cheer', 'run', 'fall']);
 
-export function qaPlan(id, plan) {
+export function qaPlan(id, plan,{project}={}) {
   const errors = [], warnings = [];
   const E = (s, m) => errors.push(`[${s}] ${m}`), W = (s, m) => warnings.push(`[${s}] ${m}`);
   warnings.push(...(plan.speechWarnings||[]));
@@ -128,7 +128,7 @@ export function qaPlan(id, plan) {
   }
   for (const need of ['wide', 'medium', 'close']) if (!kinds.has(need)) W('film', `no "${need}" shots in the film`);
   if (frames !== plan.totalFrames) E('film', `frame sum ${frames} != totalFrames ${plan.totalFrames}`);
-  const proj = readJson(path.join(projectDir(id), 'project.json'), null);
+  const proj = project||readJson(path.join(projectDir(id), 'project.json'), null);
   if (proj) {
     const target = proj.settings.duration;
     if (Math.abs(plan.totalSec - target) / target > 0.3) W('film', `duration ${plan.totalSec.toFixed(1)}s differs from requested ${target}s by more than 30%`);

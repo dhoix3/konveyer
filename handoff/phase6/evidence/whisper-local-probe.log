@@ -1,0 +1,16 @@
+PASS real PCM envelope/pause closure, odd RIFF chunks, optional timed visemes, provided/estimated words, subtitle limits, claim fidelity, historical textnorm and prosody validation
+word alignment line: `local_files_only=true` or `env.allowRemoteModels=false` and file was not found locally at "/home/user/konveyer/engine/node_modules/@huggingface/transformers/models/Xenova/whisper-tiny/config.json".; energy-estimated fallback
+{
+  "attemptedLocalWhisper": true,
+  "remoteModelsAllowed": false,
+  "testAudio": "synthetic tone, not speech",
+  "aligned": 0,
+  "energyEstimated": 1,
+  "lines": [
+    {
+      "line": "line",
+      "status": "energy-estimated",
+      "warning": "`local_files_only=true` or `env.allowRemoteModels=false` and file was not found locally at \"/home/user/konveyer/engine/node_modules/@huggingface/transformers/models/Xenova/whisper-tiny/config.json\"."
+    }
+  ]
+}

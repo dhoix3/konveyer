@@ -77,3 +77,14 @@ is explicitly logged in plan.speechWarnings. Claims narration must not introduce
 names/dates/numbers absent from full claim. `subtitles --strict` checks presentation.
 `export --aspect` isolates derivatives; `smoke` is a non-overwriting Windows draft
 check. Instructions and remaining visual checks: docs/EXPORTS.md.
+
+## Phases 5–6
+
+Keep skeleton.ts and anatomical rules unchanged. New ensemble styles/crowds and
+layered environments are optional/additive. `smoke --extended` exercises new art.
+Whisper uses local assets only; preserve timestamps as aligned, never label an
+energy estimate aligned. Authored captions remain the source of documentary text.
+Scene editor writes use project locks + revision checks + history snapshots; do
+not bypass stale-edit errors or render documentary QA failures. UI RU/EN does not
+translate claims. Resource estimates are heuristics, not hardware benchmarks.
+See docs/SCENE_EDITOR.md and handoff/phase5/REPORT.md, phase6/REPORT.md.

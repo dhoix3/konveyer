@@ -71,3 +71,22 @@ viewport.ts separates output aspect from the existing WORLD coordinate system.
 Derivative plans/output directories isolate formats; scene cache includes dimensions.
 publishing.mjs selects a cover time deterministically and embeds a real frame only
 when matching video exists; otherwise all previews remain labelled schematics.
+
+## Ensemble and editor
+
+LIB_CHARS adds 20 presets over the original solver; Crowd.tsx uses the same track
+and Character renderer. Ten additional historical environments have three depth
+layers and dynamic details; crowd/parallax/transitions are opt-in scene metadata.
+No skeleton/IK/limit changes. Musical probes reuse mixer.py's procedural primitives.
+
+word-alignment.mjs retains validated local Whisper times and alignment status;
+whisper.mjs blocks remote model resolution as well as requesting local_files_only.
+Missing ASR degrades explicitly. No model bytes are stored in Git.
+
+editor.mjs provides revision/lock-protected scene transactions and persisted undo/
+redo references into history/. Preview plans use buildPlan(projectOverride,
+persist=false,ignoreAudio=true): no unsaved preview can change a live project/plan.
+editor-page.mjs supplies the vanilla GUI panel; ui.mjs applies the existing HTTP
+security boundary to all editor routes. Real still jobs reuse the CLI renderer;
+PNG metadata prevents stale previews. Estimated resources are not profiling (phase
+7 is not implemented). No LLM/provider work (phase 8) is included.

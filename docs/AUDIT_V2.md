@@ -160,3 +160,30 @@ extraction, plan-only smoke, 120s Rurikids plans in all three aspects. Not verif
 real Piper synthesis, supplied live phoneme alignment, downloaded voices, Chrome
 visuals/MP4, voice quality, portrait multi-person composition, Windows execution.
 Publication SVGs without matching video are labelled schematic, not rendered frames.
+
+## Phases 5–6
+
+Mini-task: local Whisper word timestamps preserved as aligned; actual unavailable
+cache path falls back energy-estimated, no remote request. Tests inject timestamps
+and validate crop offsets/gaps/mismatch. Transformers v4 preflight requires global
+offline enforcement as well as local_files_only. No real-model inference claimed.
+
+Phase 5: additive 27-character common-skeleton library, body/age/headwear/hair,
+crowd; +10 historical environments (20 total), depth layers/motion, transitions,
+selectable grades, +4 music moods/+3 SFX. Bone rules unchanged. Extended smoke
+has <=4s shot intervals; actual rendered freeze detection awaits Chrome. NumPy
+was installed only under ignored engine/.cache/phase5-python for sound probes,
+not into Piper/user runtime. Real audio probes are not a film or listening review.
+
+Phase 6: vanilla GUI scene editor, revision locks, history-based undo/redo across
+restart, QA indicators/render gate, schematic plus separate Chrome still job,
+claim-table wizard with unsaved preview and explicit commit, CPU/memory estimates,
+RU/EN editor/core form labels. Raw logs/canonical sources are not auto-translated.
+HTTP, schema, regression, JS/Python syntax and type checks verified. Browser visual
+review, Windows, Piper/Chrome/Whisper model accuracy remain unverified. Phases 7–8
+not started. Details in docs/SCENE_EDITOR.md and handoff/phase6/REPORT.md.
+
+Session restoration again preserved accepted files but not their local Git commit
+objects. Commit 12e3f3c is an additive accepted-state checkpoint; phase5 patches
+apply on its equivalent accepted phase4 tree, phase6 follows the phase5 set.
+No resets, branch switches, data removal, push or GitHub changes were performed.
