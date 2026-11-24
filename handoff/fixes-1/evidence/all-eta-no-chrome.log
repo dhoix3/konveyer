@@ -1,0 +1,11 @@
+[all] Render estimate (not total pipeline): {"frames":2886,"draftSeconds":1010,"finalSeconds":4040,"draftSecondsPerFrame":0.35,"finalSecondsPerFrame":1.4,"draftBasis":"user Windows selfcheck observation: ~0.35s/frame at 960x540; not sandbox measurement","finalBasis":"UNMEASURED extrapolation x4 pixel area from draft, not a benchmark","caveat":"historical local samples may predate source/resolution/hardware changes; remeasure after reviewing frames","excludes":"TTS, asset/bundle warmup, mixing/mux/QA; cache and scene complexity change time"}
+[all] === stage voice started ===
+[voice] voice mode: none
+[voice] voice ready (none)
+[all] === stage voice done (0s total) ===
+[all] === stage timeline started ===
+[timeline] timeline: 11 scenes, 120.3s (2886 frames), voice=estimated
+[all] === stage timeline done (0s total) ===
+[all] === stage scenes started ===
+[scenes] scenes failed: REMOTION_BROWSER_EXECUTABLE: файл не найден: /home/user/konveyer/engine/.cache/missing-chrome
+✘ REMOTION_BROWSER_EXECUTABLE: файл не найден: /home/user/konveyer/engine/.cache/missing-chrome

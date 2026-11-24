@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import {fetchWhisper,whisperStatus} from './tools/models.mjs';
+import {renderEstimate} from './tools/render-estimate.mjs';
 import {selfcheck} from './tools/selfcheck.mjs';
 import {generateLocal} from './tools/llm-local.mjs';
 import {Profile} from './tools/profile.mjs';
@@ -376,6 +378,20 @@ async function cmdProfile(id) {
  profiler.data.scenes.push({scene:sc.id,ms:performance.now()-t,frames:sc.durFrames,sampled:true});}
 }
 
+async function cmdFrames(id){
+ const count=Number(args['per-scene']??3);if(!Number.isInteger(count)||count<1||count>8)throw new Error('--per-scene must be 1–8');
+ const log=logger(id,'frames'),plan=loadPlan(id),browserExecutable=await prepareBrowser(log);
+ await ensureAssets();const serveUrl=await getBundle(log),{renderStill,selectComposition}=await import('@remotion/renderer');
+ const dir=ensure(path.join(renderDir(id),'frames',new Date().toISOString().replace(/[:.]/g,'-'))),items=[];
+ for(const scene of plan.scenes){if(!/^[a-zA-Z0-9_-]{1,40}$/.test(scene.id))throw new Error('Unsafe scene id for frames output');const inputProps={plan,sceneIndex:scene.index,subtitles:true};const composition=await selectComposition({serveUrl,id:'Scene',inputProps,browserExecutable,chromiumOptions:chromeOpts()});
+ for(let i=0;i<count;i++){const frame=count===1?Math.floor(scene.durFrames/2):Math.round(i*(scene.durFrames-1)/(count-1));const file=path.join(dir,`${scene.id}-${frame}.png`);
+ await renderStill({serveUrl,composition,browserExecutable,inputProps,frame,scale:.5,imageFormat:'png',output:file,chromiumOptions:chromeOpts()});items.push({src:'data:image/png;base64,'+fs.readFileSync(file).toString('base64'),label:`${scene.id} · frame ${frame} · ${(frame/plan.fps).toFixed(2)}s`});}}
+ const inputProps={items},composition=await selectComposition({serveUrl,id:'FrameContactSheet',inputProps,browserExecutable,chromiumOptions:chromeOpts()});
+ await renderStill({serveUrl,composition,browserExecutable,inputProps,frame:0,imageFormat:'png',output:path.join(dir,'contact-sheet.png'),chromiumOptions:chromeOpts()});
+ writeJson(path.join(dir,'frames.json'),{project:id,projectHash:plan.projectHash,sourceHash:sourceHash(),frames:items.map(({label})=>label),scale:.5});log.info(`Real frames and PNG contact sheet: ${dir}`);
+}
+async function cmdModels(){if(args._[1]!=='fetch'||args._[2]!=='whisper-tiny')throw new Error('Usage: models fetch whisper-tiny --allow-download');console.log(JSON.stringify(await fetchWhisper({allowDownload:args['allow-download']===true}),null,2));}
+
 async function cmdAll(id) {
   const log = logger(id, 'all');
   if (!fs.existsSync(path.join(projectDir(id), 'project.json'))) {
@@ -383,6 +399,8 @@ async function cmdAll(id) {
     await cmdNew(id);
   }
   if (loadProject(id).production?.kind==='season') throw new Error('Выберите эпизод сезона: каждый экспортируется отдельно.');
+  const estimate=renderEstimate(buildPlan(id,{projectOverride:loadProject(id),persist:false,ignoreAudio:true}).totalFrames,loadState(id));
+  log.info('Render estimate (not total pipeline): '+JSON.stringify(estimate));writeJson(path.join(outDir(id),'render-estimate.json'),estimate);
   const stages = [
     ['voice', cmdVoice], ['timeline', cmdTimeline], ['scenes', cmdScenes],
     ['sound', cmdSound], ['render', cmdRender], ['final', cmdFinal], ['qa', cmdQa],
@@ -421,6 +439,8 @@ async function cmdDoctor() {
   if(args.fix)fixEnvironment();
   const checks = [];
   const add = (name, ok, info) => { checks.push({name, ok, info}); console.log(`${ok ? '✔' : '✘'} ${name}${info ? ' — ' + info : ''}`); };
+  console.log('Whisper alignment: '+JSON.stringify(whisperStatus()));
+  if(args._[1]){const alignment=readJson(path.join(projectDir(args._[1]),'alignment-report.json'),null);console.log('Project word alignment: '+JSON.stringify(alignment||{status:'energy-estimated / not yet prepared'}));}
   add('node', Number(process.versions.node.split('.')[0]) >= 22, process.version);
   try { const v = probe.length ? FFMPEG() : ''; add('ffmpeg', true, v); } catch (e) { add('ffmpeg', false, e.message); }
   try { runPython('gen_assets.py', [path.join(ENGINE, 'public')]); add('python+numpy', true, 'grain asset generated'); } catch (e) { add('python+numpy', false, e.message.slice(0, 120)); }
@@ -434,6 +454,8 @@ async function cmdDoctor() {
 }
 
 const HELP = `Koveyer Dhoix'a — pipeline
+  node render.mjs frames <id> [--per-scene 3]  real Chrome stills + labelled PNG sheet
+  node render.mjs models fetch whisper-tiny --allow-download  explicit network permission
   node render.mjs selfcheck [--plan-only]       offline diagnostic folder + ZIP
   node render.mjs llm <id> --provider llm-local --llm-model <name> [--materials materials.json]
   node render.mjs --profile <id>                sample real still timings, no project writes
@@ -576,13 +598,13 @@ async function cmdHistory(id) {console.log(JSON.stringify(listHistory(projectDir
 async function cmdRestore(id) {console.log(`Restored ${restoreSnapshot(projectDir(id),String(args.snapshot || ''))}`);}
 async function cmdEpisode(id) { const p=regenerateEpisode(id,Number(args.episode),!!args.force); console.log(`Episode ready: ${p.id}`); }
 
-const table = {selfcheck:async()=>{const r=await selfcheck({planOnly:!!args['plan-only']});if(!r.complete)process.exitCode=1;},llm:cmdLLM,profile:cmdProfile,preview:cmdPreview,smoke:cmdSmoke,export:cmdExport,publish:cmdPublish,voices:cmdVoices,subtitles:cmdSubtitles,research:cmdResearch,recover:cmdRecover,history:cmdHistory,restore:cmdRestore,episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
+const table = {frames:cmdFrames,models:cmdModels,selfcheck:async()=>{const r=await selfcheck({planOnly:!!args['plan-only']});if(!r.complete)process.exitCode=1;},llm:cmdLLM,profile:cmdProfile,preview:cmdPreview,smoke:cmdSmoke,export:cmdExport,publish:cmdPublish,voices:cmdVoices,subtitles:cmdSubtitles,research:cmdResearch,recover:cmdRecover,history:cmdHistory,restore:cmdRestore,episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
 try {
   if (!cmd || !table[cmd]) { console.log(HELP); process.exit(cmd ? 1 : 0); }
   if(cmd==='smoke'&&args.profile&&!args._[1])args._[1]=`smoke-${Date.now()}`;
   const id = args._[1];
-  if (!['selfcheck','smoke','voices', 'idea', 'list', 'doctor', 'new', 'ui', 'restore', 'history', 'recover'].includes(cmd)) need(id);
-  if (!['selfcheck','voices','idea', 'list', 'doctor', 'ui'].includes(cmd) && id) {
+  if (!['models','selfcheck','smoke','voices', 'idea', 'list', 'doctor', 'new', 'ui', 'restore', 'history', 'recover'].includes(cmd)) need(id);
+  if (!['models','selfcheck','voices','idea', 'list', 'doctor', 'ui'].includes(cmd) && id) {
     const unlock = lockProject(id,{createDir:cmd!=='smoke'});
     process.on('exit', unlock);
   }

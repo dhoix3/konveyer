@@ -31,7 +31,7 @@ const Body: React.FC<BodyProps> = ({def, sk, mode, rimColor}) => {
   const w = widths(def.build);
   const s = def.height;
   const lw = w.limb * s;
-  const tw = w.torso * s;
+  const tw = (w.torso+(def.costume?14:0)) * s;
   const rim = mode === 'rim';
   const ink = rim ? rimColor! : INK;
   const O = rim ? 1.5 : 4; // outline thickness
@@ -94,6 +94,7 @@ const Body: React.FC<BodyProps> = ({def, sk, mode, rimColor}) => {
       <path d={P(neckBase, lerpPt(neckBase, sk.head, 0.75))} stroke={ink} strokeWidth={lw * 0.8 + O} strokeLinecap="round" />
       {!rim && <path d={P(neckBase, lerpPt(neckBase, sk.head, 0.75))} stroke={INK} strokeWidth={lw * 0.8} strokeLinecap="round" />}
       {!rim && def.costume && <g>
+        <path d={`M${neckBase.x-tw/2} ${neckBase.y+10*s} L${sk.hip.x-tw*.8} ${sk.hip.y+35*s} L${sk.hip.x+tw*.8} ${sk.hip.y+35*s} L${neckBase.x+tw/2} ${neckBase.y+10*s}Z`} fill={def.costume==='robe'?'#3e4144':def.costume==='chainmail'?'#818c8d':def.shirt} stroke={INK} strokeWidth={3*s}/>
         <path d={P(lerpPt(sk.hip,neckBase,0.1),lerpPt(sk.hip,neckBase,0.9))} stroke={def.costume==='chainmail'?'#8b9090':def.shirt} strokeWidth={tw+4} />
         <path d={P({x:sk.hip.x-tw/2,y:sk.hip.y},{x:sk.hip.x+tw/2,y:sk.hip.y})} stroke="#b99961" strokeWidth={5*s}/>
         {def.costume==='cloak' && <path d={P(neckBase,{x:sk.hip.x-tw,y:sk.hip.y+15*s},sk.hip)} fill={shade(def.shirt,-0.25)} stroke={INK} strokeWidth={2}/>}
@@ -229,6 +230,7 @@ const Accessory: React.FC<{def:CharacterDef;fx:number;R:number;t:number}> = p =>
     {def.headwear==='conical' && <path d={`M${-R} ${-R*.5} L0 ${-R*1.9} L${R} ${-R*.5}Z`} fill="#a7aba5" stroke="#3a3e3c" strokeWidth={2}/>}
     {def.headwear==='veil' && <path d={`M${-R*1.15} ${R*.8} V${-R*.5} Q0 ${-R*1.6} ${R*1.15} ${-R*.5} V${R*.8}`} fill="none" stroke="#c2b8a1" strokeWidth={R*.3}/>}
     {def.headwear==='hood' && <path d={`M${-R*1.15} ${R*.4} Q${-R*1.5} ${-R*1.6} 0 ${-R*1.4} Q${R*1.5} ${-R*1.6} ${R*1.15} ${R*.4}`} fill="none" stroke={def.shirt} strokeWidth={R*.3}/>}
+    {def.beard && <path d={`M${-R*.7} ${R*.45} Q0 ${R*1.9} ${R*.7} ${R*.45} L0 ${R*.8}Z`} fill={def.age==='elder'?'#bdbaae':col}/>}
     {def.age==='elder' && <path d={`M${-R*.7} ${R*.2} h${R*.3} M${R*.4} ${R*.2} h${R*.3}`} stroke="#80766c" strokeWidth={1.5}/>}
   </>;
 };

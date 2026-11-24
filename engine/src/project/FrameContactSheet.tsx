@@ -1,0 +1,3 @@
+import React from 'react';import {AbsoluteFill,Img} from 'remotion';import {LocalFonts} from '../lib/LocalFonts.tsx';
+export type SheetItem={src:string;label:string};
+export const FrameContactSheet:React.FC<{items:SheetItem[]}>=({items})=><AbsoluteFill style={{background:'#142129',padding:20,display:'grid',gridTemplateColumns:'repeat(3, 1fr)',gridAutoRows:300,gap:16,fontFamily:'Koveyer Sans, sans-serif'}}><LocalFonts/>{items.map((item,i)=><div key={i} style={{display:'flex',flexDirection:'column',background:'#000',overflow:'hidden'}}><Img src={item.src} style={{width:'100%',height:250,objectFit:'contain'}}/><div style={{height:50,color:'#fff1d5',fontSize:24,padding:8}}>{item.label}</div></div>)}</AbsoluteFill>;

@@ -122,6 +122,7 @@ export function buildPlan(id,{aspect,projectOverride,persist=true,ignoreAudio=fa
       pstates: (sc.pstates || []).map((s) => ({...s, t: rt(s.t)})),
       shots, overlay,
     };
+    if(out.doc&&project.production?.knowledge){const claims=project.production.knowledge.claims;out.doc={...out.doc,subjects:out.lines.flatMap(l=>(l.claimIds||[]).map(id=>claims.find(c=>c.id===id))).filter(Boolean).map(c=>({id:c.id,name:c.person||'Исторический эпизод',years:c.date.value,status:c.status,sources:c.sources.join(', ')}))};}
     cursor += durSec; frameCursor += durFrames;
     return out;
   });

@@ -3,6 +3,7 @@ import React from 'react';
 import {Composition, Series} from 'remotion';
 import type {Plan} from '../lib/types.ts';
 import {SceneRenderer} from '../v2/SceneRenderer.tsx';
+import {FrameContactSheet} from './FrameContactSheet.tsx';
 import {PoseSheet} from './PoseSheet.tsx';
 
 const emptyPlan = {
@@ -56,6 +57,7 @@ export const RemotionRoot: React.FC = () => (
         return {durationInFrames: Math.max(1, p.plan.totalFrames || 48), fps: p.plan.fps || 24,width:p.plan.width||WORLD.w,height:p.plan.height||WORLD.h};
       }}
     />
+    <Composition id="FrameContactSheet" component={FrameContactSheet} width={1440} height={720} fps={24} durationInFrames={1} defaultProps={{items:[]}} calculateMetadata={({props})=>({height:Math.max(340,Math.ceil(props.items.length/3)*316+40)})}/>
     <Composition id="PoseSheet" component={PoseSheet} width={WORLD.w} height={WORLD.h} fps={24} durationInFrames={24} defaultProps={{t: 1.0}} />
   </>
 );
