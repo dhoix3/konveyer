@@ -1,0 +1,1 @@
+PASS node --check all render/tools/tests + Python compile

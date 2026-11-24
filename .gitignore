@@ -59,3 +59,6 @@ __pycache__/
 *.pem
 *.pfx
 *.p12
+
+# Local audit/test caches and optional DOM-only development dependencies
+/.cache/

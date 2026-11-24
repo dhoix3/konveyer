@@ -1,0 +1,2438 @@
+[
+  {
+    "file": "engine/src/bg/envs.tsx",
+    "lines": 666,
+    "imports": [
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ],
+      [
+        "./helpers.tsx",
+        "",
+        ""
+      ],
+      [
+        "./helpers.tsx",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/bg/helpers.tsx",
+    "lines": 238,
+    "imports": [
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/char/Character.tsx",
+    "lines": 275,
+    "imports": [
+      [
+        "../lib/lipsync.ts",
+        "",
+        ""
+      ],
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "./skeleton.ts",
+        "",
+        ""
+      ],
+      [
+        "./skeleton.ts",
+        "",
+        ""
+      ],
+      [
+        "./track.ts",
+        "",
+        ""
+      ],
+      [
+        "./emotions.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/char/Crowd.tsx",
+    "lines": 16,
+    "imports": [
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/library.ts",
+        "",
+        ""
+      ],
+      [
+        "./track.ts",
+        "",
+        ""
+      ],
+      [
+        "./Character.tsx",
+        "",
+        ""
+      ],
+      [
+        "./emotions.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/char/emotions.ts",
+    "lines": 56,
+    "imports": [
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/char/props.tsx",
+    "lines": 378,
+    "imports": [
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "./Character.tsx",
+        "",
+        ""
+      ],
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/char/skeleton.ts",
+    "lines": 148,
+    "imports": [
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ],
+      [
+        "down",
+        "",
+        ""
+      ],
+      [
+        "down",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/char/track.ts",
+    "lines": 361,
+    "imports": [
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ],
+      [
+        "./skeleton.ts",
+        "",
+        ""
+      ],
+      [
+        "./skeleton.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ],
+      [
+        "./emotions.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/cine/camera.ts",
+    "lines": 87,
+    "imports": [
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/doc/DocumentaryGraphics.tsx",
+    "lines": 30,
+    "imports": [
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "remotion",
+        "",
+        ""
+      ],
+      [
+        "./layout.ts",
+        "",
+        ""
+      ],
+      [
+        "./graphic-data.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/doc/graphic-data.ts",
+    "lines": 7,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/doc/layout.ts",
+    "lines": 15,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/fx/Fx.tsx",
+    "lines": 119,
+    "imports": [
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/viewport.ts",
+        "",
+        ""
+      ],
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "remotion",
+        "",
+        ""
+      ],
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/hud/Hud.tsx",
+    "lines": 78,
+    "imports": [
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "../doc/layout.ts",
+        "",
+        ""
+      ],
+      [
+        "remotion",
+        "",
+        ""
+      ],
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/index.ts",
+    "lines": 4,
+    "imports": [
+      [
+        "remotion",
+        "",
+        ""
+      ],
+      [
+        "./project/Root.tsx",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/lib/LocalFonts.tsx",
+    "lines": 8,
+    "imports": [
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "remotion",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/lib/library.ts",
+    "lines": 75,
+    "imports": [
+      [
+        "./types.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/lib/lipsync.ts",
+    "lines": 21,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/lib/math.ts",
+    "lines": 83,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/lib/types.ts",
+    "lines": 245,
+    "imports": [
+      [
+        "",
+        "",
+        "./lipsync.ts"
+      ],
+      [
+        "",
+        "",
+        "../doc/DocumentaryGraphics.tsx"
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/lib/viewport.ts",
+    "lines": 11,
+    "imports": [
+      [
+        "./types.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/project/FrameContactSheet.tsx",
+    "lines": 3,
+    "imports": [
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "remotion",
+        "",
+        ""
+      ],
+      [
+        "../lib/LocalFonts.tsx",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/project/PoseSheet.tsx",
+    "lines": 52,
+    "imports": [
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ],
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "../lib/LocalFonts.tsx",
+        "",
+        ""
+      ],
+      [
+        "remotion",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ],
+      [
+        "../char/track.ts",
+        "",
+        ""
+      ],
+      [
+        "../char/Character.tsx",
+        "",
+        ""
+      ],
+      [
+        "../char/emotions.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/library.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/project/Root.tsx",
+    "lines": 63,
+    "imports": [
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ],
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "remotion",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ],
+      [
+        "../v2/SceneRenderer.tsx",
+        "",
+        ""
+      ],
+      [
+        "./FrameContactSheet.tsx",
+        "",
+        ""
+      ],
+      [
+        "./PoseSheet.tsx",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/src/v2/SceneRenderer.tsx",
+    "lines": 299,
+    "imports": [
+      [
+        "../char/Crowd.tsx",
+        "",
+        ""
+      ],
+      [
+        "../lib/viewport.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/lipsync.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/LocalFonts.tsx",
+        "",
+        ""
+      ],
+      [
+        "../doc/layout.ts",
+        "",
+        ""
+      ],
+      [
+        "../doc/DocumentaryGraphics.tsx",
+        "",
+        ""
+      ],
+      [
+        "react",
+        "",
+        ""
+      ],
+      [
+        "remotion",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/types.ts",
+        "",
+        ""
+      ],
+      [
+        "../lib/math.ts",
+        "",
+        ""
+      ],
+      [
+        "../char/track.ts",
+        "",
+        ""
+      ],
+      [
+        "../char/track.ts",
+        "",
+        ""
+      ],
+      [
+        "../char/emotions.ts",
+        "",
+        ""
+      ],
+      [
+        "../char/Character.tsx",
+        "",
+        ""
+      ],
+      [
+        "../char/skeleton.ts",
+        "",
+        ""
+      ],
+      [
+        "../char/props.tsx",
+        "",
+        ""
+      ],
+      [
+        "../cine/camera.ts",
+        "",
+        ""
+      ],
+      [
+        "../bg/envs.tsx",
+        "",
+        ""
+      ],
+      [
+        "../fx/Fx.tsx",
+        "",
+        ""
+      ],
+      [
+        "../hud/Hud.tsx",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tests/alignment.mjs",
+    "lines": 25,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "../tools/word-alignment.mjs"
+      ],
+      [
+        "",
+        "",
+        "../tools/speech-analysis.mjs"
+      ],
+      [
+        "",
+        "",
+        "../src/lib/lipsync.ts"
+      ],
+      [
+        "",
+        "",
+        "../tools/subtitles.mjs"
+      ],
+      [
+        "",
+        "",
+        "./speech.mjs"
+      ],
+      [
+        "",
+        "",
+        "../tools/whisper.mjs"
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tests/diversity.mjs",
+    "lines": 15,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "../src/lib/library.ts",
+        "",
+        ""
+      ],
+      [
+        "../src/char/track.ts",
+        "",
+        ""
+      ],
+      [
+        "../src/char/skeleton.ts",
+        "",
+        ""
+      ],
+      [
+        "../tools/script.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/historical.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 2,
+    "network": 0
+  },
+  {
+    "file": "engine/tests/documentary.mjs",
+    "lines": 41,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "../tools/knowledge.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/documentary.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 2,
+    "network": 0
+  },
+  {
+    "file": "engine/tests/editor.mjs",
+    "lines": 42,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:vm",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 7,
+    "network": 4
+  },
+  {
+    "file": "engine/tests/fixes1.mjs",
+    "lines": 19,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "../src/doc/layout.ts",
+        "",
+        ""
+      ],
+      [
+        "../src/doc/graphic-data.ts",
+        "",
+        ""
+      ],
+      [
+        "../src/lib/library.ts",
+        "",
+        ""
+      ],
+      [
+        "../src/char/skeleton.ts",
+        "",
+        ""
+      ],
+      [
+        "../src/char/track.ts",
+        "",
+        ""
+      ],
+      [
+        "../tools/script.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/documentary.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/knowledge.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/timeline.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/models.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/render-estimate.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 2,
+    "network": 0
+  },
+  {
+    "file": "engine/tests/formats.mjs",
+    "lines": 43,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:zlib",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "../src/lib/viewport.ts",
+        "",
+        ""
+      ],
+      [
+        "../tools/publishing.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/lib.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 2,
+    "network": 0
+  },
+  {
+    "file": "engine/tests/phase78.mjs",
+    "lines": 36,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:http",
+        "",
+        ""
+      ],
+      [
+        "node:util",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "../tools/script.mjs"
+      ],
+      [
+        "",
+        "",
+        "../tools/llm-local.mjs"
+      ],
+      [
+        "",
+        "",
+        "../tools/profile.mjs"
+      ],
+      [
+        "",
+        "",
+        "../tools/knowledge.mjs"
+      ],
+      [
+        "",
+        "",
+        "../tools/documentary.mjs"
+      ],
+      [
+        "",
+        "",
+        "../tools/timeline.mjs"
+      ],
+      [
+        "",
+        "",
+        "../tools/qa.mjs"
+      ],
+      [
+        "",
+        "",
+        "../tools/zip.mjs"
+      ]
+    ],
+    "subprocess": 7,
+    "network": 0
+  },
+  {
+    "file": "engine/tests/production.mjs",
+    "lines": 67,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "../tools/script.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/qa.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/production.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 2,
+    "network": 0
+  },
+  {
+    "file": "engine/tests/regressions.mjs",
+    "lines": 51,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "../tools/script.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/timeline.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/qa.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/lib.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tests/reliability.mjs",
+    "lines": 109,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:http",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "node:stream",
+        "",
+        ""
+      ],
+      [
+        "../tools/storage.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/ui-security.mjs",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "../tools/series.mjs"
+      ],
+      [
+        "",
+        "",
+        "../tools/lib.mjs"
+      ]
+    ],
+    "subprocess": 3,
+    "network": 1
+  },
+  {
+    "file": "engine/tests/runtime.mjs",
+    "lines": 137,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "../tools/browser.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/voice.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/script.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/timeline.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/sound.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/project-lock.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/lib.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 6,
+    "network": 14
+  },
+  {
+    "file": "engine/tests/speech.mjs",
+    "lines": 37,
+    "imports": [
+      [
+        "node:assert/strict",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "../tools/speech-analysis.mjs",
+        "",
+        ""
+      ],
+      [
+        "../src/lib/lipsync.ts",
+        "",
+        ""
+      ],
+      [
+        "../tools/subtitles.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/claim-fidelity.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/knowledge.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "../tools/voice-registry.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 2,
+    "network": 0
+  },
+  {
+    "file": "engine/tests/topics.mjs",
+    "lines": 119,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:url",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 2,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/browser.mjs",
+    "lines": 33,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "@remotion/renderer"
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/claim-fidelity.mjs",
+    "lines": 23,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/documentary.mjs",
+    "lines": 108,
+    "imports": [
+      [
+        "../src/doc/graphic-data.ts",
+        "",
+        ""
+      ],
+      [
+        "./claim-fidelity.mjs",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "../src/lib/library.ts",
+        "",
+        ""
+      ],
+      [
+        "./story.mjs",
+        "",
+        ""
+      ],
+      [
+        "./knowledge.mjs",
+        "",
+        ""
+      ],
+      [
+        "./historical.mjs",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/editor-page.mjs",
+    "lines": 55,
+    "imports": [],
+    "subprocess": 0,
+    "network": 1
+  },
+  {
+    "file": "engine/tools/editor.mjs",
+    "lines": 78,
+    "imports": [
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:crypto",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "../src/lib/library.ts",
+        "",
+        ""
+      ],
+      [
+        "./script.mjs",
+        "",
+        ""
+      ],
+      [
+        "./project-lock.mjs",
+        "",
+        ""
+      ],
+      [
+        "./timeline.mjs",
+        "",
+        ""
+      ],
+      [
+        "./qa.mjs",
+        "",
+        ""
+      ],
+      [
+        "./publishing.mjs",
+        "",
+        ""
+      ],
+      [
+        "./knowledge.mjs",
+        "",
+        ""
+      ],
+      [
+        "./documentary.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/environment.mjs",
+    "lines": 29,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "./browser.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 2,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/gen_assets.py",
+    "lines": 13,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/historical.mjs",
+    "lines": 5,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/knowledge.mjs",
+    "lines": 34,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/lib.mjs",
+    "lines": 304,
+    "imports": [
+      [
+        "./storage.mjs",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:crypto",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "node:url",
+        "",
+        ""
+      ],
+      [
+        "node:module",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 7,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/llm-local.mjs",
+    "lines": 36,
+    "imports": [
+      [
+        "./timeline.mjs",
+        "",
+        ""
+      ],
+      [
+        "./qa.mjs",
+        "",
+        ""
+      ],
+      [
+        "./knowledge.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 1
+  },
+  {
+    "file": "engine/tools/mixer.py",
+    "lines": 313,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/models.mjs",
+    "lines": 21,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "node:stream"
+      ],
+      [
+        "",
+        "",
+        "node:stream/promises"
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/production.mjs",
+    "lines": 175,
+    "imports": [
+      [
+        "../src/lib/library.ts",
+        "",
+        ""
+      ],
+      [
+        "./story.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/profile.mjs",
+    "lines": 24,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:perf_hooks",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "node:util",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/project-lock.mjs",
+    "lines": 41,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:crypto",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/publishing.mjs",
+    "lines": 29,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "../src/lib/viewport.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/qa.mjs",
+    "lines": 181,
+    "imports": [
+      [
+        "../src/lib/library.ts",
+        "",
+        ""
+      ],
+      [
+        "./documentary.mjs",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "../src/char/track.ts",
+        "",
+        ""
+      ],
+      [
+        "../src/char/skeleton.ts",
+        "",
+        ""
+      ],
+      [
+        "./sound.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/render-estimate.mjs",
+    "lines": 6,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/script.mjs",
+    "lines": 520,
+    "imports": [
+      [
+        "./production.mjs",
+        "",
+        ""
+      ],
+      [
+        "../src/lib/library.ts",
+        "",
+        ""
+      ],
+      [
+        "./story.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/selfcheck.mjs",
+    "lines": 27,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:crypto",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "./browser.mjs",
+        "",
+        ""
+      ],
+      [
+        "./zip.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 5,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/series.mjs",
+    "lines": 120,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:crypto",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "./project-lock.mjs",
+        "",
+        ""
+      ],
+      [
+        "./production.mjs",
+        "",
+        ""
+      ],
+      [
+        "./script.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/sound.mjs",
+    "lines": 80,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "../src/char/track.ts",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/speech-analysis.mjs",
+    "lines": 56,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/storage.mjs",
+    "lines": 60,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:crypto",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/story.mjs",
+    "lines": 740,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/subtitles.mjs",
+    "lines": 38,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/textnorm.py",
+    "lines": 891,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/timeline.mjs",
+    "lines": 143,
+    "imports": [
+      [
+        "../src/lib/viewport.ts",
+        "",
+        ""
+      ],
+      [
+        "./speech-analysis.mjs",
+        "",
+        ""
+      ],
+      [
+        "./voice.mjs",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "./script.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/tts.py",
+    "lines": 229,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/ui-security.mjs",
+    "lines": 58,
+    "imports": [
+      [
+        "node:crypto",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 1
+  },
+  {
+    "file": "engine/tools/ui.mjs",
+    "lines": 725,
+    "imports": [
+      [
+        "./editor-page.mjs",
+        "",
+        ""
+      ],
+      [
+        "./editor.mjs",
+        "",
+        ""
+      ],
+      [
+        "./knowledge.mjs",
+        "",
+        ""
+      ],
+      [
+        "./ui-security.mjs",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "./storage.mjs",
+        "",
+        ""
+      ],
+      [
+        "./project-lock.mjs",
+        "",
+        ""
+      ],
+      [
+        "./series.mjs",
+        "",
+        ""
+      ],
+      [
+        "./production.mjs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:http",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "./script.mjs",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 9,
+    "network": 1
+  },
+  {
+    "file": "engine/tools/voice-registry.mjs",
+    "lines": 19,
+    "imports": [],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/voice.mjs",
+    "lines": 296,
+    "imports": [
+      [
+        "./word-alignment.mjs",
+        "",
+        ""
+      ],
+      [
+        "./voice-registry.mjs",
+        "",
+        ""
+      ],
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "node:child_process",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "../src/lib/library.ts",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "./whisper.mjs"
+      ]
+    ],
+    "subprocess": 2,
+    "network": 1
+  },
+  {
+    "file": "engine/tools/whisper.mjs",
+    "lines": 32,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "./models.mjs",
+        "",
+        ""
+      ],
+      [
+        "node:os",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "./speech-analysis.mjs",
+        "",
+        ""
+      ],
+      [
+        "./word-alignment.mjs",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "@huggingface/transformers"
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/word-alignment.mjs",
+    "lines": 36,
+    "imports": [
+      [
+        "node:path",
+        "",
+        ""
+      ],
+      [
+        "./lib.mjs",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "./whisper.mjs"
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  },
+  {
+    "file": "engine/tools/zip.mjs",
+    "lines": 7,
+    "imports": [
+      [
+        "node:fs",
+        "",
+        ""
+      ],
+      [
+        "node:path",
+        "",
+        ""
+      ]
+    ],
+    "subprocess": 0,
+    "network": 0
+  }
+]

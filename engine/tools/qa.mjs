@@ -153,6 +153,7 @@ export function qaMedia(id, plan, sceneFiles, finalFile, draft = false) {
       const expect = sc.durFrames / FPS;
       if (Math.abs(m.duration - expect) > 0.1) errors.push(`[${sc.id}] duration ${m.duration.toFixed(2)}s != ${expect.toFixed(2)}s`);
       const r = ff(['-i', f, '-vf', 'blackdetect=d=1.2:pix_th=0.04,freezedetect=n=-70dB:d=4', '-an', '-f', 'null', '-'], {allowFail: true});
+      if(r.status!==0) {errors.push(`[${sc.id}] FFmpeg visual QA failed (${r.status}): ${String(r.stderr||r.stdout||'').slice(-1200)}`);continue;}
       const err = r.stderr || '';
       for (const mm of err.matchAll(/black_start:([\d.]+) black_end:([\d.]+)/g)) if (+mm[2] - +mm[1] > 1.2) errors.push(`[${sc.id}] empty (black) frames ${mm[1]}s-${mm[2]}s`);
       for (const mm of err.matchAll(/freeze_duration: ([\d.]+)/g)) warnings.push(`[${sc.id}] frozen picture for ${(+mm[1]).toFixed(1)}s`);

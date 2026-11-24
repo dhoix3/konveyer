@@ -71,9 +71,9 @@ function autoShots(sc, dur) {
 
 export function buildPlan(id,{aspect,projectOverride,persist=true,ignoreAudio=false}={}) {
   const dir = projectDir(id);
-  const size=outputSize(aspect);
-  const planDir=aspect?path.join(dir,'exports',aspect.replace(':','x')):dir;
   const project = projectOverride||readJson(path.join(dir, 'project.json'));
+  const size=outputSize(aspect||project.settings.aspect);
+  const planDir=aspect?path.join(dir,'exports',aspect.replace(':','x')):dir;
   if(project.production?.kind==='season') throw new Error('Сезон — контейнер: выберите отдельный эпизод для таймлайна.');
   const mf = ignoreAudio?{source:'none',lines:{}}:readJson(path.join(dir, 'voice', 'manifest.json'), {source: 'none', lines: {}});
   const lang = project.language;
@@ -128,7 +128,7 @@ export function buildPlan(id,{aspect,projectOverride,persist=true,ignoreAudio=fa
   });
   const voiceSource = usedFiles === totalLines && totalLines > 0 ? (mf.source === 'files' ? 'tts' : mf.source) : 'estimated';
   const plan = {
-    version: 1, schemaVersion:2, projectHash: sha1(project), voiceManifestHash: sha1(mf), id: project.id, language: lang, title: project.title, fps, width: size.width, height: size.height, aspect:aspect||'16:9', safeZone:viewport(size.width,size.height).safe,
+    version: 1, schemaVersion:2, projectHash: sha1(project), voiceManifestHash: sha1(mf), id: project.id, language: lang, title: project.title, fps, width: size.width, height: size.height, aspect:aspect||project.settings.aspect||'16:9', safeZone:viewport(size.width,size.height).safe,
     totalFrames: frameCursor, totalSec: frameCursor / fps, voiceSource,
     speechWarnings, production: project.production, characters: project.characters, voices: project.voices, scenes, music: {mood: project.settings.music},
   };
