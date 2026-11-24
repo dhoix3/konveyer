@@ -15,5 +15,10 @@ try{
  assert.equal(fallback.lines.l.wordTiming,'energy-estimated');assert.equal(fallback.alignment.energyEstimated,1);
  const mismatch=await alignManifest('demo',project,structuredClone(mf),log,{transcriber:async()=>({words:[{text:'Other',start:0,end:1}]})});assert.equal(mismatch.alignment.aligned,0);
  const speech={step:.1,values:Array(20).fill(1),words,wordTiming:'aligned'};assert.equal(mouthAt(speech,.8),0);assert.equal(mouthAt(speech,.3),1);
+ if(process.env.WHATIF_ALIGNMENT_REPORT)fs.writeFileSync(process.env.WHATIF_ALIGNMENT_REPORT,JSON.stringify({realModelRun:false,method:'injected test double',aligned:aligned.alignment,fallback:fallback.alignment},null,2)+'\n');
+ const {syntheticWav}=await import('./speech.mjs');const audio=path.join(temp,'offline.wav');fs.writeFileSync(audio,syntheticWav());
+ const {transcribe}=await import('../tools/whisper.mjs');const realFetch=globalThis.fetch;let networkCalls=0;
+ try{globalThis.fetch=async()=>{networkCalls++;throw new Error('Unexpected network');};await assert.rejects(transcribe(audio,{model:'koveyer-tests/missing-whisper-model-0000'}));assert.equal(networkCalls,0);}finally{globalThis.fetch=realFetch;}
+ console.log('PASS actual Whisper missing-cache path: zero network calls, fallback required');
  console.log('PASS injected Whisper exact timestamps -> aligned; no model/mismatch -> energy-estimated; clipped word offsets and mouth closure between aligned words');
 }finally{fs.rmSync(temp,{recursive:true,force:true});}

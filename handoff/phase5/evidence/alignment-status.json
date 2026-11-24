@@ -1,0 +1,25 @@
+{
+  "realModelRun": false,
+  "method": "injected test double",
+  "aligned": {
+    "aligned": 1,
+    "energyEstimated": 0,
+    "lines": [
+      {
+        "line": "l",
+        "status": "aligned"
+      }
+    ]
+  },
+  "fallback": {
+    "aligned": 0,
+    "energyEstimated": 1,
+    "lines": [
+      {
+        "line": "l",
+        "status": "energy-estimated",
+        "warning": "model absent"
+      }
+    ]
+  }
+}

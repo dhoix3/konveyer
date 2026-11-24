@@ -17,7 +17,7 @@ export async function alignManifest(id,project,manifest,log,{transcriber,disable
   const rows=[];let unavailable=false;
   for(const line of project.scenes.flatMap(s=>s.lines)) {
     const m=manifest.lines[line.id];if(!m)continue;
-    if(m.wordTiming==='aligned'&&m.words?.length){rows.push({line:line.id,status:'aligned'});continue;}
+    if(m.wordTiming==='aligned'&&m.words?.length){try{m.words=checkedWords(m.words,m.dur);rows.push({line:line.id,status:'aligned'});continue;}catch(e){m.alignmentWarning=e.message;}}
     m.wordTiming='energy-estimated';delete m.words;
     if(!disabled&&!unavailable)try {
       const transcribe=transcriber||(await import('./whisper.mjs')).transcribe;
@@ -25,7 +25,7 @@ export async function alignManifest(id,project,manifest,log,{transcriber,disable
       const words=checkedWords(tr.words,m.dur),script=tokens(line.text[project.language]),recognised=tokens(words.map(w=>w.text).join(' '));
       const matches=script.filter(t=>recognised.includes(t)).length;
       if(!script.length||matches/script.length<.65)throw new Error('Whisper/script mismatch; not marked aligned');
-      m.words=words;m.wordTiming='aligned';m.alignmentModel=tr.model;
+      m.words=words;m.wordTiming='aligned';m.alignmentModel=tr.model;delete m.alignmentWarning;
     } catch(e){m.alignmentWarning=String(e.message).slice(0,240);log.warn(`word alignment ${line.id}: ${m.alignmentWarning}; energy-estimated fallback`);if(!transcriber)unavailable=true;}
     rows.push({line:line.id,status:m.wordTiming,warning:m.alignmentWarning||(disabled?'Whisper disabled':unavailable?'Whisper unavailable':undefined)});
   }

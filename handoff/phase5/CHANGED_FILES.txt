@@ -22,6 +22,7 @@ engine/tools/whisper.mjs
 engine/tools/word-alignment.mjs
 handoff/phase5/CHANGED_FILES.txt
 handoff/phase5/REPORT.md
+handoff/phase5/evidence/alignment-status.json
 handoff/phase5/evidence/alignment.log
 handoff/phase5/evidence/mixer.log
 handoff/phase5/evidence/plan.json

@@ -6,7 +6,11 @@ import {ff} from './lib.mjs';
 import {decodeWav} from './speech-analysis.mjs';
 import {checkedWords} from './word-alignment.mjs';
 export async function transcribe(wavFile,{language='ru',model='Xenova/whisper-tiny',localOnly=true}={}) {
-  const {pipeline}=await import('@huggingface/transformers');
+  if(!localOnly)throw new Error('Whisper recognition is offline-only; prepare the model cache separately');
+  const {pipeline,env}=await import('@huggingface/transformers');
+  // Transformers v4 model-registry preflight may omit local_files_only. Enforce
+  // the offline boundary globally as well; Piper downloads are a separate API.
+  env.allowRemoteModels=false;
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'koveyer-whisper-'));
   try {
     const file=path.join(dir,'mono.wav');ff(['-i',wavFile,'-ac','1','-ar','16000','-c:a','pcm_s16le',file]);
