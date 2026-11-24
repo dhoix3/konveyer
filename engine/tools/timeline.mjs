@@ -69,13 +69,13 @@ function autoShots(sc, dur) {
   return shots;
 }
 
-export function buildPlan(id,{aspect}={}) {
+export function buildPlan(id,{aspect,projectOverride,persist=true,ignoreAudio=false}={}) {
   const dir = projectDir(id);
   const size=outputSize(aspect);
   const planDir=aspect?path.join(dir,'exports',aspect.replace(':','x')):dir;
-  const project = readJson(path.join(dir, 'project.json'));
+  const project = projectOverride||readJson(path.join(dir, 'project.json'));
   if(project.production?.kind==='season') throw new Error('Сезон — контейнер: выберите отдельный эпизод для таймлайна.');
-  const mf = readJson(path.join(dir, 'voice', 'manifest.json'), {source: 'none', lines: {}});
+  const mf = ignoreAudio?{source:'none',lines:{}}:readJson(path.join(dir, 'voice', 'manifest.json'), {source: 'none', lines: {}});
   const lang = project.language;
   const fps = FPS;
   const speechWarnings=[];
@@ -98,7 +98,7 @@ export function buildPlan(id,{aspect}={}) {
       if (file) usedFiles++;
       const dur = file ? m.dur : estimateLine(l.text[lang], l.voice, lang);
       let speech;
-      if(file)try{speech=analyzeAudio(path.resolve(dir,file),l.text[lang],{words:m.words,phonemes:m.phonemes});}catch(e){speechWarnings.push(`${l.id}: audio analysis unavailable; legacy lip sync fallback: ${e.message}`);}
+      if(file)try{speech=analyzeAudio(path.resolve(dir,file),l.text[lang],{words:m.words,phonemes:m.phonemes,wordTiming:m.wordTiming});}catch(e){speechWarnings.push(`${l.id}: audio analysis unavailable; legacy lip sync fallback: ${e.message}`);}
       const rs = {...l, speech, audioHash:file?fileSha(path.resolve(dir,file)):undefined, sceneStart: +c.toFixed(3), sceneEnd: +(c + dur).toFixed(3), file};
       starts[l.id] = rs.sceneStart;
       c += dur + (l.pause ?? GAP);
@@ -132,10 +132,11 @@ export function buildPlan(id,{aspect}={}) {
     speechWarnings, production: project.production, characters: project.characters, voices: project.voices, scenes, music: {mood: project.settings.music},
   };
   plan.hash = sha1({...plan, hash: undefined});
-  writeJson(path.join(planDir, 'plan.json'), plan);
+  if(persist){writeJson(path.join(planDir, 'plan.json'), plan);
   writeJson(path.join(planDir, 'timeline.json'), {
     fps, source: voiceSource, totalSec: plan.totalSec,
     scenes: scenes.map((s) => ({id: s.id, title: s.title, start: s.startSec, duration: s.durSec, startFrame: s.startFrame, frames: s.durFrames, lines: s.lines.map((l) => ({id: l.id, voice: l.voice, text: l.text[lang], start: +l.start.toFixed(3), end: +l.end.toFixed(3), file: l.file || null}))})),
   });
+  }
   return plan;
 }

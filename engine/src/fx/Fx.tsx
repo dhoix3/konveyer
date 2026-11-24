@@ -92,6 +92,8 @@ export const Grade: React.FC<{light: LightDef; time: string; t: number; pulse?: 
     sick: {shadow: 'rgba(20,50,30,0.5)', high: 'rgba(190,230,120,0.16)', tint: 'rgba(80,120,40,0.1)', sat: 0.85, con: 1.1},
     dawn: {shadow: 'rgba(40,40,90,0.4)', high: 'rgba(255,200,150,0.24)', tint: 'rgba(255,170,120,0.05)', sat: 1.08, con: 1.04},
     dusk: {shadow: 'rgba(40,16,70,0.44)', high: 'rgba(255,120,70,0.26)', tint: 'rgba(255,90,60,0.05)', sat: 1.15, con: 1.08},
+    sepia: {shadow:'rgba(62,39,17,.38)',high:'rgba(220,196,145,.2)',tint:'rgba(109,75,38,.12)',sat:.65,con:1.1},
+    silver: {shadow:'rgba(25,39,54,.42)',high:'rgba(207,219,223,.2)',tint:'rgba(55,76,85,.12)',sat:.75,con:1.1},
     space: {shadow: 'rgba(5,10,40,0.5)', high: 'rgba(120,200,255,0.15)', tint: 'rgba(0,20,60,0.1)', sat: 1.0, con: 1.14},
   };
   const m = map[g] || map.teal_orange;

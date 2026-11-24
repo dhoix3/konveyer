@@ -25,7 +25,7 @@ import {buildProject, generateIdeas, TEMPLATE_IDS, MUSIC_MOODS, LANGS, STYLES} f
 import {startUI} from './tools/ui.mjs';
 import {runVoice, resolveVoiceModel, allLines} from './tools/voice.mjs';
 import {buildPlan} from './tools/timeline.mjs';
-import {voiceById} from './src/lib/library.ts';
+import {LIB_CHARS,voiceById} from './src/lib/library.ts';
 import {runSound} from './tools/sound.mjs';
 import {qaPlan, qaMedia, writeReport} from './tools/qa.mjs';
 
@@ -473,6 +473,12 @@ async function cmdSmoke(id) {
   p.title={ru:'Smoke: карта, время, родословная',en:'Documentary smoke'};
   p.settings.duration=18;p.settings.voiceMode=args.voice||'tts';p.settings.music='none';
   p.scenes.forEach(s=>s.minDur=6);p.production.smoke=true;
+  if(args.extended){
+    const envs=['rus_market','rus_port','rus_scriptorium'];
+    p.characters=p.characters.map((c,i)=>({...c,...LIB_CHARS.find(x=>x.id===`ensemble${i+1}`),id:c.id,name:c.name,voice:c.voice}));
+    p.scenes.forEach((s,i)=>{s.env.id=envs[i];s.crowd={presets:['ensemble1','ensemble2','ensemble3','ensemble4'],count:6,depth:.65};s.transition={in:i?'wipe':'iris',out:'fade'};s.light.grade=['sepia','dawn','silver'][i];s.sfx=[{t:.2,kind:i===2?'page_turn':'bell',gain:.1}];});
+    p.settings.music='solemn';
+  }
   writeJson(path.join(dir,'project.json'),p);writeDocumentaryArtifacts(id,p);
   args.draft=true;args.concurrency=1;
   if(args['plan-only']){await cmdTimeline(id);await cmdQa(id);await cmdPublish(id);}

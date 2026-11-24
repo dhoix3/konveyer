@@ -1,3 +1,4 @@
+import {LIB_CHARS} from '../src/lib/library.ts';
 import {qaDocumentary} from './documentary.mjs';
 // QA stage: static checks on the plan (anatomy, contact, teleport, props, sync, duration) + checks on rendered media.
 import fs from 'node:fs';
@@ -38,6 +39,9 @@ export function qaPlan(id, plan) {
     if (sc.durFrames < 24) E(S, 'scene shorter than 1 second');
     if (!(sc.env.id in ENVS)) E(S, `unknown environment "${sc.env.id}"`);
     else if (ENVS[sc.env.id] < 2) E(S, `environment "${sc.env.id}" has fewer than 2 live details`);
+    if(sc.crowd) {
+      if(!Number.isInteger(sc.crowd.count)||sc.crowd.count<1||sc.crowd.count>24||!Array.isArray(sc.crowd.presets)||!sc.crowd.presets.length||sc.crowd.presets.some(id=>!LIB_CHARS.some(c=>c.id===id))||sc.crowd.depth<.2||sc.crowd.depth>1.5)E(S,'invalid crowd');
+    }
     // props
     const ids = new Set((sc.props || []).map((p) => p.id));
     for (const p of sc.props || []) {

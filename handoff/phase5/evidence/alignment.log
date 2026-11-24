@@ -1,0 +1,1 @@
+PASS injected Whisper exact timestamps -> aligned; no model/mismatch -> energy-estimated; clipped word offsets and mouth closure between aligned words

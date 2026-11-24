@@ -1,0 +1,863 @@
+{
+  "version": 1,
+  "schemaVersion": 2,
+  "projectHash": "842a3ce7fe155a89f1abe270d01e248c318ac910",
+  "voiceManifestHash": "070eb743bd1214e7202fffc4444fdb7c1a2c4a3d",
+  "id": "phase5-ensemble",
+  "language": "ru",
+  "title": {
+    "ru": "Smoke: карта, время, родословная",
+    "en": "Documentary smoke"
+  },
+  "fps": 24,
+  "width": 1920,
+  "height": 1080,
+  "aspect": "16:9",
+  "safeZone": {
+    "left": 153.6,
+    "right": 1766.4,
+    "top": 86.4,
+    "bottom": 907.1999999999999
+  },
+  "totalFrames": 432,
+  "totalSec": 18,
+  "voiceSource": "estimated",
+  "speechWarnings": [],
+  "production": {
+    "kind": "documentary",
+    "provider": "documentary-rules-v2",
+    "fiction": false,
+    "knowledge": {
+      "schemaVersion": 1,
+      "id": "rurikids",
+      "topic": "Рюриковичи",
+      "aliases": [
+        "Рюриковичи",
+        "Rurikids"
+      ],
+      "verification": "Offline authored; bibliography not checked online; no quotations",
+      "sources": [
+        {
+          "id": "pvl",
+          "title": "Повесть временных лет. Подготовка текста Д. С. Лихачёва; перевод Д. С. Лихачёва и Б. А. Романова. М.; Л.: АН СССР, 1950."
+        },
+        {
+          "id": "hypatian",
+          "title": "Полное собрание русских летописей. Т. 2: Ипатьевская летопись. 2-е изд. СПб., 1908. Запись под 6655 (1147) годом."
+        },
+        {
+          "id": "novgorod",
+          "title": "Новгородская первая летопись старшего и младшего изводов. Под ред. А. Н. Насонова. М.; Л.: АН СССР, 1950. Запись под 6750 (1242) годом."
+        },
+        {
+          "id": "franklin",
+          "title": "Simon Franklin, Jonathan Shepard. The Emergence of Rus 750–1200. Longman, 1996."
+        },
+        {
+          "id": "martin",
+          "title": "Janet Martin. Medieval Russia, 980–1584. 2nd ed. Cambridge University Press, 2007."
+        },
+        {
+          "id": "skrynnikov",
+          "title": "Р. Г. Скрынников. Иван Грозный. М.: Наука, 1975."
+        },
+        {
+          "id": "dunning",
+          "title": "Chester S. L. Dunning. Russia’s First Civil War: The Time of Troubles and the Founding of the Romanov Dynasty. Pennsylvania State University Press, 2001."
+        }
+      ],
+      "claims": [
+        {
+          "id": "treaty",
+          "text": "Повесть временных лет сохраняет текст договора Руси с Византией под 911 годом.",
+          "date": {
+            "value": "911",
+            "precision": "year"
+          },
+          "place": "Константинополь",
+          "status": "supported",
+          "sources": [
+            "pvl"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "origins",
+          "narration": "Летопись сохранила договор с Византией.",
+          "era": [
+            911,
+            911
+          ],
+          "person": "Олег"
+        },
+        {
+          "id": "moscow-line",
+          "text": "Василий III был сыном Ивана III и отцом Ивана IV; Фёдор Иванович был сыном Ивана IV.",
+          "narration": "Иван Четвёртый — внук Ивана Третьего и отец Фёдора.",
+          "date": {
+            "value": "XV–XVI века",
+            "precision": "range"
+          },
+          "place": "Москва",
+          "status": "supported",
+          "sources": [
+            "martin",
+            "dunning"
+          ],
+          "confidence": 0.9,
+          "needsReview": true,
+          "epoch": "tsardom",
+          "era": [
+            1460,
+            1598
+          ],
+          "person": "Василий III"
+        },
+        {
+          "id": "ivan4",
+          "text": "Иван IV венчался на царство в 1547 году.",
+          "date": {
+            "value": "1547",
+            "precision": "year"
+          },
+          "place": "Москва",
+          "status": "supported",
+          "sources": [
+            "skrynnikov"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "tsardom",
+          "narration": "Иван Четвёртый венчался на царство.",
+          "era": [
+            1547,
+            1547
+          ],
+          "person": "Иван IV"
+        }
+      ],
+      "causalLinks": []
+    },
+    "notes": [
+      "Offline authored; needsReview=true. Causal statements are claims, not generated conjecture."
+    ],
+    "smoke": true
+  },
+  "characters": [
+    {
+      "id": "historian0",
+      "name": {
+        "ru": "Рассказчик",
+        "en": "Рассказчик"
+      },
+      "role": "historical-support",
+      "shirt": "#704735",
+      "pants": "#3c3932",
+      "shoes": "#483c2d",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 0.74,
+      "build": "slim",
+      "eyes": "round",
+      "voice": "narrator",
+      "costume": "tunic",
+      "era": [
+        800,
+        1700
+      ],
+      "age": "child",
+      "hairStyle": "braid",
+      "headwear": "fur"
+    },
+    {
+      "id": "historian1",
+      "name": {
+        "ru": "Олег",
+        "en": "Олег"
+      },
+      "role": "historical-support",
+      "shirt": "#54736d",
+      "pants": "#3c3932",
+      "shoes": "#483c2d",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 0.91,
+      "build": "slim",
+      "eyes": "round",
+      "voice": "hero",
+      "costume": "cloak",
+      "era": [
+        800,
+        1700
+      ],
+      "age": "elder",
+      "hairStyle": "curly",
+      "headwear": "fur"
+    },
+    {
+      "id": "historian2",
+      "name": {
+        "ru": "Василий III",
+        "en": "Василий III"
+      },
+      "role": "historical-support",
+      "shirt": "#a58a4b",
+      "pants": "#3c3932",
+      "shoes": "#483c2d",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1.16,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "friend",
+      "costume": "chainmail",
+      "era": [
+        800,
+        1700
+      ],
+      "age": "adult",
+      "hairStyle": "bald",
+      "headwear": "fur"
+    },
+    {
+      "id": "historian3",
+      "name": {
+        "ru": "Иван IV",
+        "en": "Иван IV"
+      },
+      "role": "historical-support",
+      "shirt": "#676180",
+      "pants": "#3c3932",
+      "shoes": "#483c2d",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 0.86,
+      "build": "stocky",
+      "eyes": "round",
+      "voice": "doc",
+      "costume": "tunic",
+      "era": [
+        800,
+        1700
+      ],
+      "age": "adult",
+      "hairStyle": "long",
+      "headwear": "fur"
+    },
+    {
+      "id": "historian4",
+      "name": {
+        "ru": "Участник 4",
+        "en": "Участник 4"
+      },
+      "role": "historical-support",
+      "shirt": "#526947",
+      "pants": "#3c3932",
+      "shoes": "#483c2d",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 0.74,
+      "build": "slim",
+      "eyes": "round",
+      "voice": "boss",
+      "costume": "tunic",
+      "era": [
+        800,
+        1700
+      ],
+      "age": "child",
+      "hairStyle": "braid",
+      "headwear": "conical"
+    }
+  ],
+  "voices": [
+    {
+      "id": "narrator",
+      "label": {
+        "ru": "Диктор",
+        "en": "Narrator"
+      },
+      "gender": "male",
+      "ageRange": "35-50",
+      "timbre": "deep, warm baritone with slight rasp",
+      "speed": 0.94,
+      "intonation": "low, measured, rising tension toward the end of each paragraph",
+      "mood": "ominous curiosity",
+      "accent": {
+        "ru": "нейтральный русский",
+        "en": "neutral General American"
+      },
+      "delivery": {
+        "ru": "второе лицо, шёпот в тихих местах, паузы перед поворотами",
+        "en": "second person, near-whisper in quiet moments, pauses before twists"
+      },
+      "prompt": {
+        "ru": "Мужской голос, 35-50 лет, глубокий тёплый баритон с лёгкой хрипотцой, медленный темп (0.94x), документально-кинематографическая подача, сдержанное напряжение, паузы перед поворотами, обращение на «ты». Без пафоса и крика.",
+        "en": "Male voice, 35-50, deep warm baritone with a slight rasp, slow pace (0.94x), cinematic documentary delivery, restrained tension, pauses before twists, addressing the viewer as \"you\". No melodrama, never shouting."
+      },
+      "piper": {
+        "ru": "ru_RU-denis-medium",
+        "en": "en_US-ryan-medium",
+        "pitch": 0.9
+      }
+    },
+    {
+      "id": "hero",
+      "label": {
+        "ru": "Герой",
+        "en": "Hero"
+      },
+      "gender": "male",
+      "ageRange": "22-32",
+      "timbre": "light, slightly nasal tenor, youthful",
+      "speed": 1.04,
+      "intonation": "natural, expressive, breaks when afraid",
+      "mood": "confused, determined",
+      "accent": {
+        "ru": "нейтральный",
+        "en": "neutral American"
+      },
+      "delivery": {
+        "ru": "разговорно, живые эмоции",
+        "en": "conversational, lively emotion"
+      },
+      "prompt": {
+        "ru": "Молодой мужской голос 22-32 года, светлый тенор, живая разговорная подача, голос срывается на страхе, скорость 1.04x.",
+        "en": "Young male voice, 22-32, light tenor, lively conversational delivery, voice cracks when afraid, 1.04x speed."
+      },
+      "piper": {
+        "ru": "ru_RU-denis-medium",
+        "en": "en_US-ryan-medium",
+        "pitch": 1.1
+      }
+    },
+    {
+      "id": "friend",
+      "label": {
+        "ru": "Подруга",
+        "en": "Friend"
+      },
+      "gender": "female",
+      "ageRange": "22-32",
+      "timbre": "bright, clear mezzo",
+      "speed": 1.08,
+      "intonation": "quick, bright, warm",
+      "mood": "worried, supportive",
+      "accent": {
+        "ru": "нейтральный",
+        "en": "neutral American"
+      },
+      "delivery": {
+        "ru": "быстро и тепло",
+        "en": "quick and warm"
+      },
+      "prompt": {
+        "ru": "Женский голос 22-32 года, яркое чистое меццо, быстрый тёплый темп 1.08x, заботливая интонация.",
+        "en": "Female voice, 22-32, bright clear mezzo, quick warm pace 1.08x, caring intonation."
+      },
+      "piper": {
+        "ru": "ru_RU-irina-medium",
+        "en": "en_US-amy-medium",
+        "pitch": 1
+      }
+    },
+    {
+      "id": "doc",
+      "label": {
+        "ru": "Эксперт",
+        "en": "Expert"
+      },
+      "gender": "male",
+      "ageRange": "50-65",
+      "timbre": "dry, gravelly bass-baritone",
+      "speed": 0.92,
+      "intonation": "precise, lecturing, dry humor",
+      "mood": "calm, concerned",
+      "accent": {
+        "ru": "интеллигентный",
+        "en": "light British"
+      },
+      "delivery": {
+        "ru": "академично, с паузами",
+        "en": "academic, with pauses"
+      },
+      "prompt": {
+        "ru": "Мужской голос 50-65 лет, сухой с хрипотцой, академичная точная подача, темп 0.92x.",
+        "en": "Male voice 50-65, dry and gravelly, precise academic delivery, 0.92x pace."
+      },
+      "piper": {
+        "ru": "ru_RU-denis-medium",
+        "en": "en_US-ryan-medium",
+        "pitch": 0.82
+      }
+    },
+    {
+      "id": "boss",
+      "label": {
+        "ru": "Шеф",
+        "en": "Boss"
+      },
+      "gender": "male",
+      "ageRange": "40-55",
+      "timbre": "firm, commanding baritone",
+      "speed": 1,
+      "intonation": "clipped, authoritative",
+      "mood": "stern",
+      "accent": {
+        "ru": "деловой",
+        "en": "corporate American"
+      },
+      "delivery": {
+        "ru": "отрывисто, командно",
+        "en": "clipped, commanding"
+      },
+      "prompt": {
+        "ru": "Мужской голос 40-55 лет, твёрдый командный баритон, отрывистая подача.",
+        "en": "Male voice 40-55, firm commanding baritone, clipped delivery."
+      },
+      "piper": {
+        "ru": "ru_RU-denis-medium",
+        "en": "en_US-ryan-medium",
+        "pitch": 0.95
+      }
+    }
+  ],
+  "scenes": [
+    {
+      "kind": "story",
+      "transition": {
+        "in": "iris",
+        "out": "fade"
+      },
+      "musicLevel": 0.6,
+      "minDur": 6,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "scroll",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [
+        {
+          "t": 0.2,
+          "kind": "bell",
+          "gain": 0.1
+        }
+      ],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian1",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 3,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s01_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Летопись сохранила договор с Византией.",
+            "en": "Летопись сохранила договор с Византией."
+          },
+          "claimIds": [
+            "treaty"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.772,
+          "start": 0.7,
+          "end": 3.772
+        }
+      ],
+      "fx": [],
+      "id": "s01",
+      "title": {
+        "ru": "origins",
+        "en": "origins"
+      },
+      "env": {
+        "id": "rus_market",
+        "time": "day"
+      },
+      "era": [
+        911,
+        911
+      ],
+      "claimIds": [
+        "treaty"
+      ],
+      "doc": {
+        "mode": "map",
+        "chapter": "Как менялась власть Рюриковичей?",
+        "name": "Олег / Василий III / Иван IV / Участник 4",
+        "years": "911",
+        "sources": "pvl",
+        "status": "supported",
+        "labels": [
+          "Константинополь"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "sepia"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian1",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian2",
+          "x": 1110,
+          "facing": "l"
+        },
+        {
+          "char": "historian3",
+          "x": 1370,
+          "facing": "l"
+        },
+        {
+          "char": "historian4",
+          "x": 1630,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "crowd": {
+        "presets": [
+          "ensemble1",
+          "ensemble2",
+          "ensemble3",
+          "ensemble4"
+        ],
+        "count": 6,
+        "depth": 0.65
+      },
+      "index": 0,
+      "startSec": 0,
+      "durSec": 6,
+      "startFrame": 0,
+      "durFrames": 144
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "wipe",
+        "out": "fade"
+      },
+      "musicLevel": 0.6,
+      "minDur": 6,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "round_shield",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [
+        {
+          "t": 0.2,
+          "kind": "bell",
+          "gain": 0.1
+        }
+      ],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian2",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 3,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s02_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Иван Четвёртый — внук Ивана Третьего и отец Фёдора.",
+            "en": "Иван Четвёртый — внук Ивана Третьего и отец Фёдора."
+          },
+          "claimIds": [
+            "moscow-line"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 4.671,
+          "start": 6.7,
+          "end": 10.671
+        }
+      ],
+      "fx": [],
+      "id": "s02",
+      "title": {
+        "ru": "tsardom",
+        "en": "tsardom"
+      },
+      "env": {
+        "id": "rus_port",
+        "time": "day"
+      },
+      "era": [
+        1460,
+        1598
+      ],
+      "claimIds": [
+        "moscow-line"
+      ],
+      "doc": {
+        "mode": "timeline",
+        "chapter": "Царство и конец московской линии",
+        "name": "Василий III / Олег / Иван IV / Участник 4",
+        "years": "XV–XVI века",
+        "sources": "martin, dunning",
+        "status": "supported",
+        "labels": [
+          "XV–XVI века: Москва"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "dawn"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian2",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian1",
+          "x": 1110,
+          "facing": "l"
+        },
+        {
+          "char": "historian3",
+          "x": 1370,
+          "facing": "l"
+        },
+        {
+          "char": "historian4",
+          "x": 1630,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "crowd": {
+        "presets": [
+          "ensemble1",
+          "ensemble2",
+          "ensemble3",
+          "ensemble4"
+        ],
+        "count": 6,
+        "depth": 0.65
+      },
+      "index": 1,
+      "startSec": 6,
+      "durSec": 6,
+      "startFrame": 144,
+      "durFrames": 144
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "wipe",
+        "out": "fade"
+      },
+      "musicLevel": 0.6,
+      "minDur": 6,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "scroll",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [
+        {
+          "t": 0.2,
+          "kind": "page_turn",
+          "gain": 0.1
+        }
+      ],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian3",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 3,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s03_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Иван Четвёртый венчался на царство.",
+            "en": "Иван Четвёртый венчался на царство."
+          },
+          "claimIds": [
+            "ivan4"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.472,
+          "start": 12.7,
+          "end": 15.472
+        }
+      ],
+      "fx": [],
+      "id": "s03",
+      "title": {
+        "ru": "tsardom",
+        "en": "tsardom"
+      },
+      "env": {
+        "id": "rus_scriptorium",
+        "time": "day"
+      },
+      "era": [
+        1547,
+        1547
+      ],
+      "claimIds": [
+        "ivan4",
+        "moscow-line"
+      ],
+      "doc": {
+        "mode": "tree",
+        "chapter": "Итог: московская линия, не весь род",
+        "name": "Иван IV / Олег / Василий III / Участник 4",
+        "years": "1547",
+        "sources": "skrynnikov",
+        "status": "supported",
+        "labels": [
+          "Иван III",
+          "Василий III",
+          "Иван IV",
+          "Фёдор Иванович"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "silver"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian3",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian1",
+          "x": 1110,
+          "facing": "l"
+        },
+        {
+          "char": "historian2",
+          "x": 1370,
+          "facing": "l"
+        },
+        {
+          "char": "historian4",
+          "x": 1630,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "crowd": {
+        "presets": [
+          "ensemble1",
+          "ensemble2",
+          "ensemble3",
+          "ensemble4"
+        ],
+        "count": 6,
+        "depth": 0.65
+      },
+      "index": 2,
+      "startSec": 12,
+      "durSec": 6,
+      "startFrame": 288,
+      "durFrames": 144
+    }
+  ],
+  "music": {
+    "mood": "solemn"
+  },
+  "hash": "1a0c5d8bbce96f3bcdfcd87e6522348a644cb1e0"
+}

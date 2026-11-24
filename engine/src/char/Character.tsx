@@ -181,7 +181,7 @@ const Face: React.FC<FaceProps> = ({def, sk, fx, face, blink, closed, look, talk
   );
 };
 
-const Accessory: React.FC<{def: CharacterDef; fx: number; R: number; t: number}> = ({def, fx, R, t}) => {
+const LegacyAccessory: React.FC<{def: CharacterDef; fx: number; R: number; t: number}> = ({def, fx, R, t}) => {
   const col = def.accessoryColor || '#c5502b';
   const f = fx;
   switch (def.accessory) {
@@ -217,6 +217,20 @@ const Accessory: React.FC<{def: CharacterDef; fx: number; R: number; t: number}>
     default:
       return null;
   }
+};
+
+const Accessory: React.FC<{def:CharacterDef;fx:number;R:number;t:number}> = p => {
+  const {def,R}=p,col=def.accessoryColor||'#69513c';
+  return <><LegacyAccessory {...p}/>
+    {def.hairStyle==='braid' && <path d={`M${-R*.8} 0 Q${-R*1.3} ${R} ${-R*.8} ${R*1.8}`} fill="none" stroke={col} strokeWidth={R*.3} strokeDasharray="5 2"/>}
+    {def.hairStyle==='curly' && [-.7,-.35,0,.35,.7].map((x,i)=><circle key={i} cx={x*R} cy={-R*.8-Math.sin(i)*R*.2} r={R*.32} fill={col}/>)}
+    {def.hairStyle==='long' && <path d={`M${-R} ${R*.7} V${-R*.6} Q0 ${-R*1.7} ${R} ${-R*.6} V${R*.7}`} fill="none" stroke={col} strokeWidth={R*.25}/>}
+    {def.headwear==='fur' && <rect x={-R*1.1} y={-R*1.25} width={R*2.2} height={R*.65} rx={R*.2} fill="#554739"/>}
+    {def.headwear==='conical' && <path d={`M${-R} ${-R*.5} L0 ${-R*1.9} L${R} ${-R*.5}Z`} fill="#a7aba5" stroke="#3a3e3c" strokeWidth={2}/>}
+    {def.headwear==='veil' && <path d={`M${-R*1.15} ${R*.8} V${-R*.5} Q0 ${-R*1.6} ${R*1.15} ${-R*.5} V${R*.8}`} fill="none" stroke="#c2b8a1" strokeWidth={R*.3}/>}
+    {def.headwear==='hood' && <path d={`M${-R*1.15} ${R*.4} Q${-R*1.5} ${-R*1.6} 0 ${-R*1.4} Q${R*1.5} ${-R*1.6} ${R*1.15} ${R*.4}`} fill="none" stroke={def.shirt} strokeWidth={R*.3}/>}
+    {def.age==='elder' && <path d={`M${-R*.7} ${R*.2} h${R*.3} M${R*.4} ${R*.2} h${R*.3}`} stroke="#80766c" strokeWidth={1.5}/>}
+  </>;
 };
 
 export interface CharacterProps {

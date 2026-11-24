@@ -1,3 +1,4 @@
+import {Crowd} from '../char/Crowd.tsx';
 import {viewport} from '../lib/viewport.ts';
 import {mouthAt} from '../lib/lipsync.ts';
 import {DocumentaryGraphics} from '../doc/DocumentaryGraphics.tsx';
@@ -226,7 +227,9 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
   const outT = scene.transition?.out ?? 'cut';
   const fadeIn = inT === 'cut' ? 0 : 1 - smooth(frame / (inT === 'dip' ? 8 : 14));
   const fadeOut = outT === 'cut' ? 0 : smooth((frame - (dF - (outT === 'dip' ? 8 : 14))) / (outT === 'dip' ? 8 : 14));
-  const black = Math.max(fadeIn, fadeOut, cam.black);
+  const black = Math.max(['wipe','iris'].includes(inT)?0:fadeIn,['wipe','iris'].includes(outT)?0:fadeOut,cam.black);
+  const reveal=inT==='wipe'?Math.min(1,t/.6):inT==='iris'?Math.min(1,t/.7):1;
+  const conceal=outT==='wipe'||outT==='iris'?Math.max(0,1-(scene.durSec-t)/.6):0;
 
   const sorted = [...chars];
   return (
@@ -237,6 +240,7 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
             {layers.map((l) => (
               <g key={l.key} transform={`translate(${(cam.cx - 960) * (1 - l.depth)},${(cam.cy - 540) * (1 - l.depth) * 0.5})`}>{l.node}</g>
             ))}
+            <g transform={`translate(${(cam.cx-WORLD.w/2)*(1-(scene.crowd?.depth||.7))},0)`}><Crowd scene={scene} t={t}/></g>
             {propNodes.filter((p) => p && p.layer === 'back').map((p) => p!.node)}
             {sorted.map((c) => (
               <Character
@@ -274,6 +278,8 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
       {!isTitle && scene.overlay?.type === 'question' && <Question text={scene.overlay.text[lang]} t={t} t0={scene.overlay.t} dur={scene.durSec} />}
       {subtitles && !isTitle && <Subtitles scene={scene} t={t} lang={lang} fps={fps} />}
       <Letterbox bar={plan.width/plan.height>1.5?WORLD.bar*plan.height/WORLD.h:0} />
+      {(inT==='wipe'||outT==='wipe') && <AbsoluteFill style={{background:'#000',clipPath:`inset(0 0 0 ${(1-Math.max(1-reveal,conceal))*100}%)`,opacity:Math.max(1-reveal,conceal)>0?1:0,pointerEvents:'none'}}/>}
+      {(inT==='iris'||outT==='iris') && <AbsoluteFill style={{background:`radial-gradient(circle, transparent ${Math.max(0,Math.min(reveal,1-conceal))*100}%, #000 101%)`,opacity:reveal<1||conceal>0?1:0,pointerEvents:'none'}}/>}
       <AbsoluteFill style={{background: '#000', opacity: black, pointerEvents: 'none'}} />
     </AbsoluteFill>
   );
