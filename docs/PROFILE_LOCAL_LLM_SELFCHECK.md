@@ -75,8 +75,10 @@ bound. The pipeline still never cuts speech to force duration.
 
 A maximum of 2 repair requests (3 attempts total) includes validator errors. Invalid
 JSON, role changes, oversized timing and QA errors fail visibly without replacing
-an existing project. Successful existing-project edits save history/pre-llm-*.json;
-use the ordinary history/restore CLI (separate from editor undo). New output carries
+an existing project. Successful existing-project edits save history/pre-llm-*.json
+as an additional archival copy; atomic writing also saves ordinary project-*.json
+preimages. The history/restore CLI lists/restores those ordinary snapshots (not
+the separately named pre-llm files); editor undo is separate. New output carries
 needsReview=true. Meaning/style cannot be proved by a schema: human review remains
 required, especially fiction dialogue edits.
 

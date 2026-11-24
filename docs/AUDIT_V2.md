@@ -1,210 +1,80 @@
-# Capital V2 — аудит, решения и журнал фаз
+# Самоаудит фаз 0–8 перед PR
 
-Дата: 2026-11-23. Исходный HEAD: 21cfec9. Рабочая ветка сессии:
-`arena/348fe030-konveyer`; создание запрошенной `arena/capital-v2` запрещено
-ограничением платформы. Push не выполняется.
+База: `21cfec9cd4c4a66b8f79b77eaa016bee72699a52`. Ветка:
+`arena/348fe030-konveyer`. Все фазы приняты заказчиком; это не снимает ограничений
+проверки. Ниже «выполнено» относится к указанному контракту/тесту, не подразумевает
+настоящий MP4. «Частично» = код есть, существенная проверка/полнота отсутствует.
+Пробелы не скрыты: [KNOWN_GAPS](KNOWN_GAPS.md). Новых функций при закрытии не добавлено.
 
-## Правило приёмки
+Пути `tools/`, `tests/`, `src/` ниже относительно `engine/`. Итоговая таблица запуска:
+`handoff/final/evidence/COMMANDS.md`, точный проверенный HEAD — evidence/summary.json.
 
-План не является реализацией. Завершённость каждой фазы отмечается отдельно.
-Критерии исторического фильма, липсинка, новых форматов и LLM не считаются
-выполненными от наличия документации, JSON или старого пробного MP4.
-
-## Фаза 0: исходные наблюдения (строки до исправлений V2)
-
-| Наблюдение | Проверка по коду | Вывод |
+| Фаза / критерий | Статус | Доказательство и граница |
 |---|---|---|
-| Рот не связан с WAV | Character.tsx:147, SceneRenderer.tsx:133–136 | Подтверждено: бинарный talk и sin(t*22); фонем/огибающей нет. |
-| Размер кадра фиксирован | Fx.tsx:9,24,34,46,57; SceneRenderer.tsx:229; Root.tsx:34–58; PoseSheet.tsx:28 | Подтверждено частично: Scene composition уже читает plan.width/height, но world/camera/FX фиксированы, Film metadata размер не меняет. |
-| Нет publishing package | render.mjs:411 и timeline.mjs:122–133 | Нет команд SRT/VTT/ASS, обложки, PUBLISH.md, GIF/contact sheet. Встроенные субтитры есть в Hud.tsx. |
-| Мало пресетов | library.ts; script.mjs:10–19; envs.tsx:19–435; props.tsx:33–355 | 7 characters, 6 voice roles, 4 selectable styles, 6 moods, 28 props; 10 story environments + void. Grade в Fx.tsx уже содержит 8 вариантов: не путать с четырьмя GUI styles. Модель Denis/ryan зависит от языка, а не ровно одна на все языки. |
-| Документалистика | production.mjs:10,41–51,66–80,120–145 | Без claims фактов нет (это правильно); исторический профиль использует office/street/city, нет era/claim id QA, knowledge/, src/doc/. Всегда четыре группы сцен; cast ограничен тремя. |
-| Провайдер | production.mjs:61–108; script/story.mjs | Только local-rules-v1, без LLM. Уже есть точка внедрения provider. |
-| Редактор/версии | ui.mjs:524–530, lib.mjs:69–74 | Есть preview, нет редактирования/undo/history. JSON через один .tmp + rename, без снимка и fsync. |
-| GUI security | ui.mjs:199–205,546–551,632 | 0.0.0.0, нет аутентификации; Origin только POST и только при наличии; body.length считает UTF-16, не байты, split UTF-8 chunks повреждаются. |
-| CI/EOL | git ls-files и скан текстовых файлов | CI/.gitattributes отсутствовали. В этом checkout CRLF/голых CR не найдено: смешение не воспроизведено, массово менять файлы незачем. Добавлена политика EOL отдельным коммитом 58b8713. |
-| Производительность | render.mjs:157–160; mixer.py:194–234,259–296 | Есть worker=1 при RAM<12GB, время отдельных сцен и кеш, но нет --profile/ETA/background cache. 4–6 fps не измерялось здесь: это не гарантированная скорость. Mixer держит полные массивы, 180s повышает RAM. |
-| Сезоны | series.mjs:10–24,31–41 | Поочерёдная запись в конечные каталоги, нет транзакции/recovery/stale-context. |
-| Установка | render.mjs:349–364; browser.mjs; lib.mjs:221–250 | Doctor только диагностика; браузер уже выбирается без обязательной загрузки. Piper окружения сохраняются. setup.ps1/start.bat отсутствуют. |
+| 0: исходный аудит и план | выполнено | Этот файл; legacy baseline `projects/examples/demo-no-sleep/`; история checkpoint 12e3f3c сохраняет принятые 0–4 |
+| 0: LF/Windows scripts, Linux CI | выполнено | `.gitattributes`, `.github/workflows/ci.yml`; чистые npm/test/typecheck/syntax в final/evidence |
+| 0: удалённый CI | не выполнено | Push не разрешён; workflow только локально воспроизведён (G1) |
+| 1: GUI loopback, внешняя авторизация, Host/Origin, byte limit | выполнено | tools/ui-security.mjs, tests/reliability.mjs; не публичный web-service |
+| 1: schemaVersion/migrations, старые проекты | выполнено | tools/storage.mjs; tests/reliability.mjs; final old-project timeline/QA, исходный JSON неизменён |
+| 1: atomic JSON/history/restore, locks/fingerprints | выполнено | tools/storage.mjs, project-lock.mjs; tests/reliability.mjs/runtime.mjs |
+| 1: journal/recovery сезона и stale context | выполнено | tools/series.mjs; tests/reliability.mjs/production.mjs; не multi-directory ACID |
+| 1: doctor --fix / Windows launchers | частично | engine/setup.ps1, start.bat, tools/environment.mjs; modeled Windows paths tested, Windows run нет (G2) |
+| 2: офлайн lookup/research, schema/sources/status/confidence | выполнено | tools/knowledge.mjs, knowledge/rurikids.json; tests/documentary.mjs |
+| 2: Рюриковичи, 120s, 25 claims, dispute/review markers | выполнено | final new→research→timeline→qa; all 25 needsReview=true; evidence/summary.json |
+| 2: независимая проверка исторических фактов/библиографии | не выполнено | knowledge/rurikids.json: verification + needsReview; требуется историк/источники (G3) |
+| 2: claimIds каждой реплики, era/costume/props, coverage | выполнено | tools/documentary.mjs qaDocumentary; tests/documentary.mjs; final все 25 реплик связаны с известными claims |
+| 2: семантическая истинность и все legacy documentary ветви | частично | claim-fidelity.mjs — lexical QA; production.brief не исследовательский provider (G4) |
+| 2: карты/таймлайн/генеалогия, ≥4 characters+narrator | частично | src/doc/DocumentaryGraphics.tsx, documentary.mjs, tests/documentary.mjs; структурно есть, графика не просмотрена (G5) |
+| 2: длинная история → epoch splitting, без обрезки фактов | выполнено | render.mjs cmdResearch, documentary.mjs; tests/documentary.mjs |
+| 3: RIFF/RMS, рот закрывается в паузах | выполнено | tools/speech-analysis.mjs, src/char/lipsync.ts; tests/speech.mjs/alignment.mjs synthetic PCM |
+| 3: Whisper word timestamps aligned / energy-estimated | частично | word-alignment.mjs, whisper.mjs; injected aligned и actual missing-cache zero-fetch tests; real inference нет (G6) |
+| 3: visemes/фонемы и естественная артикуляция | частично | optional provided timing в speech-analysis/lipsync; Piper phoneme extraction/визуальная проверка отсутствуют (G6) |
+| 3: RU/EN textnorm, historical names/roman numerals, prosody cache | выполнено | tools/textnorm.py/voice-registry.mjs/voice.mjs; tests/speech.mjs; не полный морфоанализатор |
+| 3: голоса/Denis и слышимый lip-sync | частично | voice registry реализован, реальный Piper/Denis не запускался (G6) |
+| 3: SRT/VTT/ASS, readability/overflow QA | выполнено | tools/subtitles.mjs, tests/speech.mjs/formats.mjs; визуальная читаемость требует кадра |
+| 4: viewport 16:9/9:16/1:1, isolated cache/export | выполнено | src/lib/viewport.ts, tools/timeline.mjs, tests/formats.mjs |
+| 4: safe-zone/обложка/chapters/publishing | частично | tools/publishing.mjs, tests/formats.mjs; schematic vs real distinction, реальные aspect/cover кадры не проверены (G5) |
+| 4: реальный contact sheet/preview film | частично | publish создаёт маркированные SVG-схемы; реальный кадр только при наличии видео; автоматический GIF не реализован (G5) |
+| 5: ≥20 chars, body/age/hair/headwear/clothes, общий скелет | выполнено | src/lib/library.ts:27; src/char/Character.tsx/Crowd.tsx; tests/diversity.mjs bone checks |
+| 5: массовка, deep parallax, переходы | частично | Crowd, envs, SceneRenderer; extended plan smoke, без визуального контроля движения/перекрытий (G5) |
+| 5: дополнительные general environments | выполнено | src/bg/envs.tsx:19 general +20 historical; tests/phase78.mjs QA всех 8 добавленных общих сетов |
+| 5: ≥8 styles, music moods/SFX | выполнено | script.mjs:10 styles/10 moods; Fx.tsx/mixer.py; diversity tests + handoff/phase5/evidence/ NumPy probes; не listening approval |
+| 5: no static >4s / неизменная анатомия | частично | shots/bone tests PASS; реальный freezedetect/визуальное качество пока нет (G5) |
+| 6: сцены, реплики/длительность/env/cast/camera, QA | выполнено | editor.mjs/editor-page.mjs; tests/editor.mjs live HTTP |
+| 6: history undo/redo после restart, revision/lock conflicts | выполнено | tests/editor.mjs, persisted editor history; separate ordinary project snapshots |
+| 6: frame preview | частично | schematic и Chrome job + metadata checks реализованы; real PNG нет (G5) |
+| 6: documentary wizard topic→materials→claims→script→render | частично | live HTTP preview-no-write/commit/QA tests; браузерная usability не проверена (G7) |
+| 6: RU/EN и preflight time/RAM | частично | editor-page.mjs/editor.mjs; controls tested; raw diagnostics не переводятся, оценки эвристические (G7/G8) |
+| 7: стадии/сцены/кадры, peak memory, estimate, time report | частично | tools/profile.mjs/render.mjs; plan stage timings/failure tests; full-frame still mode, video only slowestFrames, sampled tree RSS (G8) |
+| 7: статический предрендер с pixel equivalence | не выполнено | --prerender-static отклоняется; OFF, goldens не сравнивались; безопасно оставить OFF (G9) |
+| 8: opt-in loopback Ollama/OpenAI, strict JSON/repair | выполнено | llm-local.mjs, schemas/llm-dialogue.schema.json, tests/phase78.mjs stub |
+| 8: roles/topology/timing/claims, default rules без модели | выполнено | tests/phase78.mjs (включая CLI success/history и failure-no-overwrite); doc verbatim allowlist |
+| 8: настоящее model inference/качество и широкий генератор | частично | adapter только редактирует существующие реплики; реальной модели нет (G10) |
+| Selfcheck: версии/doctor/smoke/timings/ZIP | выполнено | selfcheck.mjs/zip.mjs; final/evidence/19-selfcheck.log, CRC/Unicode tests |
+| Selfcheck: 6–8 реальных frames / successful Windows bundle | частично | код извлекает 8 PNG из успешного draft; здесь complete=false/frames=0 (G2/G5) |
+| Сквозная чистая установка/регрессии/структура | выполнено | final/evidence/COMMANDS.md + summary.json; npm ci c ONNXRUNTIME_NODE_INSTALL=skip явно зафиксирован |
+| Секреты/модели/media и portable delivery | выполнено | final/evidence/RISK_SCAN.json, .gitignore/.gitattributes, final/SHA256SUMS; ограничение сигнатурного скана оговорено |
 
-Все пути в таблице, кроме Git/EOL, относительно engine/. Это аудит архитектуры
-и конкретных проверяемых мест, не обещание визуальной проверки каждой ветви SVG.
+## Ошибка предварительного запуска (не скрыта)
 
-## Дополнительно найдено
+Первая проверка экспортировала WHATIF_PROJECTS/OUTPUT и для npm test. Старый topics
+suite читает fixtures из checkout/projects, тогда как CLI унаследовал другой путь:
+ENOENT. Это ошибка изоляции final verify harness, не объявлена успешной. Для npm
+test внешние overrides сняты; последовательные CLI-пробы используют отдельный
+verification-data/. Предварительный лог сохранён отдельно в final/preliminary-evidence/.
+Финальная проверка выполняется в новом чистом клоне финального HEAD.
 
-- qa.mjs:151–154: blackdetect/freezedetect через allowFail без проверки exit status.
-  При отсутствии null video encoder FFmpeg проверка может молча не выполниться.
-- whisper.mjs:14: WAV data ищется через indexOf('data'), а не разбор RIFF chunks;
-  ложный маркер/неполный WAV не отклоняется надёжно.
-- lib.mjs:60–66: readJson с fallback скрывает повреждение JSON так же, как отсутствие.
-- lib.mjs:91: ошибка записи журнала проглатывается.
-- project-lock.mjs:15–25: stale-lock recovery имеет TOCTOU и основан только на PID;
-  PID reuse может вызвать консервативную блокировку. Не считать это транзакцией.
-- ui.mjs:565: синхронный doctor на HTTP-потоке блокирует другие запросы до 30 секунд.
-- production.mjs:45–47: ошибки claims не содержат индекс; отсутствующий sources
-  путается с неизвестным id. Нужны человекочитаемые сообщения мастера материалов.
-- Большой scope: >=4 characters исторического фильма против нынешнего max=3;
-  нужно отдельное правило historical cast, не ломая legacy UI 1–3.
-- Смена выходного размера требует менять и qaMedia, и camera world-to-screen,
-  а не просто поля width/height.
+## История без переписывания
 
-## План и зависимости
+Никаких rebase/squash/reset/force push/branch switch. Можно **описательно** сгруппировать:
+1. 12e3f3c — accepted-state checkpoint фаз0–4 (в этой Git-истории это один коммит;
+   оригинальные phase2/3/4 patchsets сохранены отдельно, не применять вдобавок к нему).
+2. 6161273 + 9ccad73 + d6f2382 — Whisper/alignment/offline/caption safeguards.
+3. ca186d1 + 0d2fab0 — phase5 ensemble и закрытие general environments.
+4. 7c2067e — phase6 editor/wizard.
+5. 1a23127 — phase7/8 + selfcheck.
+6. Финальный closing commit — только актуализация документов/ignore/передача.
 
-0. EOL и Linux CI; baseline tests. (Завершено локально.)
-1. Secure GUI, bounded byte body; snapshots/migrations/restore; journaled season
-   publication/recovery, stale context; неразрушающий doctor --fix и Windows launchers.
-2. Knowledge schema, evidence/source QA и проверенный исторический пакет;
-   historical asset vocabulary + documentary graphics; research/epoch splitting.
-3. WAV amplitude envelope, mouth closure, real-audio tests; textnorm coverage;
-   voice registry; SRT/VTT/ASS.
-4. Resolution-independent viewport + safe zones; publishing package.
-5. Art expansion на прежнем скелете и movement QA.
-6. Scene editor/history UI, materials wizard, RU/EN, очередь и preflight estimates.
-7. Профиль и визуальные goldens до/после оптимизации.
-8. Выключенный по умолчанию локальный LLM adapter, строгий evidence boundary.
-
-## Риски/допущения
-
-- Офлайн-база обязательна; doctor --fix не скачивает модели и не переустанавливает
-  окружения. Недостающие бинарные зависимости — конкретный внешний блокер
-  проверки рендера/TTS, а не основание отключать проверки.
-- Сезон из нескольких sibling directories не может появиться целиком одним rename:
-  нужна staging area + журнал + идемпотентное завершение после сбоя. Нельзя обещать
-  multi-directory ACID. До финальной parent publication эпизоды не должны запускаться.
-- Снимки ограничиваются по количеству, не удаляют пользовательские проекты/экспорты.
-- Для LAN нужен TLS reverse proxy/доверенная сеть: bearer-token поверх HTTP
-  не шифрует трафик. GUI не является публичным multi-user сервисом.
-- Исторические данные, подготовленные ИИ, требуют needsReview=true и ручной проверки
-  источников, особенно спорные ранние даты/родословные. Пока пакет не создан.
-
-## Проверки фазы 0
-
-- npm ci --ignore-scripts: PASS (295 packages); npm test: PASS;
-  npm run typecheck: PASS на Node 22.22.3/Linux.
-- В CI используется обычный npm ci с ONNXRUNTIME_NODE_INSTALL=skip — это штатная
-  опция bundled CPU runtime, исключающая скачивание CUDA из NuGet. Локальная
-  репетиция этого режима будет записана отдельно.
-- GitHub Actions добавлен, но удалённый запуск не выполнен: push отсутствует.
-- Скан git-tracked текстов: CRLF не найдено, renormalize не изменил исходники.
-- Реальных новых рендеров в фазе 0 нет. Старые результаты из DIAGNOSTICS.md
-  исторические и не считаются проверкой Capital V2.
-
-## Фаза 1 — реализовано и проверено локально
-
-- GUI по умолчанию 127.0.0.1. Внешний bind требует KOVEYER_GUI_TOKEN
-  (32–256 URL-safe символов); Host/Origin/Sec-Fetch-Site проверяются также для GET.
-  POST принимает application/json; предел 1 MiB считается в байтах. Токен нельзя
-  помещать в URL; LAN HTTP не шифрует его, необходима доверенная сеть/TLS proxy.
-- project/plan schemaVersion=2: additive migration старых документов, временный
-  файл + fsync + rename, до 20 pre-image snapshots каждого типа. CLI history/restore
-  и GUI «История»; восстановление само сохраняет предыдущую версию.
-- Сезоны: staging + журнал, parent публикуется последним; повтор recover идемпотентен,
-  конфликт с изменённым эпизодом не перезаписывается. Это не multi-directory ACID.
-  Изменение исхода помечает последующие контексты stale; нужна явная episode --force.
-- Внешние project locks учитывают legacy lock. Короткая mkdir-guard сериализует
-  захват/очистку stale PID, устраняя гонку удаления нового lock двумя reclaimers.
-  При аварии именно внутри захвата guard остаётся: fail-closed, а не небезопасное
-  автоматическое удаление. После остановки всех процессов оператор может удалить
-  только пустой projects/.locks/<id>.acquiring. Проекты/экспорты не удалять.
-- setup.ps1/start.bat и doctor --fix не переустанавливают существующий Piper/Denis;
-  сохраняются только найденные пути в ignored local-environment.json.
-
-Проверки Linux: npm test (включая tests/reliability.mjs), typecheck, node --check,
-Python py_compile, git diff --check PASS. Новые тесты: UTF-8 split/byte overflow,
-Host/Origin/auth/cookie/content-type, реальный GUI restore subprocess, история и
-ошибка rename, повреждённый JSON, прерванный сезон/повтор/conflict/stale regeneration.
-Windows launchers только прочитаны, не исполнены на Windows. Реальный doctor --fix
-вернул exit 1: numpy/Piper/Denis/Chrome здесь отсутствуют; ничего не скачано.
-Удалённый CI не запускался. Фазы 2–8 и новые реальные видео ещё не выполнены.
-
-## Фаза 2 — статическая приёмка
-
-Реализованы offline knowledge validator/research, пакет Рюриковичей (25 claims,
-все needsReview=true, спорные ранние сведения disputed), documentary-rules-v2,
-эпохальные главы/связанные с claims реплики, 10 исторических сред, предметы и
-костюмы с era, SVG документальная графика, anachronism/evidence QA, SOURCES.md,
-схематичный сториборд и отдельные эпохальные episode projects для длинного охвата.
-Условие supported не означает online verification. Библиография не проверена по
-сети; прочтение конкретных страниц не заявляется. Ручная проверка обязательна.
-
-Проверено запуском: new → research → timeline → qa --plan-only на 120 секунд;
-npm test (новые и старые suites), typecheck, node --check. Полные артефакты и
-логи в handoff/phase2/evidence. QA содержит явные предупреждения needsReview и
-estimated voice. Контактный лист — storyboard, не фотографии кадров.
-Не проверено: Chrome render, Piper audio timing, MP4, визуальная читаемость,
-историческая точность костюмов/архитектуры и независимая сверка источников.
-Doctor в этом sandbox вернул exit 1 из-за отсутствия numpy/Piper/Denis/Chrome.
-Фазы 3–8 не начаты.
-
-Переносимость: при восстановлении сессии файлы принятых фаз сохранились, но прежние
-локальные commit objects отсутствовали (HEAD был 21cfec9). Они сохранены новым
-checkpoint-коммитом без удаления/отката файлов. Bundle включает этот checkpoint
-и фазу 2, чтобы не зависеть от отсутствующих 62b4aea/5d9c5a9. Push отсутствует.
-
-## Phases 3–4 — local implementation boundary
-
-Claim fidelity QA now rejects unsupported lexical dates/numbers/capitalized names
-in short claims and lines; Rurikids passes after a narrower Kalita narration.
-Conservative lexical QA is not semantic/factual verification. Real audio RMS
-lip envelopes, pause closure, optional timed phoneme visemes, role voice registry,
-prosody/cache, historical textnorm, SRT/VTT/ASS + reading/overflow QA implemented.
-Without provided alignment, word times are explicitly energy-estimated.
-
-Output sizing is centralized; Film/Scene/FX/PoseSheet are output-size independent
-while legacy WORLD remains the design space. Portrait primary-actor framing and
-HUD safe zones, isolated three-format derivatives, publishing/cover package and
-18-second Windows smoke command implemented. No phase 5–8 work performed.
-
-Verified: npm test/typecheck, 14 textnorm cases, synthetic PCM and FFmpeg test-video
-extraction, plan-only smoke, 120s Rurikids plans in all three aspects. Not verified:
-real Piper synthesis, supplied live phoneme alignment, downloaded voices, Chrome
-visuals/MP4, voice quality, portrait multi-person composition, Windows execution.
-Publication SVGs without matching video are labelled schematic, not rendered frames.
-
-## Phases 5–6
-
-Mini-task: local Whisper word timestamps preserved as aligned; actual unavailable
-cache path falls back energy-estimated, no remote request. Tests inject timestamps
-and validate crop offsets/gaps/mismatch. Transformers v4 preflight requires global
-offline enforcement as well as local_files_only. No real-model inference claimed.
-
-Phase 5: additive 27-character common-skeleton library, body/age/headwear/hair,
-crowd; +10 historical environments (20 total), depth layers/motion, transitions,
-selectable grades, +4 music moods/+3 SFX. Bone rules unchanged. Extended smoke
-has <=4s shot intervals; actual rendered freeze detection awaits Chrome. NumPy
-was installed only under ignored engine/.cache/phase5-python for sound probes,
-not into Piper/user runtime. Real audio probes are not a film or listening review.
-
-Phase 6: vanilla GUI scene editor, revision locks, history-based undo/redo across
-restart, QA indicators/render gate, schematic plus separate Chrome still job,
-claim-table wizard with unsaved preview and explicit commit, CPU/memory estimates,
-RU/EN editor/core form labels. Raw logs/canonical sources are not auto-translated.
-HTTP, schema, regression, JS/Python syntax and type checks verified. Browser visual
-review, Windows, Piper/Chrome/Whisper model accuracy remain unverified. Phases 7–8
-not started. Details in docs/SCENE_EDITOR.md and handoff/phase6/REPORT.md.
-
-Session restoration again preserved accepted files but not their local Git commit
-objects. Commit 12e3f3c is an additive accepted-state checkpoint; phase5 patches
-apply on its equivalent accepted phase4 tree, phase6 follows the phase5 set.
-No resets, branch switches, data removal, push or GitHub changes were performed.
-
-## Phases 7–8 / phase5 discrepancy closure
-
-General environment catalog was only 11 (historical additions did not satisfy the
-requested general scenery). Added 8 distinct multi-plane general sets: now 19
-nonhistorical + 20 historical, including all named requested settings. Catalog,
-QA on all 8 new scene environments and typecheck pass; no visual approval.
-
-Profile CLI captures stage/scene wall time, slow video capture frames, optional
-full-frame still timings and sampled process-tree RSS; all timing bases and limits
-are explicit. No static prerender/optimization enabled or claimed equivalent.
-llm-local is opt-in loopback Ollama/OpenAI, schema+bounded repair, immutable topology/
-roles/claims and QA/timing checks. Documentary new paraphrases/facts rejected using
-verbatim per-line materials allowlist, including legacy brief guard. Stub tests
-and CLI history/no-overwrite pass. No real model inference verified.
-
-selfcheck assembles versions/doctor/smoke/timings/8 actual extracted draft PNGs when
-available into output/selfcheck-<date>/ + ZIP. Linux incomplete path verified (doctor
-fails, plan-only smoke succeeds, frames=[]); Windows/Chrome/Piper/real film review
-not verified. No push/branch switch/data deletion. All old phase2→3→4 patches were
-applied to a temporary index and exactly matched accepted checkpoint 12e3f3c.
+Рекомендация PR: сохранить стек как есть; если maintainers захотят squash при
+merge — отдельное решение после review, здесь не выполнять. База единого нового
+format-patch: 21cfec9; не смешивать его со старыми архивами по фазам.

@@ -49,3 +49,13 @@ __pycache__/
 
 # Machine-local detected paths (no tokens)
 /engine/local-environment.json
+
+# Other local model weight formats / private signing material (never hand off)
+*.onnx_data
+*.safetensors
+*.gguf
+*.pt
+*.pth
+*.pem
+*.pfx
+*.p12

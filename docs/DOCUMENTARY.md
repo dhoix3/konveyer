@@ -12,7 +12,7 @@ node render.mjs qa rurik-demo --plan-only
 ```
 
 `research` ищет точное название/alias/id пакета в `engine/knowledge/*.json`.
-Сети и LLM нет. Если пакет не найден, создаётся **пустой** knowledge.json,
+Research не использует сеть/LLM; отдельный llm-local opt-in описан ниже. Если пакет не найден, создаётся **пустой** knowledge.json,
 пишется сообщение, исходный проект не превращается в факт-фильм. Повторный research
 не перезаписывает имеющийся knowledge.json. Сохраните/переименуйте его вручную,
 если действительно хотите новый поиск. Старые documentary/reconstruction проекты
@@ -45,7 +45,7 @@ causalLinks с существующими claim IDs. Narration — редакц�
 и documentary-episodes.json. Это не fiction-season: автоматическая перезапись,
 выдуманная фабула и продолжение из современных шаблонов не применяются.
 
-Исторический словарь: tools/historical.mjs — десять схематичных окружений,
+Исторический словарь: tools/historical.mjs — 20 схематичных исторических окружений,
 шесть видов предметов, четыре костюма и семантические действия, отображённые на
 существующие motion actions. Скелет, IK и анатомические лимиты не менялись.
 Костюмы — добавочные SVG-детали. Эры ограничивают допустимость предметов/костюмов;
@@ -91,3 +91,21 @@ Whisper times gate the mouth plus actual RMS amplitude. ASR is not factual evide
 subtitles retain authored script text, never add ASR-recognised names/numbers.
 Real-model inference remains unverified here; deterministic timestamp tests and
 actual missing-cache/no-network fallback are verified.
+
+## Legacy materials и локальная модель
+
+Legacy `new --format documentary|reconstruction --materials …` использует старый
+production.brief с источниками/evidence у factual beats. Вступления/дисклеймеры
+могут не иметь claimIds, а произвольные ручные правки не проходят всю research QA.
+Не выдавать это за одинаковую гарантию во всех режимах: для публикации фактов
+использовать research/wizard и ручную проверку; G4 в KNOWN_GAPS.md.
+
+llm-local включается только явно и требует совпадающий materials.json. Scene/line
+IDs, voices и knowledge metadata неизменны; допустимы только неизменённый текст или
+дословный text/narration назначенного этой реплике claim. Legacy без line claimIds
+может только сохранить текст. Default rules работает без модели. Тест на stub не
+проверяет настоящую LLM, новые факты вне материалов запрещены валидатором.
+
+Итоговая проверка: handoff/final/evidence/COMMANDS.md (120s pipeline) и summary.json
+(all25 needsReview, every research line has known claim). Реальный рендер, TTS/ASR,
+историческая верификация и браузерный GUI остаются непроверенными.

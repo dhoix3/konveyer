@@ -10,3 +10,6 @@
 *.mp4 binary
 *.wav binary
 *.onnx binary
+*.zip binary
+*.safetensors binary
+*.gguf binary
