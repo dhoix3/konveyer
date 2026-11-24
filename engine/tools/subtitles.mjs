@@ -9,7 +9,12 @@ const wrap=(text,width)=>{
 export function subtitleCues(plan,{maxChars=42,maxLines=2,maxCps=22}={}) {
   const cues=[],warnings=[];
   for(const s of plan.scenes)for(const l of s.lines){
-    const words=l.speech?.words?.filter(w=>w.end>w.start);
+    let words=l.speech?.words?.filter(w=>w.end>w.start);
+    // ASR provides times, never new documentary dialogue/facts for publication.
+    if(words?.length && l.speech.wordTiming==='aligned') {
+      const authored=l.text[plan.language].trim().split(/\s+/);
+      words=authored.length===words.length?words.map((w,i)=>({...w,text:authored[i]})):[{text:l.text[plan.language],start:words[0].start,end:words.at(-1).end}];
+    }
     const chunks=[];
     if(words?.length){
       let group=[];

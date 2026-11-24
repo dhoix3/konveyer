@@ -16,6 +16,7 @@ engine/tools/production.mjs
 engine/tools/qa.mjs
 engine/tools/script.mjs
 engine/tools/speech-analysis.mjs
+engine/tools/subtitles.mjs
 engine/tools/timeline.mjs
 engine/tools/voice.mjs
 engine/tools/whisper.mjs
