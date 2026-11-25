@@ -541,7 +541,7 @@ async function cmdSmoke(id) {
   id=id||`smoke-${Date.now()}`;
   if(!args._[1])process.on('exit',lockProject(id,{createDir:false}));
   const dir=projectDir(id);if(fs.existsSync(dir))throw new Error('Smoke project exists: choose a new id; no overwrite');
-  const pack=findPack('Рюриковичи'),claims=pack.claims.filter(c=>['treaty','moscow-line','ivan4'].includes(c.id));
+  const pack=findPack('Рюриковичи'),claims=pack.claims.filter(c=>['oleg','moscow-line','ivan4'].includes(c.id));
   const base=buildProject({id,topic:'Проверка документальной графики',duration:30});
   const p=buildDocumentary(base,{...pack,claims,causalLinks:[]});
   p.title={ru:'Smoke: карта, время, родословная',en:'Documentary smoke'};

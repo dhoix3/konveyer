@@ -163,3 +163,9 @@ medium/close coverage. `frames <id> --per-scene 3` produces real PNG stills + co
 sheet through your Chrome; `models fetch whisper-tiny` requires explicit download
 permission. `all` logs measured/historical draft/final timing estimates. **No new
 visual results claimed in the sandbox**. Commands/licensing/limits: [FIXES_1](docs/FIXES_1.md).
+
+## Универсальный проход (поэтапно)
+
+Актуальный статус и границы реализации: [docs/UNIVERSAL.md](docs/UNIVERSAL.md).
+Не путать с прежней нумерацией фаз. Фаза0 улучшает документальную композицию;
+web research/make/corpus ещё не объявлены готовыми. Новых real Chrome кадров нет.

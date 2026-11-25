@@ -77,3 +77,10 @@ Quality/meaning requires human review. No real model quality claim from stub tes
 
 References: docs/ARCHITECTURE.md, DOCUMENTARY.md, SCENE_EDITOR.md,
 PROFILE_LOCAL_LLM_SELFCHECK.md, AUDIT_V2.md, KNOWN_GAPS.md and DIAGNOSTICS.md.
+
+## Universal follow-up
+
+See docs/UNIVERSAL.md for the new phase-by-phase status (separate from prior phases).
+Phase0 uses semantic documentary selection, readable source/review captions and
+geometry-tested composition. Do not claim network research, corpus or visual sign-off
+from phase0. Keep anatomy, voice IDs, legacy CLI and cache/lock contracts intact.

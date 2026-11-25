@@ -59,3 +59,9 @@ preliminary-evidence сохранён; в финальном прогоне npm 
 Fixes1 follow-up: shared bbox/layout/font/claim/epoch/camera/data tests are run
 separately in handoff/fixes-1/evidence/. This does not change the unverified visual
 status above. Actual Windows Chrome/Piper working is user-reported; do not reinstall.
+
+## Universal phase0
+
+`cd engine; node tests/universal-phase0.mjs` checks data/geometry, not rendered text.
+After rebuilding timeline, `frames ID --per-scene 3` is still the Chrome-based visual
+review path. No screenshot/MP4 is produced by geometry tests. See docs/UNIVERSAL.md.

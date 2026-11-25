@@ -1,3 +1,4 @@
+import {selectDocumentaryGraphic,readableSources} from './documentary-semantics.mjs';
 import {projectGraphics,isRus} from './project-graphics.mjs';
 import {claimFidelity} from './claim-fidelity.mjs';
 import fs from 'node:fs';
@@ -37,10 +38,11 @@ export function buildDocumentary(project,pack) {
     // Tiny epoch episodes still show four distinct stylized supporting figures.
     // Supporting figures are roles, never unrelated named rulers from another epoch.
     participants.push(namedCount+i%3);
-    const modes=rus?['map','timeline','tree']:['timeline',...(graphic.places.length?['map']:[]),...(graphic.tree.length?['tree']:[])];const mode=modes[i%modes.length];
+    if(participants.length<3)participants.push(namedCount+(i+1)%3);
+    const selected=selectDocumentaryGraphic(g,graphic),mode=selected.mode;
     return S({id,title:T(epoch,epoch),env:{id:rus?HISTORICAL_ENVS[i%HISTORICAL_ENVS.length]:'nature',time:'day'},era:[Math.min(...g.map(c=>c.era?.[0]??(rus?800:0))),Math.max(...g.map(c=>c.era?.[1]??(rus?1600:0)))],claimIds:[...new Set([...g.map(c=>c.id),...(mode==='tree' && pack.claims.some(c=>c.id==='moscow-line')?['moscow-line']:[])])],
-      doc:{mode,profile:graphic.profile,mapData:{places:graphic.places,routes:graphic.routes},ticks:graphic.ticks,tree:mode==='tree'?graphic.tree.slice((Math.floor(i/modes.length)%Math.ceil(graphic.tree.length/4))*4,(Math.floor(i/modes.length)%Math.ceil(graphic.tree.length/4))*4+4):undefined,chapter:!rus?(i===0?pack.topic:i===groups.length-1?'Итоги и открытые вопросы':epoch==='research'?'Материалы исследования':epoch):i===0?'Как менялась власть Рюриковичей?':i===groups.length-1?'Итог: московская линия, не весь род':(chapterNames[epoch]||epoch),
-        name:g[0].person||'Исторический эпизод',person:g[0].person,retrospective:mode==='tree',events:g.map(c=>({year:c.era?.[0]??(c.date.precision==='year'&&/^\d{1,4}$/.test(c.date.value)?Number(c.date.value):undefined),label:c.place||c.date.value})),subjects:g.map(c=>({id:c.id,name:c.person||'Исторический эпизод',years:c.date.value,status:c.status,sources:c.sources.join(', ')})),years:g[0].date.value,sources:[...new Set(g.flatMap(c=>c.sources))].join(', '),status:[...new Set(g.map(c=>c.status))].join(' / '),
+      doc:{mode,selectionReason:selected.reason,needsReview:g.some(c=>c.needsReview),sourceRefs:readableSources(pack,g.flatMap(c=>c.sources)),profile:graphic.profile,mapData:{places:selected.places,routes:graphic.routes.filter(r=>selected.places.some(p=>p.id===r.from)&&selected.places.some(p=>p.id===r.to))},ticks:graphic.ticks,tree:mode==='tree'?selected.tree.slice(0,4):undefined,chapter:!rus?(i===0?pack.topic:i===groups.length-1?'Итоги и открытые вопросы':epoch==='research'?'Материалы исследования':epoch):i===0?'Как менялась власть Рюриковичей?':i===groups.length-1?'Итог: московская линия, не весь род':(chapterNames[epoch]||epoch),
+        name:g[0].person||'Исторический эпизод',person:g[0].person,retrospective:mode==='tree',events:g.map(c=>({year:c.era?.[0]??(c.date.precision==='year'&&/^\d{1,4}$/.test(c.date.value)?Number(c.date.value):undefined),label:c.eventLabel||c.text})),subjects:g.map(c=>({id:c.id,name:c.person||'Исторический эпизод',years:c.date.value,status:c.status,needsReview:c.needsReview,sourceRefs:readableSources(pack,c.sources),sources:readableSources(pack,c.sources).map(s=>s.title).join('; ')})),years:g[0].date.value,sources:readableSources(pack,g.flatMap(c=>c.sources)).map(s=>s.title).join('; '),status:[...new Set(g.map(c=>c.status))].join(' / '),
         labels:!rus?g.map(c=>c.place||c.date.value):mode==='tree'?(pack.claims.some(c=>c.id==='moscow-line')?['Иван III','Василий III','Иван IV','Фёдор Иванович']:['Нет данных для родословной в этой эпохе']):g.map(c=>mode==='timeline'?`${c.date.value}: ${c.place}`:c.place),
         note:mode==='tree'?(rus?'Ретроспектива: графика московской линии; персонажи текущей эпохи':'Ретроспектива: родство только по данным материалов'):'Стилизация, не портретная реконструкция'},
       light:L('sun',1300,120,'#e8d7b4','#958c67',0.6,{grade:'warm'}),ambience:'forest',
@@ -92,7 +94,7 @@ export function qaDocumentary(plan) {
   if(isRus(pack)&&new Set(plan.scenes.map(s=>s.env.id)).size<Math.min(8,plan.scenes.length))errors.push('insufficient historical environment diversity');
   if(plan.characters.length<5)errors.push('need four characters plus narrator');
   if(plan.characters.filter(c=>!c.anonymous&&c.namedPerson).some(c=>!plan.scenes.some(s=>s.actors.some(a=>a.char===c.id))))errors.push('unused historical character');
-  for(const mode of isRus(pack)?['map','timeline','tree']:['timeline'])if(!plan.scenes.some(s=>s.doc?.mode===mode))errors.push(`missing ${mode}`);
+  for(const s of plan.scenes){if(!['map','timeline','tree','evidence'].includes(s.doc?.mode))errors.push(`[${s.id}] unknown documentary graphic`);if(s.doc?.mode==='tree'&&!s.doc.tree?.length)errors.push(`[${s.id}] tree without material nodes`);}
   const graph=projectGraphics(pack);const visible=new Set(plan.scenes.flatMap(s=>(s.doc?.tree||[]).map(n=>n.id)));if(graph.tree.some(n=>!visible.has(n.id)))warnings.push('Не все узлы родства показаны: увеличьте длительность или разделите материалы; данные не удалены');
   if(seen.size!==pack.claims.length)errors.push('uncovered claims: split into epoch episodes');
   if(pack.claims.some(c=>c.needsReview))warnings.push('Knowledge needs manual factual/bibliographic review; supported does not mean independently verified');

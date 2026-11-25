@@ -1,0 +1,17 @@
+DIAGNOSTICS.md
+README.md
+SKILL.md
+docs/KNOWN_GAPS.md
+engine/package.json
+engine/render.mjs
+engine/src/doc/DocumentaryGraphics.tsx
+engine/src/doc/layout.ts
+engine/src/v2/SceneRenderer.tsx
+engine/tests/major.mjs
+engine/tools/documentary.mjs
+engine/tools/timeline.mjs
+docs/UNIVERSAL.md
+engine/src/doc/composition.ts
+engine/tools/documentary-semantics.mjs
+engine/tests/universal-phase0.mjs
+handoff/universal/phase0/*
