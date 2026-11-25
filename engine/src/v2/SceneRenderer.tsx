@@ -235,7 +235,7 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
 
   const activeLine=scene.lines.find(l=>t>=l.sceneStart&&t<l.sceneEnd)||scene.lines[0];
   const activeClaim=plan.production?.knowledge?.claims.find(c=>activeLine?.claimIds?.includes(c.id));
-  const sourceRefs=activeClaim?.sources.map(id=>({id,title:plan.production?.knowledge?.sources.find(s=>s.id===id)?.title||'Источник не указан'}));
+  const sourceRefs=activeClaim?.sources.map(id=>({id,title:plan.production?.knowledge?.sources?.find(s=>s.id===id)?.title||'Источник не указан'}));
   const activeSubject=scene.doc?.subjects?.find(c=>activeLine?.claimIds?.includes(c.id))||(activeClaim?{name:activeClaim.person||'Исторический эпизод',years:activeClaim.date.value,status:activeClaim.status,sources:activeClaim.sources.join(', ')}:scene.doc?.subjects?.[0]);
   const sorted = [...chars];
   const docBox=scene.doc?documentaryLayout(plan.width,plan.height).actors:null;

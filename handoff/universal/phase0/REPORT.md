@@ -24,7 +24,8 @@ Base: main6ef9288. Ветка Arena сохранена. Skeleton/IK/anatomy/voic
 
 ## Проверено запуском
 - npm test: PASS (все legacy suites + новый phase0,16 entrypoints после добавления).
-- npm run typecheck: PASS.
+- npm run typecheck: initial active-subject source metadata type error found; fixed
+  by additive optional knowledge sources/needsReview typing. Re-run PASS.
 - node --check / Python compile: см. evidence/syntax.log.
 - Новый universal-phase0: смысл/причина выбора, событие/название источника/review,
   cast/support, orthogonal tree segments вне карточек, heading/group fit в3 аспектах.

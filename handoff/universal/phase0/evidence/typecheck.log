@@ -1,7 +1,3 @@
 
 > whatif-cine-engine@1.0.0 typecheck
 > tsc --noEmit -p tsconfig.json
-
-src/v2/SceneRenderer.tsx(238,88): error TS2339: Property 'sources' does not exist on type '{ claims: { id: string; person?: string | undefined; date: { value: string; }; status: string; sources: string[]; }[]; }'.
-src/v2/SceneRenderer.tsx(238,101): error TS7006: Parameter 's' implicitly has an 'any' type.
-src/v2/SceneRenderer.tsx(293,130): error TS2339: Property 'needsReview' does not exist on type '{ id: string; person?: string | undefined; date: { value: string; }; status: string; sources: string[]; }'.
