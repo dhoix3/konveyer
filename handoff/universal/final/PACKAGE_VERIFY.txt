@@ -1,0 +1,2 @@
+PASS: 3 format-patches sequentially applied to temporary base6ef9288 index; resulting tree equals HEAD2a39f9d exactly. No user index/worktree touched.
+PASS: full-snapshot.zip CRC, 276 files; excluded dependencies/.git/models/MP4/secret-key formats. SHA256 f1ad362b16f3880a4285706254fa5b4fbdc7baac3a9f410598ba95622c84a008
