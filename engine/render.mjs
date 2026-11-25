@@ -393,13 +393,13 @@ async function cmdFrames(id){
  const count=Number(args['per-scene']??3);if(!Number.isInteger(count)||count<1||count>8)throw new Error('--per-scene must be 1–8');
  const log=logger(id,'frames'),plan=loadPlan(id),browserExecutable=await prepareBrowser(log);
  await ensureAssets();const serveUrl=await getBundle(log),{renderStill,selectComposition}=await import('@remotion/renderer');
- const dir=ensure(path.join(renderDir(id),'frames',new Date().toISOString().replace(/[:.]/g,'-'))),items=[];
- for(const scene of plan.scenes){if(!/^[a-zA-Z0-9_-]{1,40}$/.test(scene.id))throw new Error('Unsafe scene id for frames output');const inputProps={plan,sceneIndex:scene.index,subtitles:true};const composition=await selectComposition({serveUrl,id:'Scene',inputProps,browserExecutable,chromiumOptions:chromeOpts()});
+ const dir=ensure(path.join(renderDir(id),'frames',new Date().toISOString().replace(/[:.]/g,'-'))),items=[],textBounds=[];
+ for(const scene of plan.scenes){if(!/^[a-zA-Z0-9_-]{1,40}$/.test(scene.id))throw new Error('Unsafe scene id for frames output');const inputProps={plan,sceneIndex:scene.index,subtitles:true,measureTextBounds:true};const composition=await selectComposition({serveUrl,id:'Scene',inputProps,browserExecutable,chromiumOptions:chromeOpts()});
  for(let i=0;i<count;i++){const frame=count===1?Math.floor(scene.durFrames/2):Math.round(i*(scene.durFrames-1)/(count-1));const file=path.join(dir,`${scene.id}-${frame}.png`);
- await renderStill({serveUrl,composition,browserExecutable,inputProps,frame,scale:.5,imageFormat:'png',output:file,chromiumOptions:chromeOpts()});items.push({src:'data:image/png;base64,'+fs.readFileSync(file).toString('base64'),label:`${scene.id} · frame ${frame} · ${(frame/plan.fps).toFixed(2)}s`});}}
+ await renderStill({serveUrl,composition,browserExecutable,inputProps,frame,scale:.5,imageFormat:'png',output:file,chromiumOptions:chromeOpts(),onBrowserLog:entry=>{if(entry.text.startsWith('KOVEYER_TEXT_BOUNDS:')){try{textBounds.push({scene:scene.id,...JSON.parse(entry.text.slice('KOVEYER_TEXT_BOUNDS:'.length))});}catch{log.warn('Invalid text bbox report');}}}});items.push({src:'data:image/png;base64,'+fs.readFileSync(file).toString('base64'),label:`${scene.id} · frame ${frame} · ${(frame/plan.fps).toFixed(2)}s`});}}
  const inputProps={items},composition=await selectComposition({serveUrl,id:'FrameContactSheet',inputProps,browserExecutable,chromiumOptions:chromeOpts()});
  await renderStill({serveUrl,composition,browserExecutable,inputProps,frame:0,imageFormat:'png',output:path.join(dir,'contact-sheet.png'),chromiumOptions:chromeOpts()});
- writeJson(path.join(dir,'frames.json'),{project:id,projectHash:plan.projectHash,sourceHash:sourceHash(),frames:items.map(({label})=>label),scale:.5});log.info(`Real frames and PNG contact sheet: ${dir}`);
+ writeJson(path.join(dir,'frames.json'),{project:id,projectHash:plan.projectHash,sourceHash:sourceHash(),frames:items.map(({label})=>label),textBounds,textBoundsStatus:textBounds.length?'measured-in-Chrome':'NO_MEASUREMENTS: do not assume no overflow',selectionVersion:plan.selectionVersion,scale:.5});log.info(`Real frames and PNG contact sheet: ${dir}`);
 }
 async function cmdModels(){if(args._[1]!=='fetch'||args._[2]!=='whisper-tiny')throw new Error('Usage: models fetch whisper-tiny --allow-download');console.log(JSON.stringify(await fetchWhisper({allowDownload:args['allow-download']===true}),null,2));}
 
@@ -597,7 +597,7 @@ async function cmdResearch(id) {
       if(fs.existsSync(childDir))throw new Error(`Episode exists: ${e.id}; no overwrite`);
     }
     for(const e of episodes) {
-      const p=buildDocumentary({...project,id:e.id,settings:{...project.settings,duration:Math.max(30,e.claims.length*5)}},{...pack,claims:e.claims,causalLinks:(pack.causalLinks||[]).filter(l=>e.claims.some(c=>c.id===l.cause)&&e.claims.some(c=>c.id===l.consequence))});
+      const p=buildDocumentary({...project,id:e.id,settings:{...project.settings,duration:Math.max(30,e.claims.length*5)}},{...pack,claims:e.claims,relations:(pack.relations||[]).filter(r=>r.claimIds.every(id=>e.claims.some(c=>c.id===id))),causalLinks:(pack.causalLinks||[]).filter(l=>e.claims.some(c=>c.id===l.cause)&&e.claims.some(c=>c.id===l.consequence))});
       writeJson(path.join(projectDir(e.id),'project.json'),p);writeDocumentaryArtifacts(e.id,p);
     }
     writeJson(path.join(projectDir(id),'documentary-episodes.json'),{episodes:episodes.map(({claims,...e})=>e)});

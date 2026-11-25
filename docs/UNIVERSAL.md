@@ -88,3 +88,28 @@ CLI --accept-unverified — явный bypass factual review, но не повр
 disputes/licensing, URL/TXT/PDF/DOCX ingestion, real live-check, per-project network
 permission workflow. Нет network module — нет обещания его безопасности. Corpus
 также пока не реализован. Реальная сеть и Chrome/Windows не проверялись.
+
+## Следующий проход A/B: fixes-3 и fixes-4
+
+A: selectionVersion=documentary-selection-4, timeline заново выбирает scene.doc по
+claims/герою/relations; QA отвергает старую версию, циклы и повторы содержимого.
+Встроенная родословная теперь в knowledge.relations и только из существующего
+moscow-line (needsReview=true), не глобальная московская панель для любой сцены.
+Полный14-сценный отчёт: handoff/fixes-3/REPORT.md. Frames добавляет actual Chrome bbox
+textBounds, но ветка реальных измерений ещё не запускалась. Это не visual approval.
+
+B: topic profile v2: bilingual stems, all matchedDomains, sensitivity health/law/
+finance/politics/dangerous, явный general fallback.84 эталонные RU/EN темы + отдельные
+creative/multidomain fixtures. Профиль лексический, не семантический эксперт.
+Для sensitive universal и новых canonical documentary материалов автоматические
+editorial safety scenes произносят и показывают дисклеймер; точные whitelist тексты
+не считаются фактами. Подмена editorial текста ловится QA. В verified только declared
+reliabilityClass official/scientific/clinical-guideline; метка класса сама требует
+редакторской проверки и не доказывает авторитетность. Блоги/неизвестный класс запрещены.
+Прямые персональные инструкции/дозы/гарантии отклоняются консервативным валидатором;
+полная semantic medical/legal moderation не заявлена. Sensitive export повторно
+проверяет source class/disclaimer, даже --accept-unverified не обходит их.
+
+C (полное безопасное web research, затем фазы2–7) в этом checkpoint НЕ реализовано.
+Сеть не включена, --auto-research по-прежнему явно отклоняется. Не было локальных
+HTTP SSRF/robots/provider tests, поэтому безопасности web subsystem не заявляем.

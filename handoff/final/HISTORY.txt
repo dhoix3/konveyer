@@ -1,0 +1,9 @@
+12e3f3c chore: checkpoint accepted phases 0-4 from persisted workspace
+6161273 feat: retain local Whisper word timestamps with aligned status
+ca186d1 feat: expand common-skeleton ensemble historical sets and procedural sound
+9ccad73 fix: enforce offline Whisper preflight and validate cached word alignment
+d6f2382 fix: keep authored captions when Whisper supplies word timestamps
+7c2067e feat: add revision-safe scene editor documentary wizard and resource preflight
+0d2fab0 feat: complete phase5 general environments with eight distinct layered sets
+1a23127 feat: add measured profiling opt-in local LLM and offline selfcheck bundles
+d29bc52 docs: close phase audit refresh current contracts and prepare PR handoff

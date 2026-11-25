@@ -1,3 +1,4 @@
+import {combinedProfile,attachSafetyScenes,validateSensitiveMaterials} from './sensitive-policy.mjs';
 import os from 'node:os';import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';
 import {ENGINE,projectDir,readJson,writeJson,sha1} from './lib.mjs';
 import {LIB_CHARS,LIB_VOICES} from '../src/lib/library.ts';
@@ -72,7 +73,8 @@ export function documentaryWizard(id,{revision,topic,materials,duration,commit=f
   const pack=materials?validatePack(materials):findPack(topic);
   if(!pack||!pack.claims.length)fail('No facts: supply a knowledge package with sources/claims; no network lookup performed');
   const target=duration===undefined?p.settings.duration:duration;if(!Number.isFinite(target)||target<25||target>180)fail('Documentary duration 25–180 seconds');
-  const updated=buildDocumentary({...p,title:{ru:topic,en:topic},settings:{...p.settings,duration:target},production:{...p.production,brief:{...p.production?.brief,name:topic,topic,format:'documentary',genre:'history'}}},pack);
+  let updated=buildDocumentary({...p,title:{ru:topic,en:topic},settings:{...p.settings,duration:target},production:{...p.production,brief:{...p.production?.brief,name:topic,topic,format:'documentary',genre:'history'}}},pack);
+  if(updated.production?.universal){const profile=combinedProfile(topic,{language:p.language,format:updated.production.universal.format},pack.claims);validateSensitiveMaterials(profile,pack,updated.production.universal.mode);updated.production.universal.profile=profile;updated=attachSafetyScenes(updated);}
   if(!commit)return previewProject(id,updated);
   const result=mutate(id,revision,()=>updated);writeDocumentaryArtifacts(id,result.project);return result;
 }

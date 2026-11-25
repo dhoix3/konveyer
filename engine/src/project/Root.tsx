@@ -11,7 +11,7 @@ const emptyPlan = {
   totalFrames: 48, totalSec: 2, voiceSource: 'estimated', characters: [], voices: [], scenes: [], music: {mood: 'none'}, hash: '',
 } as Plan;
 
-type SceneProps = {plan: Plan; sceneIndex: number; subtitles?: boolean};
+type SceneProps = {plan: Plan; sceneIndex: number; subtitles?: boolean;measureTextBounds?:boolean};
 
 const SceneComp: React.FC<SceneProps> = (p) => {
   if (!p.plan.scenes.length) return null;

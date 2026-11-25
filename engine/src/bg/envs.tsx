@@ -438,7 +438,6 @@ reg({id: 'rus_river', name: {ru: 'river', en: 'rus_river'}, interior: false,
     <g transform={`translate(${(c.t*9)%200},0)`}><ellipse cx={300} cy={90} rx={190} ry={35} fill="#e2ddd0" opacity={0.4}/></g>
     <path d="M-500 740 Q600 540 2400 850 L2400 1500 H-500Z" fill="#678e9a"/>
     <path d={`M1450 220 L${1580+Math.sin(c.t*2)*12} 250 L1450 290Z`} fill="#8d4737"/><path d="M1450 220 V700" stroke="#473c30" strokeWidth={9}/>
-    <text x={100} y={620} fill="#eadac0" fontSize={24}>Условная историческая среда · не реконструкция</text>
   </g>}],
 });
 
@@ -450,7 +449,6 @@ reg({id: 'rus_ladoga', name: {ru: 'ladoga', en: 'rus_ladoga'}, interior: false,
     <g transform={`translate(${(c.t*9)%200},0)`}><ellipse cx={300} cy={90} rx={190} ry={35} fill="#e2ddd0" opacity={0.4}/></g>
     <g transform="translate(-200,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g><g transform="translate(150,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g><g transform="translate(500,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g>
     <path d={`M1450 220 L${1580+Math.sin(c.t*2)*12} 250 L1450 290Z`} fill="#8d4737"/><path d="M1450 220 V700" stroke="#473c30" strokeWidth={9}/>
-    <text x={100} y={620} fill="#eadac0" fontSize={24}>Условная историческая среда · не реконструкция</text>
   </g>}],
 });
 
@@ -462,7 +460,6 @@ reg({id: 'rus_hall', name: {ru: 'hall', en: 'rus_hall'}, interior: true,
     <g transform={`translate(${(c.t*9)%200},0)`}><ellipse cx={300} cy={90} rx={190} ry={35} fill="#e2ddd0" opacity={0.4}/></g>
     <g transform="translate(-200,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g><g transform="translate(150,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g><g transform="translate(500,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g><g transform="translate(850,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g>
     <path d={`M1450 220 L${1580+Math.sin(c.t*2)*12} 250 L1450 290Z`} fill="#8d4737"/><path d="M1450 220 V700" stroke="#473c30" strokeWidth={9}/>
-    <text x={100} y={620} fill="#eadac0" fontSize={24}>Условная историческая среда · не реконструкция</text>
   </g>}],
 });
 
@@ -474,7 +471,6 @@ reg({id: 'rus_camp', name: {ru: 'camp', en: 'rus_camp'}, interior: false,
     <g transform={`translate(${(c.t*9)%200},0)`}><ellipse cx={300} cy={90} rx={190} ry={35} fill="#e2ddd0" opacity={0.4}/></g>
     <g transform="translate(-200,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(150,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(500,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(850,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(1200,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g>
     <path d={`M1450 220 L${1580+Math.sin(c.t*2)*12} 250 L1450 290Z`} fill="#8d4737"/><path d="M1450 220 V700" stroke="#473c30" strokeWidth={9}/>
-    <text x={100} y={620} fill="#eadac0" fontSize={24}>Условная историческая среда · не реконструкция</text>
   </g>}],
 });
 
@@ -486,7 +482,6 @@ reg({id: 'rus_monastery', name: {ru: 'monastery', en: 'rus_monastery'}, interior
     <g transform={`translate(${(c.t*9)%200},0)`}><ellipse cx={300} cy={90} rx={190} ry={35} fill="#e2ddd0" opacity={0.4}/></g>
     <g transform="translate(-200,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g><g transform="translate(150,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g><g transform="translate(500,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g><g transform="translate(850,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g><g transform="translate(1200,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g><g transform="translate(1550,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g>
     <path d={`M1450 220 L${1580+Math.sin(c.t*2)*12} 250 L1450 290Z`} fill="#8d4737"/><path d="M1450 220 V700" stroke="#473c30" strokeWidth={9}/>
-    <text x={100} y={620} fill="#eadac0" fontSize={24}>Условная историческая среда · не реконструкция</text>
   </g>}],
 });
 
@@ -498,7 +493,6 @@ reg({id: 'rus_veche', name: {ru: 'veche', en: 'rus_veche'}, interior: false,
     <g transform={`translate(${(c.t*9)%200},0)`}><ellipse cx={300} cy={90} rx={190} ry={35} fill="#e2ddd0" opacity={0.4}/></g>
     <g transform="translate(-200,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g><g transform="translate(150,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g>
     <path d={`M1450 220 L${1580+Math.sin(c.t*2)*12} 250 L1450 290Z`} fill="#8d4737"/><path d="M1450 220 V700" stroke="#473c30" strokeWidth={9}/>
-    <text x={100} y={620} fill="#eadac0" fontSize={24}>Условная историческая среда · не реконструкция</text>
   </g>}],
 });
 
@@ -510,7 +504,6 @@ reg({id: 'rus_fortress', name: {ru: 'fortress', en: 'rus_fortress'}, interior: f
     <g transform={`translate(${(c.t*9)%200},0)`}><ellipse cx={300} cy={90} rx={190} ry={35} fill="#e2ddd0" opacity={0.4}/></g>
     <g transform="translate(-200,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(150,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(500,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g>
     <path d={`M1450 220 L${1580+Math.sin(c.t*2)*12} 250 L1450 290Z`} fill="#8d4737"/><path d="M1450 220 V700" stroke="#473c30" strokeWidth={9}/>
-    <text x={100} y={620} fill="#eadac0" fontSize={24}>Условная историческая среда · не реконструкция</text>
   </g>}],
 });
 
@@ -522,7 +515,6 @@ reg({id: 'rus_steppe', name: {ru: 'steppe', en: 'rus_steppe'}, interior: false,
     <g transform={`translate(${(c.t*9)%200},0)`}><ellipse cx={300} cy={90} rx={190} ry={35} fill="#e2ddd0" opacity={0.4}/></g>
     <g transform="translate(-200,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g><g transform="translate(150,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g><g transform="translate(500,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g><g transform="translate(850,0)"><rect x="0" y="360" width="220" height="360" fill="#8a795b"/><path d="M-30 360 L110 190 L250 360Z" fill="#544638"/></g>
     <path d={`M1450 220 L${1580+Math.sin(c.t*2)*12} 250 L1450 290Z`} fill="#8d4737"/><path d="M1450 220 V700" stroke="#473c30" strokeWidth={9}/>
-    <text x={100} y={620} fill="#eadac0" fontSize={24}>Условная историческая среда · не реконструкция</text>
   </g>}],
 });
 
@@ -534,7 +526,6 @@ reg({id: 'rus_moscow', name: {ru: 'moscow', en: 'rus_moscow'}, interior: false,
     <g transform={`translate(${(c.t*9)%200},0)`}><ellipse cx={300} cy={90} rx={190} ry={35} fill="#e2ddd0" opacity={0.4}/></g>
     <g transform="translate(-200,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g><g transform="translate(150,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g><g transform="translate(500,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g><g transform="translate(850,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g><g transform="translate(1200,0)"><rect x="0" y="300" width="220" height="420" fill="#716b60"/><path d="M-30 300 L110 160 L250 300Z" fill="#544638"/></g>
     <path d={`M1450 220 L${1580+Math.sin(c.t*2)*12} 250 L1450 290Z`} fill="#8d4737"/><path d="M1450 220 V700" stroke="#473c30" strokeWidth={9}/>
-    <text x={100} y={620} fill="#eadac0" fontSize={24}>Условная историческая среда · не реконструкция</text>
   </g>}],
 });
 
@@ -546,7 +537,6 @@ reg({id: 'rus_chamber', name: {ru: 'chamber', en: 'rus_chamber'}, interior: true
     <g transform={`translate(${(c.t*9)%200},0)`}><ellipse cx={300} cy={90} rx={190} ry={35} fill="#e2ddd0" opacity={0.4}/></g>
     <g transform="translate(-200,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(150,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(500,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(850,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(1200,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g><g transform="translate(1550,0)"><rect x="0" y="420" width="220" height="300" fill="#756047"/><path d="M-30 420 L110 220 L250 420Z" fill="#544638"/></g>
     <path d={`M1450 220 L${1580+Math.sin(c.t*2)*12} 250 L1450 290Z`} fill="#8d4737"/><path d="M1450 220 V700" stroke="#473c30" strokeWidth={9}/>
-    <text x={100} y={620} fill="#eadac0" fontSize={24}>Условная историческая среда · не реконструкция</text>
   </g>}],
 });
 

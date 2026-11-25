@@ -10,31 +10,38 @@
   "sources": [
     {
       "id": "pvl",
-      "title": "Повесть временных лет. Подготовка текста Д. С. Лихачёва; перевод Д. С. Лихачёва и Б. А. Романова. М.; Л.: АН СССР, 1950."
+      "title": "Повесть временных лет. Подготовка текста Д. С. Лихачёва; перевод Д. С. Лихачёва и Б. А. Романова. М.; Л.: АН СССР, 1950.",
+      "shortTitle": "Повесть временных лет"
     },
     {
       "id": "hypatian",
-      "title": "Полное собрание русских летописей. Т. 2: Ипатьевская летопись. 2-е изд. СПб., 1908. Запись под 6655 (1147) годом."
+      "title": "Полное собрание русских летописей. Т. 2: Ипатьевская летопись. 2-е изд. СПб., 1908. Запись под 6655 (1147) годом.",
+      "shortTitle": "Ипатьевская летопись"
     },
     {
       "id": "novgorod",
-      "title": "Новгородская первая летопись старшего и младшего изводов. Под ред. А. Н. Насонова. М.; Л.: АН СССР, 1950. Запись под 6750 (1242) годом."
+      "title": "Новгородская первая летопись старшего и младшего изводов. Под ред. А. Н. Насонова. М.; Л.: АН СССР, 1950. Запись под 6750 (1242) годом.",
+      "shortTitle": "Новгородская первая летопись"
     },
     {
       "id": "franklin",
-      "title": "Simon Franklin, Jonathan Shepard. The Emergence of Rus 750–1200. Longman, 1996."
+      "title": "Simon Franklin, Jonathan Shepard. The Emergence of Rus 750–1200. Longman, 1996.",
+      "shortTitle": "Franklin / Shepard · Русь"
     },
     {
       "id": "martin",
-      "title": "Janet Martin. Medieval Russia, 980–1584. 2nd ed. Cambridge University Press, 2007."
+      "title": "Janet Martin. Medieval Russia, 980–1584. 2nd ed. Cambridge University Press, 2007.",
+      "shortTitle": "Janet Martin · Средневековая Русь"
     },
     {
       "id": "skrynnikov",
-      "title": "Р. Г. Скрынников. Иван Грозный. М.: Наука, 1975."
+      "title": "Р. Г. Скрынников. Иван Грозный. М.: Наука, 1975.",
+      "shortTitle": "Скрынников · Иван Грозный"
     },
     {
       "id": "dunning",
-      "title": "Chester S. L. Dunning. Russia’s First Civil War: The Time of Troubles and the Founding of the Romanov Dynasty. Pennsylvania State University Press, 2001."
+      "title": "Chester S. L. Dunning. Russia’s First Civil War: The Time of Troubles and the Founding of the Romanov Dynasty. Pennsylvania State University Press, 2001.",
+      "shortTitle": "Dunning · Смутное время"
     }
   ],
   "claims": [
@@ -600,6 +607,44 @@
       "cause": "vladimir",
       "consequence": "christianity",
       "qualification": "Принятие христианства укрепляло культурные связи с Византией."
+    }
+  ],
+  "relations": [
+    {
+      "parent": "Иван III",
+      "child": "Василий III",
+      "claimIds": [
+        "moscow-line"
+      ],
+      "sources": [
+        "martin",
+        "dunning"
+      ],
+      "needsReview": true
+    },
+    {
+      "parent": "Василий III",
+      "child": "Иван IV",
+      "claimIds": [
+        "moscow-line"
+      ],
+      "sources": [
+        "martin",
+        "dunning"
+      ],
+      "needsReview": true
+    },
+    {
+      "parent": "Иван IV",
+      "child": "Фёдор Иванович",
+      "claimIds": [
+        "moscow-line"
+      ],
+      "sources": [
+        "martin",
+        "dunning"
+      ],
+      "needsReview": true
     }
   ]
 }

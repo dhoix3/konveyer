@@ -12,7 +12,7 @@ export function validateGraphics(p){
  for(const v of nodes.values()){const seen=new Set([v.id]);let n=v;while(n.parent){if(!nodes.has(n.parent)||seen.has(n.parent))fail('неизвестный родитель или цикл');seen.add(n.parent);n=nodes.get(n.parent);}}
 }
 export function projectGraphics(p){
- validateGraphics(p);if(isRus(p))return {profile:'rurikids',places:MAP_CITIES.map((c,i)=>({id:String(i),label:c.name,x:c.x/1000,y:c.y/640})),routes:[{from:'0',to:'1'},{from:'1',to:'2'}],water:WATER,ticks:TIMELINE_TICKS,tree:MOSCOW_TREE.map(n=>({...n,years:p.claims.filter(c=>c.person===n.name).map(c=>c.date.value).filter((v,i,a)=>a.indexOf(v)===i).join(', ')||'дата не указана'}))};
+ validateGraphics(p);if(isRus(p))return {profile:'rurikids',places:MAP_CITIES.map((c,i)=>({id:String(i),label:c.name,x:c.x/1000,y:c.y/640})),routes:[{from:'0',to:'1'},{from:'1',to:'2'}],water:WATER,ticks:TIMELINE_TICKS,tree:(p.relations?.length?MOSCOW_TREE.filter(n=>p.relations.some(r=>r.parent===n.name||r.child===n.name)).map(n=>({...n,parent:MOSCOW_TREE.find(pn=>p.relations.some(r=>r.parent===pn.name&&r.child===n.name))?.id||null})):[]).map(n=>({...n,years:p.claims.filter(c=>c.person===n.name).map(c=>c.date.value).filter((v,i,a)=>a.indexOf(v)===i).join(', ')||'дата не указана'}))};
  const g=p.graphics||{},tree=(g.genealogy||[]).map(n=>({...n,years:n.dates||'дата не указана'}));
  const ticks=[...new Set(p.claims.flatMap(c=>c.date.precision==='year'&&/^\d{1,4}$/.test(c.date.value)?[Number(c.date.value)]:c.era?[c.era[0],c.era[1]]:[]))].sort((a,b)=>a-b);
  return {profile:'generic',places:g.places||[],routes:g.routes||[],ticks,tree};

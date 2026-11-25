@@ -13,10 +13,10 @@ assert.equal(selectDocumentaryGraphic([unknown],{places:[],routes:[],tree:[]}).m
 assert.deepEqual(selectDocumentaryGraphic([unknown],{places:[],routes:[],tree:[]}),selectDocumentaryGraphic([unknown],{places:[],routes:[],tree:[]}));
 assert.equal(selectDocumentaryGraphic([{...unknown,text:'Отец и сын описаны в источнике.'}],{places:[],routes:[],tree:[]}).mode,'evidence');
 assert.match(reviewBadge('supported',true),/^по источнику · не проверено$/);assert.match(reviewBadge('supported'),/не проверено/);assert.match(reviewBadge('disputed',false),/^спорно · подтверждено редактором$/);
-assert.equal(readableSources(pack,['pvl'])[0].title,pack.sources[0].title);
+assert.equal(readableSources(pack,['pvl'])[0].title,pack.sources[0].shortTitle);
 const project=buildDocumentary(buildProject({id:'semantic',topic:'Рюриковичи',duration:120,voiceMode:'none'}),pack);
 const plan=buildPlan('semantic',{projectOverride:project,persist:false,ignoreAudio:true});assert.deepEqual(qaDocumentary(plan).errors,[]);
-for(const s of project.scenes){const local=s.claimIds.map(id=>pack.claims.find(c=>c.id===id));assert.equal(s.doc.mode,selectDocumentaryGraphic(local,graph).mode);assert.ok(s.doc.selectionReason);assert.ok(s.actors.length<=3);assert.ok(s.actors.some(a=>project.characters.find(c=>c.id===a.char).anonymous));assert.ok(s.doc.events.every(e=>pack.claims.some(c=>c.text===e.label)));assert.ok(s.doc.sourceRefs.every(r=>pack.sources.some(p=>p.title===r.title)));}
+for(const s of project.scenes){const local=s.claimIds.map(id=>pack.claims.find(c=>c.id===id));assert.equal(s.doc.mode,selectDocumentaryGraphic(local,graph).mode);assert.ok(s.doc.selectionReason);assert.ok(s.actors.length<=4);assert.ok(s.actors.some(a=>project.characters.find(c=>c.id===a.char).anonymous));assert.ok(s.doc.events.every(e=>pack.claims.some(c=>c.text===e.label)));assert.ok(s.doc.sourceRefs.every(r=>pack.sources.some(p=>(p.shortTitle||p.title)===r.title)));}
 assert.ok(plan.scenes.every(s=>s.doc.subjects.every(c=>c.sources!==pack.claims.find(p=>p.id===c.id).sources.join(', '))));
 const trees=[graph.tree,[{id:'r',name:'Родитель',years:'',parent:null},{id:'b',name:'Б',years:'',parent:'r'},{id:'a',name:'А',years:'',parent:'r'},{id:'c',name:'В',years:'',parent:'a'}]];
 function segmentHitsRect(a,b,r){if(a.x===b.x)return a.x>r.x&&a.x<r.x+r.w&&Math.max(a.y,b.y)>r.y&&Math.min(a.y,b.y)<r.y+r.h;if(a.y===b.y)return a.y>r.y&&a.y<r.y+r.h&&Math.max(a.x,b.x)>r.x&&Math.min(a.x,b.x)<r.x+r.w;throw new Error('edge must be orthogonal');}

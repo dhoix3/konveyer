@@ -18,6 +18,8 @@ export function validatePack(p) {
   }
   for(const c of p.claims)if(c.quote!==undefined&&(typeof c.quote!=='string'||!c.quote.trim()||!c.sources.some(id=>p.sources.find(s=>s.id===id)?.excerpt?.includes(c.quote))))fail('quote must be an exact excerpt from a referenced source');
   for(const link of p.causalLinks||[])if(!ids.has(link.cause)||!ids.has(link.consequence)||!link.qualification)fail('invalid causal link');
+  const parents=new Map();for(const r of p.relations||[]){if(!r.parent||!r.child||r.parent===r.child||typeof r.needsReview!=='boolean'||!Array.isArray(r.claimIds)||!r.claimIds.length||r.claimIds.some(id=>!ids.has(id))||!Array.isArray(r.sources)||!r.sources.length||r.sources.some(id=>!sources.has(id)))fail('invalid parent-child evidence');if(!parents.has(r.child))parents.set(r.child,[]);parents.get(r.child).push(r.parent);}
+  const visit=(name,trail=new Set())=>{if(trail.has(name))fail('cyclic parent-child relations');for(const parent of parents.get(name)||[])visit(parent,new Set([...trail,name]));};for(const name of parents.keys())visit(name);
   validateGraphics(p);
   return p;
 }
@@ -33,5 +35,5 @@ export function research(id,topic) {
   validatePack(pack);writeJson(path.join(dir,'knowledge.json'),pack);return pack;
 }
 export function sourceMarkdown(p) {
-  return `# SOURCES\n\n${p.topic}\n\n${p.verification}\n\nAI-authored knowledge requires manual review. No invented quotations. Visuals: schematic, stylized people, not portrait reconstructions.\n\n`+p.sources.map(s=>`- **${s.id}**: ${s.title}${s.url?' — '+s.url:''}${s.provenance?' ('+s.provenance+')':''}${s.excerpt?'\n\n  Выдержка пользователя: '+s.excerpt.replaceAll('\n','\n  '):''}`).join('\n')+'\n\n## Claims\n\n'+p.claims.map(c=>`- **${c.id}** [${c.status}; confidence=${c.confidence}; needsReview=${c.needsReview}] ${c.date.value} (${c.date.precision}), ${c.place}: ${c.text} Sources: ${c.sources.join(', ')}.`).join('\n')+'\n';
+  return `# SOURCES\n\n${p.topic}\n\n${p.verification}\n\nAI-authored knowledge requires manual review. No invented quotations. Visuals: schematic, stylized people, not portrait reconstructions.\n\n`+p.sources.map(s=>`- **${s.id}**: ${s.title}${s.url?' — '+s.url:''}${s.provenance?' ('+s.provenance+')':''}${s.excerpt?'\n\n  Выдержка пользователя: '+s.excerpt.replaceAll('\n','\n  '):''}`).join('\n')+'\n\n## Claims\n\n'+p.claims.map(c=>`- **${c.id}** [${c.status}; confidence=${c.confidence}; needsReview=${c.needsReview}] ${c.date.value} (${c.date.precision}), ${c.place}: ${c.text} Sources: ${c.sources.join(', ')}.`).join('\n')+'\n'+(p.relations?.length?'\n## Parent → child (manual review required)\n'+p.relations.map(r=>`- ${r.parent} → ${r.child}; claims=${r.claimIds.join(',')}; sources=${r.sources.join(',')}; needsReview=${r.needsReview}`).join('\n'):'');
 }

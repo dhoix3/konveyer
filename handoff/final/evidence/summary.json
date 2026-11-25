@@ -1,0 +1,198 @@
+{
+  "metadata": {
+    "head": "d29bc5272e35eb6425dfada59ab214a94fdd2f0d",
+    "branch": "arena/348fe030-konveyer",
+    "cleanBefore": true,
+    "installEnvironment": {
+      "ONNXRUNTIME_NODE_INSTALL": "skip",
+      "WHATIF_OFFLINE": "1",
+      "REMOTION_ALLOW_BROWSER_DOWNLOAD": "0"
+    },
+    "python": "3.11.2 (main, Apr  8 2026, 01:58:00) [GCC 12.2.0]",
+    "node": "v22.22.3",
+    "legacyProjectUnchanged": true,
+    "documentary": {
+      "claims": 25,
+      "needsReviewAll": true,
+      "lines": 25,
+      "allLinesHaveKnownClaim": true,
+      "schemaVersion": 2
+    },
+    "trackedDiffAfter": "",
+    "selfcheck": {
+      "directory": "/home/user/konveyer/engine/.cache/pr-final-head-checkout/verification-data/output/selfcheck-2026-11-24T13-01-04-311Z-506350",
+      "zip": "/home/user/konveyer/engine/.cache/pr-final-head-checkout/verification-data/output/selfcheck-2026-11-24T13-01-04-311Z-506350.zip",
+      "complete": false,
+      "frames": 0
+    }
+  },
+  "commands": [
+    {
+      "label": "01-npm-ci",
+      "command": "/usr/local/bin/npm ci",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 9.384
+    },
+    {
+      "label": "02-npm-test",
+      "command": "/usr/local/bin/npm test",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 32.375
+    },
+    {
+      "label": "03-typecheck",
+      "command": "/usr/local/bin/npm run typecheck",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.551
+    },
+    {
+      "label": "04-node-syntax",
+      "command": "node --check render.mjs tools/*.mjs tests/*.mjs (each file)",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS"
+    },
+    {
+      "label": "05-py-compile",
+      "command": "/usr/bin/python3 -m py_compile /home/user/konveyer/engine/.cache/pr-final-head-checkout/engine/tools/gen_assets.py /home/user/konveyer/engine/.cache/pr-final-head-checkout/engine/tools/mixer.py /home/user/konveyer/engine/.cache/pr-final-head-checkout/engine/tools/textnorm.py /home/user/konveyer/engine/.cache/pr-final-head-checkout/engine/tools/tts.py",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.046
+    },
+    {
+      "label": "06-legacy-timeline",
+      "command": "node render.mjs timeline demo",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.211
+    },
+    {
+      "label": "07-legacy-qa",
+      "command": "node render.mjs qa demo --plan-only",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.202
+    },
+    {
+      "label": "08-fiction-new",
+      "command": "node render.mjs new closure-fiction --format fiction --topic Возвращение динозавров --duration 90 --characters 3 --voice none",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.16
+    },
+    {
+      "label": "09-fiction-timeline",
+      "command": "node render.mjs timeline closure-fiction",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.315
+    },
+    {
+      "label": "10-fiction-qa",
+      "command": "node render.mjs qa closure-fiction --plan-only",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.303
+    },
+    {
+      "label": "11-series-new",
+      "command": "node render.mjs new closure-series --format series --topic Экспедиция --name Экспедиция --duration 90 --characters 3 --episodes 2 --voice none",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.176
+    },
+    {
+      "label": "12-series-e01-timeline",
+      "command": "node render.mjs timeline closure-series-e01",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.337
+    },
+    {
+      "label": "13-series-e01-qa",
+      "command": "node render.mjs qa closure-series-e01 --plan-only",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.297
+    },
+    {
+      "label": "12-series-e02-timeline",
+      "command": "node render.mjs timeline closure-series-e02",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.341
+    },
+    {
+      "label": "13-series-e02-qa",
+      "command": "node render.mjs qa closure-series-e02 --plan-only",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.304
+    },
+    {
+      "label": "14-rurik-new",
+      "command": "node render.mjs new closure-rurik --format documentary --genre history --topic Рюриковичи --duration 120 --voice none",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.164
+    },
+    {
+      "label": "15-rurik-research",
+      "command": "node render.mjs research closure-rurik --topic Рюриковичи",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.168
+    },
+    {
+      "label": "16-rurik-timeline",
+      "command": "node render.mjs timeline closure-rurik",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.264
+    },
+    {
+      "label": "17-rurik-qa",
+      "command": "node render.mjs qa closure-rurik --plan-only",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.246
+    },
+    {
+      "label": "18-smoke-plan",
+      "command": "node render.mjs smoke closure-smoke --extended --plan-only",
+      "exit": 0,
+      "expected": 0,
+      "result": "PASS",
+      "seconds": 0.293
+    },
+    {
+      "label": "19-selfcheck",
+      "command": "node render.mjs selfcheck",
+      "exit": 1,
+      "expected": 1,
+      "result": "PASS",
+      "seconds": 0.78
+    }
+  ]
+}

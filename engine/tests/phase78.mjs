@@ -13,7 +13,7 @@ for(const u of ['https://127.0.0.1','http://example.com','http://127.0.0.1.evil'
 const role=draft(base);role.scenes.find(s=>s.lines.length).lines[0].voice='unknown';assert.throws(()=>applyOutput(base,role),/role/);
 const topo=draft(base);topo.scenes.reverse();assert.throws(()=>applyOutput(base,topo),/topology/);
 const long=draft(base);long.scenes.find(s=>s.lines.length).lines[0].text='очень '.repeat(600);assert.throws(()=>applyOutput(base,long),/Timing|QA/);
-const pack=structuredClone(findPack('Рюриковичи'));pack.claims=pack.claims.slice(0,3);pack.causalLinks=[];const doc=buildDocumentary(base,pack),docOut=draft(doc);
+const pack=structuredClone(findPack('Рюриковичи'));pack.claims=pack.claims.slice(0,3);pack.causalLinks=[];pack.relations=[];const doc=buildDocumentary(base,pack),docOut=draft(doc);
 assert.throws(()=>applyOutput(doc,docOut),/materials/);const hallucinate=draft(doc);hallucinate.scenes.find(s=>s.lines.length).lines[0].text='На Марсе произошла битва в 2099 году.';assert.throws(()=>applyOutput(doc,hallucinate,{materials:pack}),/verbatim/);
 const legacy=buildProject({id:'legacydoc',format:'documentary',topic:'История',duration:60,voiceMode:'none',claims:[{text:'Событие',status:'supported',sources:['s']}],sources:[{id:'s',title:'Источник',url:'https://example.com'}]});const lo=draft(legacy);lo.scenes.find(s=>s.lines.length).lines[0].text='Подмена фактов';assert.throws(()=>applyOutput(legacy,lo,{materials:legacy.production.brief}),/verbatim/);
 const changed=structuredClone(pack);changed.claims[0].text='Иные факты';assert.throws(()=>applyOutput(doc,docOut,{materials:changed}),/differ/);

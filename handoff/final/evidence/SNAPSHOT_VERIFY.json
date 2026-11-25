@@ -1,0 +1,14 @@
+{
+  "forbiddenPayloads": [],
+  "crc": "PASS",
+  "archives": [
+    {
+      "archive": "full-snapshot.zip!handoff/phase7-8/evidence/selfcheck-incomplete.zip",
+      "entries": 8
+    },
+    {
+      "archive": "full-snapshot.zip",
+      "entries": 240
+    }
+  ]
+}

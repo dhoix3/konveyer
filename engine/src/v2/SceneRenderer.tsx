@@ -1,8 +1,10 @@
+import {LandmarkStrip} from '../doc/Landmarks.tsx';
+import {TextBounds} from '../doc/TextBounds.tsx';
 import {Crowd} from '../char/Crowd.tsx';
 import {viewport} from '../lib/viewport.ts';
 import {mouthAt} from '../lib/lipsync.ts';
 import {LocalFonts} from '../lib/LocalFonts.tsx';
-import {documentaryLayout,fitActor} from '../doc/layout.ts';
+import {documentaryLayout,fitActor,containedCamera} from '../doc/layout.ts';
 import {DocumentaryGraphics} from '../doc/DocumentaryGraphics.tsx';
 import React, {useMemo} from 'react';
 import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
@@ -66,7 +68,7 @@ function surfaceY(propMap: Map<string, PropDef>, on: string, depth = 0): number 
   return surfaceY(propMap, host.on, depth + 1) - propTop(host.kind, host.scale ?? 1);
 }
 
-export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?: boolean}> = ({plan, sceneIndex, subtitles = true}) => {
+export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?: boolean;measureTextBounds?:boolean}> = ({plan, sceneIndex, subtitles = true,measureTextBounds=false}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const scene = plan.scenes[sceneIndex];
@@ -235,32 +237,35 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
 
   const activeLine=scene.lines.find(l=>t>=l.sceneStart&&t<l.sceneEnd)||scene.lines[0];
   const activeClaim=plan.production?.knowledge?.claims.find(c=>activeLine?.claimIds?.includes(c.id));
-  const sourceRefs=activeClaim?.sources.map(id=>({id,title:plan.production?.knowledge?.sources?.find(s=>s.id===id)?.title||'Источник не указан'}));
+  const sourceRefs=activeClaim?.sources.map(id=>({id,title:plan.production?.knowledge?.sources?.find(s=>s.id===id)?.shortTitle||plan.production?.knowledge?.sources?.find(s=>s.id===id)?.title||'Источник не указан'}));
   const activeSubject=scene.doc?.subjects?.find(c=>activeLine?.claimIds?.includes(c.id))||(activeClaim?{name:activeClaim.person||'Исторический эпизод',years:activeClaim.date.value,status:activeClaim.status,sources:activeClaim.sources.join(', ')}:scene.doc?.subjects?.[0]);
   const sorted = [...chars];
   const docBox=scene.doc?documentaryLayout(plan.width,plan.height).actors:null;
   const focusChar=sorted.find(c=>c.def.namedPerson===activeSubject?.name||c.def.name[lang]===activeSubject?.name)||sorted.find(c=>c.a.char===scene.shots[cam.shot]?.focus?.char)||sorted[0];
   const sk=focusChar?.sk;
-  const groupBounds=sorted.length?{left:Math.min(...sorted.map(c=>c.sk.hip.x-150)),right:Math.max(...sorted.map(c=>c.sk.hip.x+150)),top:Math.min(...sorted.map(c=>c.sk.head.y-70)),bottom:Math.max(...sorted.map(c=>c.sk.lowest+12))}:null;
-  const fit=docBox&&groupBounds?fitActor(docBox,groupBounds):null;
   const shotType=scene.shots[cam.shot]?.type;
+  const visibleChars=scene.doc&&['close','extreme_close'].includes(shotType)?sorted.filter(c=>c===focusChar):sorted;
+  const groupBounds=visibleChars.length?{left:Math.min(...visibleChars.map(c=>Math.min(c.sk.hip.x-150,c.sk.lHand.x-35,c.sk.rHand.x-35))),right:Math.max(...visibleChars.map(c=>Math.max(c.sk.hip.x+150,c.sk.lHand.x+35,c.sk.rHand.x+35))),top:Math.min(...visibleChars.map(c=>c.sk.head.y-85)),bottom:Math.max(...visibleChars.map(c=>c.sk.lowest+20))}:null;
+  const fit=docBox&&groupBounds?fitActor(docBox,groupBounds):null;
   const portraitZoom=shotType==='close'?1.75:shotType==='medium'?1.25:1;
   const shotStart=camFn(scene.shots[cam.shot]?.t??0);
   const baseZoom=SHOT_ZOOM[shotType||'wide']??1;
-  const docTransform=fit&&docBox&&sk?`translate(${docBox.w/2},${docBox.h/2}) rotate(${cam.rot}) scale(${fit.scale*portraitZoom*cam.zoom/baseZoom}) translate(${-(shotType==='wide'||shotType==='establishing'?(groupBounds!.left+groupBounds!.right)/2:sk.hip.x)-(cam.cx-shotStart.cx)},${-(shotType==='close'?sk.head.y+30:shotType==='medium'?sk.neck.y+90:(groupBounds!.top+groupBounds!.bottom)/2)-(cam.cy-shotStart.cy)})`:null;
+  const framed=fit&&docBox&&groupBounds?containedCamera(docBox,groupBounds,fit.scale*portraitZoom*cam.zoom/baseZoom,-(cam.cx-shotStart.cx)*fit.scale,-(cam.cy-shotStart.cy)*fit.scale,cam.rot,!['close','extreme_close'].includes(shotType)):null;
+  const docTransform=framed?`translate(${framed.x},${framed.y}) rotate(${framed.rotation}) scale(${framed.scale}) translate(${-framed.cx},${-framed.cy})`:null;
   return (
     <AbsoluteFill style={{background: '#000', overflow: 'hidden'}}>
       <LocalFonts/>
       <AbsoluteFill>
-        {scene.doc&&<svg data-documentary-environment="full-frame" width="100%" height="100%" viewBox={`0 0 ${view.w} ${view.h}`} style={{position:'absolute',inset:0}}><g transform={`translate(${view.cx},${view.cy}) rotate(${cam.rot}) scale(${cam.zoom}) translate(${-cam.cx},${-cam.cy})`}>{layers.map(l=><g key={l.key} transform={`translate(${(cam.cx-960)*(1-l.depth)},${(cam.cy-540)*(1-l.depth)*.5})`}>{l.node}</g>)}</g></svg>}
+        {scene.doc&&<svg data-documentary-environment="full-frame" width="100%" height="100%" viewBox={`0 0 ${view.w} ${view.h}`} style={{position:'absolute',inset:0}}><g transform={`translate(${view.cx},${view.cy}) rotate(${cam.rot}) scale(${cam.zoom}) translate(${-cam.cx},${-cam.cy})`}>{layers.map(l=><g key={l.key} transform={`translate(${(cam.cx-960)*(1-l.depth)},${(cam.cy-540)*(1-l.depth)*.5})`}>{l.node}</g>)}<Crowd scene={scene} t={t}/></g></svg>}
+        {scene.doc&&<LandmarkStrip kind={scene.doc.landmarkKind||'settlement'}/>}
         <svg width="100%" height="100%" viewBox={docBox?`0 0 ${docBox.w} ${docBox.h}`:`0 0 ${view.w} ${view.h}`} style={{position:'absolute',left:docBox?.x??0,top:docBox?.y??0,width:docBox?.w??'100%',height:docBox?.h??'100%',overflow:'hidden'}}>
           <g transform={docTransform||`translate(${view.cx},${view.cy}) rotate(${cam.rot}) scale(${cam.zoom}) translate(${-cam.cx},${-cam.cy})`}>
             {layers.map((l) => (
               <g key={l.key} transform={`translate(${(cam.cx - 960) * (1 - l.depth)},${(cam.cy - 540) * (1 - l.depth) * 0.5})`}>{l.node}</g>
             ))}
-            <g transform={`translate(${(cam.cx-WORLD.w/2)*(1-(scene.crowd?.depth||.7))},0)`}><Crowd scene={scene} t={t}/></g>
+            <g transform={`translate(${(cam.cx-WORLD.w/2)*(1-(scene.crowd?.depth||.7))},0)`}>{!scene.doc&&<Crowd scene={scene} t={t}/>}</g>
             {propNodes.filter((p) => p && p.layer === 'back').map((p) => p!.node)}
-            {sorted.map((c) => (
+            {visibleChars.map((c) => (
               <Character
                 key={c.a.char}
                 def={c.def}
@@ -286,10 +291,11 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
         {scene.fx?.includes('embers') && <Embers t={t} />}
         <Dust t={t} color={scene.env.time === 'night' ? '#aabbff' : '#fff4d6'} n={isTitle ? 70 : 34} />
         <KeyGlow sx={sx} sy={sy} light={scene.light} t={t} />
-        <Grade light={scene.light} time={scene.env.time} t={t} pulse={pulse} />
-        <Vignette />
+        {!scene.doc&&<Grade light={scene.light} time={scene.env.time} t={t} pulse={pulse} />}
+        {!scene.doc&&<Vignette />}
         <Grain frame={frame} />
       </AbsoluteFill>
+      {measureTextBounds&&<TextBounds/>}
       {scene.doc && <DocumentaryGraphics doc={{...scene.doc,...activeSubject,...(sourceRefs?{sourceRefs,needsReview:activeClaim?.needsReview}:{})}} />}
       {isTitle && <TitleCard title={plan.title[lang]} sub={scene.overlay?.text[lang]} kicker={lang === 'ru' ? 'А ЧТО ЕСЛИ' : 'WHAT IF'} t={t} dur={scene.durSec} />}
       {!isTitle && scene.counter && <Counter c={scene.counter} t={t} dur={scene.durSec} lang={lang} />}

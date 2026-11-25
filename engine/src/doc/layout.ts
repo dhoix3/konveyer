@@ -13,3 +13,12 @@ export function fitActor(box:Box,bounds:{left:number;right:number;top:number;bot
  const scale=Math.min(box.w/(bounds.right-bounds.left+80),box.h/(bounds.bottom-bounds.top+40));
  return {scale,x:box.w/2-(bounds.left+bounds.right)/2*scale,y:box.h/2-(bounds.top+bounds.bottom)/2*scale};
 }
+// Contain the visible cast after camera motion/rotation; close shots may crop vertically,
+// never through the left/right edge. No changes to skeleton geometry.
+export function containedCamera(box:Box,bounds:{left:number;right:number;top:number;bottom:number},scale:number,dx:number,dy:number,rotation:number,fullBody=true){
+ const a=rotation*Math.PI/180,w=bounds.right-bounds.left,h=bounds.bottom-bounds.top;
+ const rw=Math.abs(Math.cos(a))*w+Math.abs(Math.sin(a))*h,rh=Math.abs(Math.sin(a))*w+Math.abs(Math.cos(a))*h;
+ const s=Math.min(scale,(box.w-24)/rw,...(fullBody?[(box.h-24)/rh]:[]));
+ const limitX=Math.max(0,(box.w-rw*s)/2-8),limitY=Math.max(0,(box.h-rh*s)/2-8);
+ return {scale:s,x:box.w/2+Math.max(-limitX,Math.min(limitX,dx)),y:box.h/2+(fullBody?Math.max(-limitY,Math.min(limitY,dy)):dy),cx:(bounds.left+bounds.right)/2,cy:(bounds.top+bounds.bottom)/2,rotation,rw:rw*s,rh:rh*s};
+}

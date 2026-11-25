@@ -1,0 +1,9 @@
+handoff/final/patches/0001-chore-checkpoint-accepted-phases-0-4-from-persisted-.patch
+handoff/final/patches/0002-feat-retain-local-Whisper-word-timestamps-with-align.patch
+handoff/final/patches/0003-feat-expand-common-skeleton-ensemble-historical-sets.patch
+handoff/final/patches/0004-fix-enforce-offline-Whisper-preflight-and-validate-c.patch
+handoff/final/patches/0005-fix-keep-authored-captions-when-Whisper-supplies-wor.patch
+handoff/final/patches/0006-feat-add-revision-safe-scene-editor-documentary-wiza.patch
+handoff/final/patches/0007-feat-complete-phase5-general-environments-with-eight.patch
+handoff/final/patches/0008-feat-add-measured-profiling-opt-in-local-LLM-and-off.patch
+handoff/final/patches/0009-docs-close-phase-audit-refresh-current-contracts-and.patch

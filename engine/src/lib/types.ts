@@ -224,7 +224,7 @@ export interface ResolvedScene extends Omit<SceneSpec, 'beats' | 'shots' | 'line
 }
 
 export interface Plan {
-  production?:{knowledge?:{sources?:{id:string;title:string}[];claims:{id:string;person?:string;needsReview?:boolean;date:{value:string};status:string;sources:string[]}[]}};
+  production?:{knowledge?:{sources?:{id:string;title:string;shortTitle?:string}[];claims:{id:string;person?:string;needsReview?:boolean;date:{value:string};status:string;sources:string[]}[]}};
   version: number;
   id: string;
   language: Lang;

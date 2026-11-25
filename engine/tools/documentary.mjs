@@ -1,4 +1,5 @@
-import {selectDocumentaryGraphic,readableSources} from './documentary-semantics.mjs';
+import {isSafetyLine,combinedProfile,validateSensitiveMaterials,attachSafetyScenes} from './sensitive-policy.mjs';
+import {selectDocumentaryGraphic,readableSources,refreshSceneSelection,graphicContentKey,SELECTION_VERSION,hasGraphicCycle} from './documentary-semantics.mjs';
 import {projectGraphics,isRus} from './project-graphics.mjs';
 import {claimFidelity} from './claim-fidelity.mjs';
 import fs from 'node:fs';
@@ -26,11 +27,12 @@ export function buildDocumentary(project,pack) {
   while(groups.length<Math.max(3,Math.ceil(duration/12))) {
     const index=groups.findIndex(g=>g.length>1);
     if(index>=0){const last=groups[index].pop();groups.splice(index+1,0,[last]);}
-    else groups.push([pack.claims[groups.length%pack.claims.length]]);
+    else break; // Never repeat factual content merely to fill requested duration.
   }
   if(groups.length>Math.floor(duration/8))throw new Error('Epoch chapters need more time: use epoch episodes');
   // Never invent a filler claim: shorter packages repeat evidence rather than assert new facts.
   const chapterNames={origins:'Истоки и летописные версии',kiev:'Киев и христианство',division:'Княжества и усобицы',horde:'Нашествие и Орда',moscow:'Возвышение Москвы',tsardom:'Царство и конец московской линии'};
+  const effectiveDuration=Math.min(duration,groups.length*12);
   const scenes=groups.map((g,i)=>{
     if(!g.length)g=[pack.claims[i%pack.claims.length]];
     const id=`s${String(i+1).padStart(2,'0')}`,epoch=g[0].epoch||'research';
@@ -38,7 +40,7 @@ export function buildDocumentary(project,pack) {
     // Tiny epoch episodes still show four distinct stylized supporting figures.
     // Supporting figures are roles, never unrelated named rulers from another epoch.
     participants.push(namedCount+i%3);
-    if(participants.length<3)participants.push(namedCount+(i+1)%3);
+    participants.push(namedCount+(i+1)%3);
     const selected=selectDocumentaryGraphic(g,graphic),mode=selected.mode;
     return S({id,title:T(epoch,epoch),env:{id:rus?HISTORICAL_ENVS[i%HISTORICAL_ENVS.length]:'nature',time:'day'},era:[Math.min(...g.map(c=>c.era?.[0]??(rus?800:0))),Math.max(...g.map(c=>c.era?.[1]??(rus?1600:0)))],claimIds:[...new Set([...g.map(c=>c.id),...(mode==='tree' && pack.claims.some(c=>c.id==='moscow-line')?['moscow-line']:[])])],
       doc:{mode,selectionReason:selected.reason,needsReview:g.some(c=>c.needsReview),sourceRefs:readableSources(pack,g.flatMap(c=>c.sources)),profile:graphic.profile,mapData:{places:selected.places,routes:graphic.routes.filter(r=>selected.places.some(p=>p.id===r.from)&&selected.places.some(p=>p.id===r.to))},ticks:graphic.ticks,tree:mode==='tree'?selected.tree.slice(0,4):undefined,chapter:!rus?(i===0?pack.topic:i===groups.length-1?'Итоги и открытые вопросы':epoch==='research'?'Материалы исследования':epoch):i===0?'Как менялась власть Рюриковичей?':i===groups.length-1?'Итог: московская линия, не весь род':(chapterNames[epoch]||epoch),
@@ -49,20 +51,31 @@ export function buildDocumentary(project,pack) {
       actors:participants.map((index,j)=>({char:characters[index].id,x:1050+j*220,facing:j?'l':'r',era:[Math.min(...g.map(c=>c.era?.[0]??(rus?800:0))),Math.max(...g.map(c=>c.era?.[1]??(rus?1600:0)))]})),
       props:rus?[{id:'evidence',kind:mode==='timeline'?'scroll':i%2?'round_shield':'scroll',x:650,on:'floor',color:'#b39b70'}]:[],
       beats:participants.flatMap((index,j)=>[{t:0,char:characters[index].id,do:j?'think':mode==='map'?'point':mode==='tree'?'wave':'type',...(rus&&j===0&&mode==='timeline'?{hold:{prop:'evidence',hand:'l'}}:{}),emotion:'thinking'}]),
+      crowd:/поход|сражени|нашеств|битв/iu.test(g.map(c=>c.text).join(' '))?{presets:['ensemble1','ensemble2','ensemble3'],count:8,depth:.55}:undefined,
       historicalAction:'council',
       lines:g.map((c,j)=>({id:`${id}_${j}`,voice:characters[0].voice,text:T((c.narration||c.text),(c.narration||c.text)),claimIds:[c.id],pause:0.1})),
-      shotPlan:[{type:['wide','medium','close'][i%3],char:characters[participants[0]].id,move:'drift'},{type:i%3===2?'medium':'close',char:characters[participants[0]].id,at:'head',move:'pull'}],minDur:(Math.floor(duration*24/groups.length)+(i<Math.round(duration*24)%groups.length?1:0))/24});
+      shotPlan:[{type:['wide','medium','close'][i%3],char:characters[participants[0]].id,move:'drift'},{type:i%3===2?'medium':'close',char:characters[participants[0]].id,at:'head',move:'pull'}],minDur:(Math.floor(effectiveDuration*24/groups.length)+(i<Math.round(effectiveDuration*24)%groups.length?1:0))/24});
   });
-  return {...project,production:{...project.production,kind:'documentary',provider:documentaryProvider.id,fiction:false,knowledge:pack,notes:['Offline authored; needsReview=true. Causal statements are claims, not generated conjecture.']},characters,voices:LIB_VOICES.filter(v=>characters.some(c=>c.voice===v.id)),scenes};
+  let previousKey;for(const scene of scenes){scene.doc=refreshSceneSelection({...scene,__graphic:graphic},pack,previousKey);previousKey=graphicContentKey(scene.doc);}
+  const safetyProfile=combinedProfile(pack.topic,{language:project.language},pack.claims);
+  const sensitive=safetyProfile.sensitivity.some(s=>['health','law','finance','dangerous'].includes(s));
+  if(sensitive)validateSensitiveMaterials(safetyProfile,pack,project.production?.universal?.mode||'verified');
+  const result={...project,production:{...project.production,...(sensitive?{safetyProfile}:{}),kind:'documentary',provider:documentaryProvider.id,fiction:false,knowledge:pack,notes:['Offline authored; needsReview=true. Causal statements are claims, not generated conjecture.']},characters,voices:LIB_VOICES.filter(v=>characters.some(c=>c.voice===v.id)),scenes};
+  return sensitive?attachSafetyScenes(result):result;
 }
 export function qaDocumentary(plan) {
   if(plan.production?.provider!==documentaryProvider.id)return {errors:[],warnings:[]};
   const errors=[],warnings=[],pack=plan.production.knowledge;
+  if(plan.selectionVersion!==SELECTION_VERSION)errors.push('Устаревший выбор графики: запустите timeline '+plan.id+' (selectionVersion)');
+  if(hasGraphicCycle(plan.scenes.filter(s=>s.kind!=='safety')))errors.push('Циклическая последовательность типов графики: пересмотрите смысл сцен, запустите timeline');
+  const contentCounts=new Map();let last;for(const scene of plan.scenes.filter(s=>s.kind!=='safety')){const key=graphicContentKey(scene.doc||{});contentCounts.set(key,(contentCounts.get(key)||0)+1);if(key===last)errors.push(`[${scene.id}] identical consecutive graphic content`);last=key;}if([...contentCounts.values()].some(n=>n>2))errors.push('Одно графическое содержимое повторяется более2 раз за фильм');
   try{validatePack(pack);}catch(e){return {errors:[e.message],warnings};}
   const claims=new Map(pack.claims.map(c=>[c.id,c]));const seen=new Set();
   for(const c of pack.claims)for(const m of claimFidelity(c.narration||c.text,c))errors.push(`[${c.id}] ${m}`);
   for(const s of plan.scenes){
     const fail=m=>errors.push(`[${s.id}] ${m}`);
+    if(s.kind==='safety'){if(!s.lines?.length||!s.lines.every(l=>isSafetyLine(l,plan.language)))fail('invalid safety disclaimer scene');continue;}
+    if(s.doc?.selectionVersion!==SELECTION_VERSION)fail('old selectionVersion; запустите timeline');
     if(isRus(pack)&&!HISTORICAL_ENVS.includes(s.env.id))fail('modern/unknown historical environment');
     const localClaims=(s.lines||[]).flatMap(l=>(l.claimIds||[]).map(id=>claims.get(id))).filter(Boolean);
     const retrospective=s.doc?.retrospective===true&&/ретроспектив/i.test((s.doc?.note||'')+' '+(s.doc?.chapter||''));
@@ -76,7 +89,7 @@ export function qaDocumentary(plan) {
       const a=epochs(named[i]),b=epochs(named[j]);if(a.size&&b.size&&![...a].some(x=>b.has(x)))fail('anachronistic cast: mixed epochs without retrospective');
     }
     if(!Array.isArray(s.era)||s.era.length!==2||s.era[0]>s.era[1])fail('missing/invalid era');
-    if(s.doc?.mode==='tree' && pack.claims.some(c=>c.id==='moscow-line') && !s.claimIds?.includes('moscow-line'))fail('genealogy missing evidence');
+    if(s.doc?.mode==='tree'&&!selectDocumentaryGraphic(localClaims,projectGraphics(pack)).tree.some(n=>n.name===localClaims[0]?.person))fail('tree unrelated to scene hero');
     if(!s.claimIds?.length || s.claimIds.some(id=>!claims.has(id)))fail('missing/unknown scene claim');
     for(const l of s.lines)if(!l.claimIds?.length || l.claimIds.some(id=>!claims.has(id)||!s.claimIds.includes(id)))fail('missing/unknown line claim');else l.claimIds.forEach(id=>seen.add(id));
     for(const a of isRus(pack)?s.actors||[]:[]) {const c=plan.characters.find(c=>c.id===a.char),era=HISTORICAL_COSTUMES[c?.costume];if(!era||!s.era||s.era[0]<era[0]||s.era[1]>era[1])fail('anachronistic costume');}
@@ -87,6 +100,7 @@ export function qaDocumentary(plan) {
   }
   for(let i=0;i<plan.scenes.length;i+=3)if(!plan.scenes.slice(i,i+3).some(s=>s.shots?.some(k=>['medium','close','extreme_close'].includes(k.type))))errors.push('documentary camera: need medium/close at least once per three scenes');
   for(const s of plan.scenes)for(const l of s.lines) {
+    if(isSafetyLine(l,plan.language))continue;
     const texts=(l.claimIds||[]).map(id=>claims.get(id)?.text||'').join(' ');
     for(const m of claimFidelity(l.text[plan.language],{text:texts}))errors.push(`[${l.id}] ${m}`);
   }

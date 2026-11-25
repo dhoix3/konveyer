@@ -1,3 +1,5 @@
+import {refreshSceneSelection,graphicContentKey,SELECTION_VERSION} from './documentary-semantics.mjs';
+import {projectGraphics} from './project-graphics.mjs';
 import {readableSources} from './documentary-semantics.mjs';
 import {outputSize,viewport} from '../src/lib/viewport.ts';
 import {analyzeAudio} from './speech-analysis.mjs';
@@ -81,7 +83,10 @@ export function buildPlan(id,{aspect,projectOverride,persist=true,ignoreAudio=fa
   const fps = FPS;
   const speechWarnings=[];
   let cursor = 0, frameCursor = 0, usedFiles = 0, totalLines = 0;
-  const scenes = project.scenes.map((sc, index) => {
+  let previousGraphic;const graphic=project.production?.provider==='documentary-rules-v2'?projectGraphics(project.production.knowledge):null;
+  const scenes = project.scenes.map((original, index) => {
+    const sc=graphic&&original.kind!=='safety'?{...original,doc:refreshSceneSelection({...original,__graphic:graphic},project.production.knowledge,previousGraphic)}:original;
+    if(graphic)previousGraphic=graphicContentKey(sc.doc);
     const starts = {};
     let c = sc.kind === 'title' ? 0 : LEAD;
     const lines = sc.lines.map((l) => {
@@ -129,7 +134,7 @@ export function buildPlan(id,{aspect,projectOverride,persist=true,ignoreAudio=fa
   });
   const voiceSource = usedFiles === totalLines && totalLines > 0 ? (mf.source === 'files' ? 'tts' : mf.source) : 'estimated';
   const plan = {
-    version: 1, schemaVersion:2, projectHash: sha1(project), voiceManifestHash: sha1(mf), id: project.id, language: lang, title: project.title, fps, width: size.width, height: size.height, aspect:aspect||project.settings.aspect||'16:9', safeZone:viewport(size.width,size.height).safe,
+    selectionVersion:graphic?SELECTION_VERSION:undefined,version: 1, schemaVersion:2, projectHash: sha1(project), voiceManifestHash: sha1(mf), id: project.id, language: lang, title: project.title, fps, width: size.width, height: size.height, aspect:aspect||project.settings.aspect||'16:9', safeZone:viewport(size.width,size.height).safe,
     totalFrames: frameCursor, totalSec: frameCursor / fps, voiceSource,
     speechWarnings, production: project.production, characters: project.characters, voices: project.voices, scenes, music: {mood: project.settings.music},
   };

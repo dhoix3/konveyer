@@ -1,0 +1,1 @@
+PASS: nine-patch full stack from 21cfec9 reproduces final HEAD tree exactly

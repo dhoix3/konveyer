@@ -13,7 +13,7 @@ export function prepareMaterials({topic,sources}){
    if(paragraph.length>1200)throw new Error('Разбейте выдержку на абзацы до1200 знаков');
    claims.push({id:`candidate${claims.length+1}`,text:paragraph.trim(),quote:paragraph.trim(),status:'unknown',date:{value:'не установлено',precision:'unknown'},place:'не установлено',confidence:0,needsReview:true,sources:[id],epoch:'research'});
   }
-  return {id,title:s.title.trim(),url:s.url||undefined,excerpt:s.excerpt.trim(),provenance:'user-supplied; not fetched or independently verified'};
+  return {id,reliabilityClass:s.reliabilityClass,title:s.title.trim(),url:s.url||undefined,excerpt:s.excerpt.trim(),provenance:'user-supplied; not fetched or independently verified'};
  });
  if(claims.length>100)throw new Error('Максимум100 абзацев; разделите исследование');
  const pack=validatePack({schemaVersion:1,id:'user-materials',topic:topic.trim(),sources:bibliography,claims,verification:'Локальная подготовка предоставленных выдержек. Не независимый фактчекинг. Все кандидаты требуют проверки.'});
