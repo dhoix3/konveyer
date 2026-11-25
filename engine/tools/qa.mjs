@@ -134,6 +134,7 @@ export function qaPlan(id, plan,{project}={}) {
     if (Math.abs(plan.totalSec - target) / target > 0.3) W('film', `duration ${plan.totalSec.toFixed(1)}s differs from requested ${target}s by more than 30%`);
   }
   const docQA=qaDocumentary(plan);errors.push(...docQA.errors);warnings.push(...docQA.warnings);
+  const universal=plan.production?.universal;if(universal){warnings.push('Режим достоверности: '+universal.mode);if(universal.mode!=='creative'&&(!plan.production.knowledge?.claims?.length||plan.production.knowledge.claims.some(c=>c.needsReview)))warnings.push('Universal: есть непроверенные утверждения или отсутствуют материалы; финальная публикация блокируется без явного решения редактора');for(const notice of universal.profile?.disclaimers||[])warnings.push('Требуется дисклеймер в сценарии: '+notice);}
   return {errors, warnings};
 }
 

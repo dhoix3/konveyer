@@ -27,4 +27,8 @@ source hash/locks/history — не multi-file ACID; bounded project history хр
 смыслу, source/event/review metadata, bbox/orthogonal edges и общий actor fit. Реальные
 шрифтовые metrics/overlap/camera/background ещё требуют Chrome и Windows review.
 Произвольно длинные подписи могут сокращаться с многоточием; полные материалы
-остаются в knowledge/SOURCES. Make/web/corpus из нового ТЗ пока не заявлены.
+остаются в knowledge/SOURCES. Make/review теперь частично реализованы офлайн; web/corpus не реализованы.
+
+Phase1 partial: topic profile is lexical, not expert/safety verification. Specific
+format structures, automatic disclaimer insertion, web research/SSRF/robots/replay,
+source independence/automatic verification, uploads and corpus/live-check remain absent.

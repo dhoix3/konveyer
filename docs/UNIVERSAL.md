@@ -26,7 +26,7 @@ Legacy projects не переписывать автоматически. Не �
 | Фаза | Статус | Доказательство |
 |---|---|---|
 | 0: документальная композиция | выполнено на уровне данных/геометрии; visual review нет | handoff/universal/phase0/ |
-| 1: make + безопасное web research | нет | Никаких real network claims |
+| 1: make + безопасное web research | частично: offline make/review; web нет | handoff/universal/phase1/ |
 | 2: универсальный сценарист | нет | legacy providers пока сохранены |
 | 3: универсальный визуальный словарь | нет | counts предыдущих библиотек не выдаются за новые |
 | 4: режиссура/стили/бренд | нет | не заявлено |
@@ -45,3 +45,46 @@ Legacy projects не переписывать автоматически. Не �
 Fetch unshallow и hash сверка всех243 tracked файлов origin/main показали0 отличий.
 После проверки ancestor выполнен fast-forward ref/index до6ef9288 **без изменения
 рабочих файлов**, без reset/clean/stash/delete; сторонние handoff сохранены.
+
+## Фаза1: офлайн-вход и доверие (частично)
+
+Реализованы `make`, объяснимый словарный topic profile, режимы достоверности,
+сохранение networkAllowed=false, GUI opt-in к make и revision+lock review.
+Никакой автосети не добавлено. `--auto-research` возвращает ошибку до создания
+проекта — это не имитация поиска. --allow-network один сам по себе не включает сеть.
+
+```powershell
+cd engine
+node render.mjs make 'Физика гравитации' --id universal-gravity --format explainer --voice none
+node render.mjs timeline universal-gravity
+node render.mjs qa universal-gravity --plan-only
+# Это исследовательская заявка, не фактическое видео. Final/publish заблокированы.
+node render.mjs make 'Сказка о лесе' --id universal-tale --format story --voice none
+node render.mjs make 'Моя тема' --id universal-sourced --mode verified --format documentary --materials 'C:\path\knowledge.json'
+```
+
+25–180сек, ru/en, форматы explainer/documentary/story/tutorial/top/promo/kids/skit/review
+сохраняются как **намерение**, не как готовые9 структур сценария (это фаза2).
+Без материалов factual default→unverified-draft с тремя редакционными сценами-заявками,
+а не утверждениями о реальном мире. Creative использует существующий fiction provider.
+verified без материалов отвергается до публикации project.json. Подготовленные
+материалы с needsReview всё ещё ждут редакторского подтверждения.
+
+GUI: «Новый проект → Замысел → Универсальный вход». Сеть явно не используется.
+«Сценарий и материалы → Проверка universal утверждений» загружает quote/title/url/
+status и кнопки подтверждения/отклонения. POST review revision-bound и lock-protected,
+ошибка не пишет частичное решение; existing history/atomicJson сохраняет pre-image.
+Отклонение не удаляет claim/scene: проект нужно отредактировать перед публикацией.
+
+Final/publish (и GUI all/final) проверяют review; --draft допускает предпросмотр.
+CLI --accept-unverified — явный bypass factual review, но не повреждённых ссылок/цитат
+и не обязательного disclaimer. Старые проекты без universal не получают новых
+блокировок. Для здоровья/права/финансов/политики профиль сохраняет neutral disclaimer;
+без его дословного текста в репликах финальная публикация блокируется даже с bypass.
+Автоматическое безопасное написание/встраивание этих дисклеймеров пока не сделано.
+Профиль лексический: не экспертная классификация/модерация, geography=null если неизвестна.
+
+Не реализовано в фазе1: web providers/fetch/SSRF/robots/cache/replay/BM25/independence/
+disputes/licensing, URL/TXT/PDF/DOCX ingestion, real live-check, per-project network
+permission workflow. Нет network module — нет обещания его безопасности. Corpus
+также пока не реализован. Реальная сеть и Chrome/Windows не проверялись.

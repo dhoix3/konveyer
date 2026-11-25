@@ -15,3 +15,4 @@ engine/src/doc/composition.ts
 engine/tools/documentary-semantics.mjs
 engine/tests/universal-phase0.mjs
 handoff/universal/phase0/*
+engine/src/lib/types.ts (corrective optional source metadata typing)

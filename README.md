@@ -168,4 +168,4 @@ visual results claimed in the sandbox**. Commands/licensing/limits: [FIXES_1](do
 
 Актуальный статус и границы реализации: [docs/UNIVERSAL.md](docs/UNIVERSAL.md).
 Не путать с прежней нумерацией фаз. Фаза0 улучшает документальную композицию;
-web research/make/corpus ещё не объявлены готовыми. Новых real Chrome кадров нет.
+offline make/review реализованы частично; web research/corpus не реализованы. Новых real Chrome кадров нет.

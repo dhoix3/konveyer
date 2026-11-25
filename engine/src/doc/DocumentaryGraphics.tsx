@@ -46,6 +46,6 @@ export const DocumentaryGraphics:React.FC<{doc:DocumentaryGraphic}>=({doc})=>{
  </g></svg>
  <div style={{position:'absolute',left:z.footer.x,top:z.footer.y,width:z.footer.w,height:z.footer.h,boxSizing:'border-box',padding:'4px 16px',background:'rgba(18,42,48,.94)',color:'#fff1d5',fontSize:z.font,lineHeight:1.13,display:'flex',flexDirection:'column',justifyContent:'space-around'}}>
  <div style={{display:'flex',justifyContent:'space-between',gap:12}}><strong>{short(publicName(doc.name)||'Эпизод исследования',width>height?40:25)}</strong><span>{short(doc.years,25)}</span></div>
- <div style={{fontSize:z.font*.86}}>{badge}</div><div style={{fontSize:z.font*.86}}>Источник: {sourceLabel}</div>
+ <div style={{fontSize:Math.max(28,z.font*.86)}}>{badge}</div><div style={{fontSize:Math.max(28,z.font*.86)}}>Источник: {sourceLabel}</div>
  </div></div>;
 };
