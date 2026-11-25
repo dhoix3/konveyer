@@ -1,0 +1,2 @@
+PASS node --check render.mjs tools/*.mjs tests/*.mjs (each file)
+PASS python3 -m py_compile tools/*.py

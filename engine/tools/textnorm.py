@@ -375,6 +375,13 @@ MONTHS = {
 # High-confidence stress corrections.  Keep this list small: a wrong mark is
 # worse than no mark.  Values use U+0301 after the stressed vowel.
 DEFAULT_STRESS = {
+    "рюрик": "Рю́рик", "рюрика": "Рю́рика", "рюриковичи": "Рю́риковичи",
+    "олег": "Оле́г", "олега": "Оле́га", "ольга": "О́льга", "ольги": "О́льги",
+    "святослав": "Святосла́в", "святослава": "Святосла́ва",
+    "владимир": "Влади́мир", "владимира": "Влади́мира",
+    "ярослав": "Яросла́в", "ярослава": "Яросла́ва", "мономах": "Монома́х",
+    "долгорукий": "Долгору́кий", "любеч": "Лю́беч", "любечский": "Лю́бечский",
+
     "договор": "догово́р", "договоры": "догово́ры", "договоров": "догово́ров",
     "звонит": "звони́т", "звонят": "звоня́т", "позвонит": "позвони́т",
     "каталог": "катало́г", "каталога": "катало́га",
@@ -516,7 +523,7 @@ def _replace_dates(text):
         if not month:
             return m.group(0)
         return ordinal_small(d, "gen", "n") + " " + month + " " + year_ordinal(y, "gen") + " года"
-    text = re.sub(r"(?<![\d])(\d{1,2})\.(\d{1,2})\.(\d{4})(?![\d])", dmy, text)
+    text = re.sub(r"(?<![\d])(\d{1,2})\.(\d{1,2})\.(\d{3,4})(?![\d])", dmy, text)
 
     months = "|".join(MONTHS.keys())
     # 12 марта 2025 г. / 12 марта 2025 года
@@ -525,15 +532,15 @@ def _replace_dates(text):
         mon = m.group(2)
         y = int(m.group(3))
         return ordinal_small(d, "gen", "n") + " " + mon + " " + year_ordinal(y, "gen") + " года"
-    text = re.sub(r"(?<![\d])(\d{1,2})\s+(" + months + r")\s+(\d{4})(?:\s*(?:г\.|года|год))?(?![\d])", dmy_text, text, flags=re.IGNORECASE)
+    text = re.sub(r"(?<![\d])(\d{1,2})\s+(" + months + r")\s+(\d{3,4})(?:\s*(?:г\.|года|год))?(?![\d])", dmy_text, text, flags=re.IGNORECASE)
     # 12 марта
     text = re.sub(r"(?<![\d])(\d{1,2})\s+(" + months + r")(?![\d])", lambda m: ordinal_small(int(m.group(1)), "gen", "n") + " " + m.group(2), text, flags=re.IGNORECASE)
     # 2020-2025 / 2020–2025 / с 2020 по 2025 год (must run before single-year)
     def yrange(m):
         a, b = int(m.group(1)), int(m.group(2))
         return "с " + year_ordinal(a, "gen") + " по " + year_ordinal(b, "nom") + " год"
-    text = re.sub(r"(?<![\d])(\d{4})\s*[-–—]\s*(\d{4})(?![\d])", yrange, text)
-    text = re.sub(r"\bс\s+(\d{4})\s+по\s+(\d{4})(?:\s*год)?", lambda m: "с " + year_ordinal(int(m.group(1)), "gen") + " по " + year_ordinal(int(m.group(2)), "nom") + " год", text, flags=re.IGNORECASE)
+    text = re.sub(r"(?<![\d])(\d{3,4})\s*[-–—]\s*(\d{3,4})(?![\d])", yrange, text)
+    text = re.sub(r"\bс\s+(\d{3,4})\s+по\s+(\d{3,4})(?:\s*год)?", lambda m: "с " + year_ordinal(int(m.group(1)), "gen") + " по " + year_ordinal(int(m.group(2)), "nom") + " год", text, flags=re.IGNORECASE)
     # 2025 год / 2025 года / 2025 году / 2025 г.
     def year(m):
         y = int(m.group(1))
@@ -545,7 +552,7 @@ def _replace_dates(text):
         if suffix.startswith("года") or suffix == "г.":
             return word + " года"
         return word + " год"
-    text = re.sub(r"(?<![\d])(\d{4})\s*(год[уа]?|г\.)(?![\w])", year, text, flags=re.IGNORECASE)
+    text = re.sub(r"(?<![\d])(\d{3,4})\s*(год[уа]?|г\.)(?![\w])", year, text, flags=re.IGNORECASE)
     return text
 
 
@@ -778,6 +785,14 @@ def prepare(text, lang="ru", opts=None):
             chunks.append({"text": s, "pause": 0.35 if s.endswith((".", "!", "?")) else 0.18})
         return {"normalized": norm, "chunks": chunks, "sentences": sentences}
 
+    # Roman ordinals are contextual: never change Latin abbreviations blindly.
+    roman = {"I":1,"II":2,"III":3,"IV":4,"V":5,"VI":6,"VII":7,"VIII":8,"IX":9,"X":10,"XI":11,"XII":12,"XIII":13,"XIV":14,"XV":15,"XVI":16,"XVII":17,"XVIII":18,"XIX":19,"XX":20,"XXI":21}
+    def century(m):
+        value = roman.get(m.group(1))
+        case = "gen" if m.group(2).lower() in ("века", "веков") else "pre" if m.group(2).lower()=="веке" else "nom"
+        return ordinal_small(value, case) + " " + m.group(2) if value else m.group(0)
+    text = re.sub(r"\b([IVX]+)\s+(век(?:а|е|ов)?)\b", century, text)
+    text = re.sub(r"\b(Иван|Василий|Пётр|Петр|Александр|Николай|Фёдор|Федор)\s+([IVX]+)\b", lambda m: m.group(1)+" "+ordinal_small(roman[m.group(2)]) if m.group(2) in roman else m.group(0), text)
     protected, saved = _protect(text)
     work = protected.replace("\u2212", "-")
     # Russian typography often groups thousands with a thin/non-breaking

@@ -1,50 +1,86 @@
-# Architecture
+# Architecture — final PR state
 
-## Data flow
+## Pipeline / boundaries
 
-```
-idea.json ──► project.json ──► voice/manifest.json ──► plan.json + timeline.json
- (script.mjs)    (editable)       (voice.mjs)             (timeline.mjs)
-                                                              │
-                         ┌────────────────────────────────────┤
-                         ▼                                    ▼
-        Remotion `Scene` composition                 audio_plan.json (sound.mjs)
-        (src/v2/SceneRenderer.tsx)                   → mixer.py → mix.wav → loudnorm −14 LUFS
-        → output/<id>/scenes/sNN.mp4                          │
-                         └────────── concat (copy) ───────────┤
-                                                              ▼
-                                         ffmpeg mux (H.264 + AAC) → FINAL.mp4 → qa
+```text
+script/story/production → project.json → voice manifest → timeline/plan.json
+                                    ↘ research/knowledge/documentary ↗
+plan → Remotion SceneRenderer → scene MP4 → concat → mux FINAL/DRAFT → media QA
+plan → sound.mjs/mixer.py → mix.wav + loudnorm ────────────────────────↗
+plan → subtitles/export/publishing
 ```
 
-* `project.json` is the single editable source (script, cast, voices, shots hints, anchors).
-* `plan.json` is the fully resolved artefact: numeric times, generated shots, scene frame ranges. Remotion, the sound planner and QA all read the same plan, and Node imports the very same TypeScript animation code (`src/char/track.ts`) that Remotion renders, so footsteps and QA match the picture exactly.
+Project is editable truth; plan resolves numeric anchors, camera shots, frame
+ranges, speech envelope/words and hashes. React/Remotion and Node QA share track/
+skeleton/math code. Sharing code validates consistency, not visual quality.
+Existing v1 project/plan JSON is read additively as schemaVersion2 (storage.mjs);
+unknown future versions fail. Atomic per-file fsync/rename, 20 project/plan preimages,
+locks/fingerprints/audio hashes. No blanket cache invalidation/data deletion.
+Series uses staging+journal+recover and stale episode context guards, not global ACID.
 
-## Character system (`src/char`)
+## Drawing
 
-* `skeleton.ts` — `Pose` (rot, torso, head, 2 arms × (shoulder, elbow), 2 legs × (hip, knee, ankle), seat, lift, air). `solve()` does forward kinematics with fixed bone lengths and then the **ground-contact solver** (lowest point touches the support, or the hip is pinned to a seat height; `air` lifts for jumps/float). `fx ∈ [-1,1]` mirrors and *turns* the skeleton by scaling joint x-coordinates (front view in the middle of a turn).
-* `track.ts` — action library (30 actions), locomotion driven by travelled distance (so feet never slide, steps are in phase), trapezoid velocity profile, pose blending with ease + overshoot, anticipation/settle in jumps, falls, drinks. `compileTrack(scene, charId)` returns `at(t)` → state, plus `footsteps()`.
-* `emotions.ts` — expressions (eye openness, lid slant, squint, pupils, mouth), deterministic blinking.
-* `Character.tsx` — SVG: black silhouette + coloured clothes, accessories, rim (contra) light, contact shadow, talking mouth.
-* `props.tsx` — props with surface heights and hand grips.
+src/char/skeleton.ts uses fixed bones/contact/seat handling; track.ts compiles
+anchored action tracks, locomotion, blends and footstep events. Character.tsx draws
+clothes/hair/headwear/emotions and audio-driven mouth. src/lib/library.ts: 27
+shared-skeleton characters, 4 body-age presets. Crowd reuses the same renderer.
 
-## Camera (`src/cine/camera.ts`)
+src/bg/envs.tsx: **39 sets (19 general including void, 20 historical)**, layered
+parallax/deterministic live details; QA checks registered live-detail count, not the
+actual perceptual motion in every rendered frame. camera.ts follows subjects and
+supports dynamic shots/angles. No anatomical changes in diversity work.
+src/fx/Fx.tsx: 10 grade implementations; script.mjs: 10 selectable styles (default
+retains authored grading), 10 music moods. mixer.py supplies procedural music/SFX.
 
-Shots → continuous state (centre, zoom, rotation). Focus follows the subject with a 0.5 s low-pass, clamps to the drawn world, supports push/pull/pan/dolly/crane/handheld (smooth value-noise, no jitter), low/high angle, dutch tilt, dip/fade cuts. Parallax: each environment layer has a depth; layer offset = `(cam − centre) × (1 − depth)`.
+WORLD coordinates remain independent of viewport (viewport.ts). 16:9 / 9:16 / 1:1
+exports have isolated plans/output and safe zones. Cover selection is deterministic;
+publishing embeds a real frame only from available video, otherwise marked SVG
+schematics. No proof of composition quality from SVG/JSON alone.
 
-## Environments (`src/bg`)
+## Documentary and speech
 
-10 reusable SVG environments with 3–6 parallax layers each; every one lists its living details (`live`) which QA verifies.
+knowledge/*.json → knowledge.mjs validatePack/research → documentary.mjs scenes and
+SOURCES/storyboard → timeline → qaDocumentary. Map/timeline/tree graphics are
+stylized, not photographic reconstruction. Research line claimIds, era/costume/
+props, coverage, source/name/date checks are structural/lexical. All 25 bundled
+claims need review; independent historical verification is outside this code.
+Legacy production.brief materials are not automatically converted and have weaker
+claims QA: see KNOWN_GAPS.md.
 
-## Pipeline tooling (`engine/tools`)
+speech-analysis.mjs parses RIFF chunks and computes RMS/energy envelope. Validated
+local Whisper timestamps retain aligned status; missing/invalid results use explicit
+energy-estimated fallback. whisper.mjs globally disables remote model lookup.
+Optional provided phoneme timing feeds visemes; no verified Piper phoneme extraction.
+Subtitles retain authored text. Voice registry/prosody and audio/source hashes
+participate in caching; no model files in Git.
 
-`lib.mjs` (paths, state, logging, ffmpeg/ffprobe discovery, atomic JSON), `script.mjs` (ideas, templates, duration fitting), `story.mjs` (freeform topic → domain → story scenes; supports arbitrary topics alongside the classic templates), `voice.mjs` (Piper TTS, Whisper alignment, VAD fallback, clip cutting), `timeline.mjs`, `sound.mjs` + `mixer.py`, `qa.mjs`, `tts.py` + `textnorm.py` (RU/EN text normalisation for TTS), `gen_assets.py`, `ui.mjs` (local web UI).
+## GUI / security
 
-## Web UI (`engine/tools/ui.mjs`)
+ui.mjs is a node:http server defaulting to **127.0.0.1**. Explicit external binding
+requires token and Host/Origin validation; JSON has a bounded byte body. HTTP is not
+TLS. Jobs invoke the same CLI, write ordinary logs, and block conflicting edits.
+editor.mjs uses revisions/locks/history for scenes and undo/redo after restart.
+editor-page.mjs is vanilla UI with RU/EN controls, QA, documentary claims wizard,
+heuristic resource confirmation. Raw logs/source text are not translated. Preview
+SVG is schematic; actual Chrome still jobs must match project/source metadata.
 
-Zero-dependency `node:http` server started with `node render.mjs ui [--port 7788]`. It serves one HTML page and a tiny JSON API (`/api/state`, `/api/create`, `/api/run`, `/api/stop`, `/api/log`, `/file`). Every run spawns the existing `render.mjs` CLI as a detached job writing into `projects/<id>/logs/` — project data stays on disk, so CLI and UI are interchangeable; the UI owns no pipeline logic.
+## Measurement / optional model / selfcheck
 
-## Known limits
+profile.mjs: stage wall times, scene render+encode times, slowest video capture
+frames, separate sampled/all-frame still wall times; process maxRSS + sampled tree
+RSS via ps/Windows CIM. Reports disclose missed short processes/shared pages/overhead.
+No renderer optimization or static-layer prerender enabled; no equivalence goldens.
 
-* Story generation: freeform topics are handled by `tools/story.mjs` (12 detected domains with dedicated scene pools) and the 3 classic templates remain available via `--template`; `idea` output is still template-based. Add domains/pools in `story.mjs`, full templates in `tools/script.mjs`.
-* Piper voices are synthetic; use `--audio` for human narration.
-* 1080p SVG rendering is CPU-heavy (≈ 2–8 min per minute of video on 4 cores).
+llm-local.mjs: opt-in Ollama/OpenAI loopback HTTP, JSON schema/validator, ≤2 repairs,
+bounded response/timeout, preserved topology/roles/claims and QA/timing checks.
+Documentary allowlist is verbatim per-line materials, not semantic trust in a model.
+Rules remain the default. selfcheck.mjs packages versions/doctor/smoke/profile and
+8 extracted real draft frames only if rendering succeeds; otherwise incomplete
+ZIP/exit1. No automatic upload, install or synthetic substitute PNGs.
+
+## Verification and limitations
+
+Tests: engine/tests/; CI config: .github/workflows/ci.yml (actual
+workflow filename). Final clean-checkout commands/logs: handoff/final/evidence/.
+No fixed fps/RAM promises. Chrome/Piper/Whisper-model/LLM-model/Windows/GUI visuals
+remain unverified here; authoritative gap list: KNOWN_GAPS.md.

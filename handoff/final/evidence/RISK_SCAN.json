@@ -1,0 +1,25 @@
+{
+  "scope": "git tracked paths and content + nested tracked ZIPs, signature scan not proof against every secret",
+  "files": 196,
+  "forbiddenTrackedOrArchivedPaths": [],
+  "secretSignatureFindings": [],
+  "archivesInspected": [
+    "handoff/phase7-8/evidence/selfcheck-incomplete.zip"
+  ],
+  "ignoreChecks": {
+    "engine/node_modules/example": true,
+    "engine/piper-env/example": true,
+    "engine/models/a.onnx": true,
+    "output/example.mp4": true,
+    ".env": true,
+    "secret.key": true,
+    "weights.gguf": true,
+    "weights.safetensors": true
+  },
+  "knowledge": {
+    "claims": 25,
+    "allNeedsReview": true
+  },
+  "migrationEvidence": "engine/tests/reliability.mjs and final/evidence/summary.json",
+  "documentaryBoundary": "research lines all known claims; legacy weaker, docs/KNOWN_GAPS.md G4"
+}

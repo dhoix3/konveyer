@@ -1,0 +1,650 @@
+{
+  "schemaVersion": 1,
+  "id": "rurikids",
+  "topic": "Рюриковичи",
+  "aliases": [
+    "Рюриковичи",
+    "Rurikids"
+  ],
+  "verification": "Offline authored; bibliography not checked online; no quotations",
+  "sources": [
+    {
+      "id": "pvl",
+      "title": "Повесть временных лет. Подготовка текста Д. С. Лихачёва; перевод Д. С. Лихачёва и Б. А. Романова. М.; Л.: АН СССР, 1950.",
+      "shortTitle": "Повесть временных лет"
+    },
+    {
+      "id": "hypatian",
+      "title": "Полное собрание русских летописей. Т. 2: Ипатьевская летопись. 2-е изд. СПб., 1908. Запись под 6655 (1147) годом.",
+      "shortTitle": "Ипатьевская летопись"
+    },
+    {
+      "id": "novgorod",
+      "title": "Новгородская первая летопись старшего и младшего изводов. Под ред. А. Н. Насонова. М.; Л.: АН СССР, 1950. Запись под 6750 (1242) годом.",
+      "shortTitle": "Новгородская первая летопись"
+    },
+    {
+      "id": "franklin",
+      "title": "Simon Franklin, Jonathan Shepard. The Emergence of Rus 750–1200. Longman, 1996.",
+      "shortTitle": "Franklin / Shepard · Русь"
+    },
+    {
+      "id": "martin",
+      "title": "Janet Martin. Medieval Russia, 980–1584. 2nd ed. Cambridge University Press, 2007.",
+      "shortTitle": "Janet Martin · Средневековая Русь"
+    },
+    {
+      "id": "skrynnikov",
+      "title": "Р. Г. Скрынников. Иван Грозный. М.: Наука, 1975.",
+      "shortTitle": "Скрынников · Иван Грозный"
+    },
+    {
+      "id": "dunning",
+      "title": "Chester S. L. Dunning. Russia’s First Civil War: The Time of Troubles and the Founding of the Romanov Dynasty. Pennsylvania State University Press, 2001.",
+      "shortTitle": "Dunning · Смутное время"
+    }
+  ],
+  "claims": [
+    {
+      "id": "rurik",
+      "text": "Летопись относит призвание Рюрика к 862 году; историчность рассказа спорна.",
+      "date": {
+        "value": "862",
+        "precision": "year"
+      },
+      "place": "Ладога / Новгород",
+      "status": "disputed",
+      "sources": [
+        "pvl"
+      ],
+      "confidence": 0.55,
+      "needsReview": true,
+      "epoch": "origins",
+      "narration": "Призвание Рюрика — спорный летописный рассказ.",
+      "era": [
+        862,
+        862
+      ],
+      "person": "Рюрик"
+    },
+    {
+      "id": "oleg",
+      "text": "Летопись датирует захват Киева Олегом 882 годом; ранняя хронология условна.",
+      "date": {
+        "value": "882",
+        "precision": "year"
+      },
+      "place": "Киев",
+      "status": "disputed",
+      "sources": [
+        "pvl"
+      ],
+      "confidence": 0.55,
+      "needsReview": true,
+      "epoch": "origins",
+      "narration": "Захват Киева Олегом: ранние даты условны.",
+      "era": [
+        882,
+        882
+      ],
+      "person": "Олег"
+    },
+    {
+      "id": "treaty",
+      "text": "Повесть временных лет сохраняет текст договора Руси с Византией под 911 годом.",
+      "date": {
+        "value": "911",
+        "precision": "year"
+      },
+      "place": "Константинополь",
+      "status": "supported",
+      "sources": [
+        "pvl"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "origins",
+      "narration": "Летопись сохранила договор с Византией.",
+      "era": [
+        911,
+        911
+      ],
+      "person": "Олег"
+    },
+    {
+      "id": "igor",
+      "text": "По летописи, Игорь погиб при повторном сборе дани у древлян.",
+      "date": {
+        "value": "945",
+        "precision": "year"
+      },
+      "place": "Древлянская земля",
+      "status": "supported",
+      "sources": [
+        "pvl"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "origins",
+      "narration": "Повторный сбор дани привёл Игоря к гибели.",
+      "era": [
+        945,
+        945
+      ],
+      "person": "Игорь"
+    },
+    {
+      "id": "olga",
+      "text": "Летописный рассказ связывает Ольгу с упорядочением сбора дани после гибели Игоря.",
+      "date": {
+        "value": "X век",
+        "precision": "century"
+      },
+      "place": "Киев",
+      "status": "supported",
+      "sources": [
+        "pvl"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "origins",
+      "narration": "После гибели Игоря Ольга упорядочила дань.",
+      "era": [
+        945,
+        960
+      ],
+      "person": "Ольга"
+    },
+    {
+      "id": "olga-baptism",
+      "text": "Ольга приняла христианство; точная дата крещения остаётся предметом обсуждения.",
+      "date": {
+        "value": "X век",
+        "precision": "century"
+      },
+      "place": "Константинополь",
+      "status": "disputed",
+      "sources": [
+        "franklin"
+      ],
+      "confidence": 0.55,
+      "needsReview": true,
+      "epoch": "origins",
+      "narration": "Дата крещения Ольги остаётся спорной.",
+      "era": [
+        900,
+        999
+      ],
+      "person": "Ольга"
+    },
+    {
+      "id": "sviatoslav",
+      "text": "Летопись связывает поход Святослава с поражением хазар; последствия изменили степные связи Руси.",
+      "date": {
+        "value": "965",
+        "precision": "year"
+      },
+      "place": "Хазария",
+      "status": "supported",
+      "sources": [
+        "pvl"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "kiev",
+      "narration": "Поход Святослава ослабил хазар.",
+      "era": [
+        965,
+        965
+      ],
+      "person": "Святослав"
+    },
+    {
+      "id": "sviatoslav-end",
+      "text": "Летопись сообщает о гибели Святослава в столкновении с печенегами.",
+      "date": {
+        "value": "972",
+        "precision": "year"
+      },
+      "place": "Днепровские пороги",
+      "status": "supported",
+      "sources": [
+        "pvl"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "kiev",
+      "narration": "Святослав погиб в бою с печенегами.",
+      "era": [
+        972,
+        972
+      ],
+      "person": "Святослав"
+    },
+    {
+      "id": "vladimir",
+      "text": "Крещение Руси традиционно датируют 988 годом; последовательность событий обсуждается.",
+      "date": {
+        "value": "988",
+        "precision": "year"
+      },
+      "place": "Киев",
+      "status": "disputed",
+      "sources": [
+        "franklin"
+      ],
+      "confidence": 0.55,
+      "needsReview": true,
+      "epoch": "kiev",
+      "narration": "Детали крещения Руси вызывают споры.",
+      "era": [
+        988,
+        988
+      ],
+      "person": "Владимир"
+    },
+    {
+      "id": "christianity",
+      "text": "Принятие христианства усилило церковные и культурные связи Руси с Византией.",
+      "date": {
+        "value": "конец X–XI век",
+        "precision": "range"
+      },
+      "place": "Русь",
+      "status": "supported",
+      "sources": [
+        "franklin"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "kiev",
+      "narration": "Христианство укрепило связи с Византией.",
+      "era": [
+        980,
+        1099
+      ],
+      "person": "Владимир"
+    },
+    {
+      "id": "yaroslav",
+      "text": "При Ярославе Киев стал важным центром книжности и церковного строительства.",
+      "date": {
+        "value": "1019–1054",
+        "precision": "range"
+      },
+      "place": "Киев",
+      "status": "supported",
+      "sources": [
+        "franklin"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "kiev",
+      "narration": "Ярослав поддерживал книжность и строительство.",
+      "era": [
+        1019,
+        1054
+      ],
+      "person": "Ярослав"
+    },
+    {
+      "id": "lyubech",
+      "text": "Любечский съезд закрепил принцип наследственных владений князей, но не прекратил усобицы.",
+      "date": {
+        "value": "1097",
+        "precision": "year"
+      },
+      "place": "Любеч",
+      "status": "supported",
+      "sources": [
+        "pvl"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "division",
+      "narration": "Любеч закрепил вотчины, но не прекратил усобицы.",
+      "era": [
+        1097,
+        1097
+      ],
+      "person": "Князья в Любече"
+    },
+    {
+      "id": "monomakh",
+      "text": "Владимир Мономах княжил в Киеве и стремился сдерживать княжеские конфликты.",
+      "date": {
+        "value": "1113–1125",
+        "precision": "range"
+      },
+      "place": "Киев",
+      "status": "supported",
+      "sources": [
+        "martin"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "division",
+      "narration": "Мономах сдерживал княжеские конфликты.",
+      "era": [
+        1113,
+        1125
+      ],
+      "person": "Владимир Мономах"
+    },
+    {
+      "id": "fragmentation",
+      "text": "Рост региональных центров и династические разделы способствовали политической раздробленности.",
+      "date": {
+        "value": "XII век",
+        "precision": "century"
+      },
+      "place": "Русь",
+      "status": "supported",
+      "sources": [
+        "martin"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "division",
+      "narration": "Разделы владений усиливали раздробленность.",
+      "era": [
+        1100,
+        1199
+      ],
+      "person": "Князья Руси"
+    },
+    {
+      "id": "yuri",
+      "text": "Первое летописное упоминание Москвы связано со встречей Юрия Долгорукого со Святославом Ольговичем.",
+      "date": {
+        "value": "1147",
+        "precision": "year"
+      },
+      "place": "Москва",
+      "status": "supported",
+      "sources": [
+        "hypatian"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "division",
+      "narration": "Москва упомянута в связи с Юрием Долгоруким.",
+      "era": [
+        1147,
+        1147
+      ],
+      "person": "Юрий Долгорукий"
+    },
+    {
+      "id": "mongols",
+      "text": "Монгольское нашествие разорило многие города Руси и установило зависимость княжеств от Орды.",
+      "date": {
+        "value": "1237–1240",
+        "precision": "range"
+      },
+      "place": "Северо-Восточная и Южная Русь",
+      "status": "supported",
+      "sources": [
+        "martin"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "horde",
+      "narration": "Нашествие привело к зависимости от Орды.",
+      "era": [
+        1237,
+        1240
+      ],
+      "person": "Бату"
+    },
+    {
+      "id": "nevsky",
+      "text": "Александр Невский возглавлял русские силы в сражении на Чудском озере.",
+      "date": {
+        "value": "1242",
+        "precision": "year"
+      },
+      "place": "Чудское озеро",
+      "status": "supported",
+      "sources": [
+        "novgorod"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "horde",
+      "narration": "Невский возглавлял войско на Чудском озере.",
+      "era": [
+        1242,
+        1242
+      ],
+      "person": "Александр Невский"
+    },
+    {
+      "id": "nevsky-horde",
+      "text": "Политика Александра Невского включала признание власти ордынских ханов.",
+      "date": {
+        "value": "XIII век",
+        "precision": "century"
+      },
+      "place": "Северо-Восточная Русь",
+      "status": "supported",
+      "sources": [
+        "martin"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "horde",
+      "narration": "Он признавал власть ордынских ханов.",
+      "era": [
+        1200,
+        1299
+      ],
+      "person": "Александр Невский"
+    },
+    {
+      "id": "kalita",
+      "text": "При Иване Калите усилились позиции московского княжества в отношениях с Ордой.",
+      "date": {
+        "value": "XIV век",
+        "precision": "century"
+      },
+      "place": "Москва",
+      "status": "supported",
+      "sources": [
+        "martin"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "moscow",
+      "narration": "При Калите позиции княжества усилились.",
+      "era": [
+        1300,
+        1399
+      ],
+      "person": "Иван Калита"
+    },
+    {
+      "id": "ivan3",
+      "text": "Иван III подчинил Новгород Москве; самостоятельность Новгородской республики была утрачена.",
+      "date": {
+        "value": "1478",
+        "precision": "year"
+      },
+      "place": "Новгород",
+      "status": "supported",
+      "sources": [
+        "martin"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "moscow",
+      "narration": "Иван Третий лишил Новгород самостоятельности.",
+      "era": [
+        1478,
+        1478
+      ],
+      "person": "Иван III"
+    },
+    {
+      "id": "ugra",
+      "text": "Стояние на Угре традиционно рассматривают как рубеж прекращения ордынской зависимости Москвы.",
+      "date": {
+        "value": "1480",
+        "precision": "year"
+      },
+      "place": "Угра",
+      "status": "supported",
+      "sources": [
+        "martin"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "moscow",
+      "narration": "Угра — рубеж конца ордынской зависимости.",
+      "era": [
+        1480,
+        1480
+      ],
+      "person": "Иван III"
+    },
+    {
+      "id": "moscow-line",
+      "text": "Василий III был сыном Ивана III и отцом Ивана IV; Фёдор Иванович был сыном Ивана IV.",
+      "narration": "Иван Четвёртый — внук Ивана Третьего и отец Фёдора.",
+      "date": {
+        "value": "XV–XVI века",
+        "precision": "range"
+      },
+      "place": "Москва",
+      "status": "supported",
+      "sources": [
+        "martin",
+        "dunning"
+      ],
+      "confidence": 0.9,
+      "needsReview": true,
+      "epoch": "tsardom",
+      "era": [
+        1460,
+        1598
+      ],
+      "person": "Василий III"
+    },
+    {
+      "id": "ivan4",
+      "text": "Иван IV венчался на царство в 1547 году.",
+      "date": {
+        "value": "1547",
+        "precision": "year"
+      },
+      "place": "Москва",
+      "status": "supported",
+      "sources": [
+        "skrynnikov"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "tsardom",
+      "narration": "Иван Четвёртый венчался на царство.",
+      "era": [
+        1547,
+        1547
+      ],
+      "person": "Иван IV"
+    },
+    {
+      "id": "oprichnina",
+      "text": "Опричнина Ивана IV сопровождалась репрессиями и разорением; оценки её целей различаются.",
+      "date": {
+        "value": "1565–1572",
+        "precision": "range"
+      },
+      "place": "Русское государство",
+      "status": "supported",
+      "sources": [
+        "skrynnikov"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "tsardom",
+      "narration": "Опричнина сопровождалась разорением.",
+      "era": [
+        1565,
+        1572
+      ],
+      "person": "Иван IV"
+    },
+    {
+      "id": "end",
+      "text": "Со смертью Фёдора Ивановича пресеклась правившая московская линия Рюриковичей, но не весь род.",
+      "date": {
+        "value": "1598",
+        "precision": "year"
+      },
+      "place": "Москва",
+      "status": "supported",
+      "sources": [
+        "dunning"
+      ],
+      "confidence": 0.85,
+      "needsReview": true,
+      "epoch": "tsardom",
+      "narration": "Пресеклась московская линия, но не весь род.",
+      "era": [
+        1598,
+        1598
+      ],
+      "person": "Фёдор Иванович"
+    }
+  ],
+  "causalLinks": [
+    {
+      "cause": "igor",
+      "consequence": "olga",
+      "qualification": "Летописная последовательность: гибель при сборе дани и последующее упорядочение дани Ольгой."
+    },
+    {
+      "cause": "vladimir",
+      "consequence": "christianity",
+      "qualification": "Принятие христианства укрепляло культурные связи с Византией."
+    }
+  ],
+  "relations": [
+    {
+      "parent": "Иван III",
+      "child": "Василий III",
+      "claimIds": [
+        "moscow-line"
+      ],
+      "sources": [
+        "martin",
+        "dunning"
+      ],
+      "needsReview": true
+    },
+    {
+      "parent": "Василий III",
+      "child": "Иван IV",
+      "claimIds": [
+        "moscow-line"
+      ],
+      "sources": [
+        "martin",
+        "dunning"
+      ],
+      "needsReview": true
+    },
+    {
+      "parent": "Иван IV",
+      "child": "Фёдор Иванович",
+      "claimIds": [
+        "moscow-line"
+      ],
+      "sources": [
+        "martin",
+        "dunning"
+      ],
+      "needsReview": true
+    }
+  ]
+}

@@ -1,7 +1,23 @@
 #!/usr/bin/env node
+import {makeUniversal,assertPublicationAllowed} from './tools/universal.mjs';
+import {fetchWhisper,whisperStatus} from './tools/models.mjs';
+import {renderEstimate} from './tools/render-estimate.mjs';
+import {selfcheck} from './tools/selfcheck.mjs';
+import {generateLocal} from './tools/llm-local.mjs';
+import {Profile} from './tools/profile.mjs';
+import {publishPackage} from './tools/publishing.mjs';
+import {findPack} from './tools/knowledge.mjs';
+import {outputSize} from './src/lib/viewport.ts';
+import {exportSubtitles} from './tools/subtitles.mjs';
+import {VOICE_REGISTRY} from './tools/voice-registry.mjs';
+import {ensureModel} from './tools/voice.mjs';
+import {research} from './tools/knowledge.mjs';
+import {buildDocumentary,writeDocumentaryArtifacts} from './tools/documentary.mjs';
 // Koveyer Dhoix'a — pipeline CLI.
 // IDEA -> SCRIPT -> VOICE -> TIMELINE -> SCENES -> SOUND -> RENDER -> FINAL.mp4
-import {createSeason, regenerateEpisode} from './tools/series.mjs';
+import {createSeason, regenerateEpisode, recoverSeason, assertSeriesContext} from './tools/series.mjs';
+import {applyLocalEnvironment,fixEnvironment} from './tools/environment.mjs';
+import {listHistory,restoreSnapshot} from './tools/storage.mjs';
 import {lockProject} from './tools/project-lock.mjs';
 import {prepareBrowser} from './tools/browser.mjs';
 import fs from 'node:fs';
@@ -15,20 +31,41 @@ import {buildProject, generateIdeas, TEMPLATE_IDS, MUSIC_MOODS, LANGS, STYLES} f
 import {startUI} from './tools/ui.mjs';
 import {runVoice, resolveVoiceModel, allLines} from './tools/voice.mjs';
 import {buildPlan} from './tools/timeline.mjs';
-import {voiceById} from './src/lib/library.ts';
+import {LIB_CHARS,voiceById} from './src/lib/library.ts';
 import {runSound} from './tools/sound.mjs';
 import {qaPlan, qaMedia, writeReport} from './tools/qa.mjs';
 
-const args = parseArgs(process.argv.slice(2));
+applyLocalEnvironment();
+const argv=process.argv.slice(2);if(argv[0]==='--profile')argv[0]='profile';
+const args = parseArgs(argv);
+const aspectKey=()=>{outputSize(args.aspect);return String(args.aspect).replace(':','x');};
+const renderDir=id=>args.aspect?ensure(path.join(outDir(id),aspectKey())):outDir(id);
 const cmd = args._[0];
+let profiler;
+const measured=(name,fn)=>profiler?profiler.stage(name,fn):fn();
 
-const loadProject = (id) => readJson(path.join(projectDir(id), 'project.json'));
+const loadProject = (id) => {
+  const p=readJson(path.join(projectDir(id),'project.json'));
+  if(p.production?.seriesId) {
+    const parent=projectDir(p.production.seriesId);
+    if(!fs.existsSync(path.join(parent,'project.json')) || fs.existsSync(path.join(parent,'season-transaction.json')))throw new Error('Season publication pending: run recover on the season container');
+  }
+  return p;
+};
 const loadPlan = (id) => {
   if (loadProject(id).production?.kind === 'season') throw new Error('Сезон — контейнер. Выберите отдельный эпизод для рендера.');
-  const f = path.join(projectDir(id), 'plan.json');
+  const f = path.join(args.aspect?path.join(projectDir(id),'exports',aspectKey()):projectDir(id), 'plan.json');
   if (!fs.existsSync(f)) throw new Error(`plan.json missing — run: node render.mjs timeline ${id}`);
+  assertSeriesContext(loadProject(id));
   const plan = readJson(f);
-  if (plan.projectHash && plan.projectHash !== sha1(loadProject(id))) throw new Error(`project.json changed — re-run voice and timeline ${id} before rendering`);
+  for(const scene of plan.scenes)for(const line of scene.lines)if(line.file && line.audioHash) {
+    const file=path.resolve(projectDir(id),line.file),relative=path.relative(projectDir(id),file);
+    if(relative.startsWith('..')||path.isAbsolute(relative)||!fs.existsSync(file)||fileSha(file)!==line.audioHash)throw new Error(`Audio changed: ${line.id}; re-run timeline ${id}`);
+  }
+  if(plan.projectHash) {
+    const project=loadProject(id),legacy={...project};delete legacy.schemaVersion;
+    if(plan.projectHash!==sha1(project) && plan.projectHash!==sha1(legacy))throw new Error(`project.json changed — re-run voice and timeline ${id} before rendering`);
+  }
   const manifest = readJson(path.join(projectDir(id), 'voice', 'manifest.json'), {source:'none', lines:{}});
   if (plan.voiceManifestHash && plan.voiceManifestHash !== sha1(manifest)) throw new Error(`Voice manifest changed — re-run timeline ${id}`);
   return plan;
@@ -71,15 +108,20 @@ async function cmdNew(id) {
   if (!args.format && args.topic && String(args.topic).length > 300) throw new Error('--topic is too long (max 300 characters)');
   if (args.topic && !String(args.topic).trim()) throw new Error('--topic is empty');
 
+  if(args.provider && !['rules','llm-local'].includes(args.provider))throw new Error('Unknown provider');
+  if(args.provider==='llm-local'&&args.format==='series')throw new Error('Select an episode, not series container for llm-local');
   const dir = ensure(projectDir(id));
   const log = logger(id, 'script');
   if (!args.format && args.topic && String(args.topic).length > 200) log.warn('topic longer than 200 chars — it will be truncated');
+  if(args.format==='series' && fs.existsSync(path.join(dir,'season-transaction.json'))) {const recovered=recoverSeason(id);log.info('Season recovered');return recovered;}
   const existed = fs.existsSync(path.join(dir, 'project.json'));
   if (existed && !args.force) throw new Error(`project ${id} exists (use --force to overwrite)`);
+  const suppliedMaterials=args.materials?readJson(path.resolve(String(args.materials))):null;
+  const documentaryMaterials=args.format==='documentary'&&suppliedMaterials?.schemaVersion===1;
   const options = {id, language: args.lang, duration: args.duration, topic: args.topic, theme: args.theme, characters: args.characters, voiceMode: args.voice, music: args.music, style: args.style, template: args.template === 'auto' ? undefined : args.template,
     voiceModel:args['voice-model'],format:args.format, name:args.name,genre:args.genre,narrative:args.narrative,episodes:args.episodes,season:args.season,
-    sources:args.materials ? readJson(path.resolve(String(args.materials))).sources : undefined,
-    claims:args.materials ? readJson(path.resolve(String(args.materials))).claims : undefined};
+    sources:documentaryMaterials?[]:suppliedMaterials?.sources,
+    claims:documentaryMaterials?[]:suppliedMaterials?.claims};
   if(args['continue-from']) {
     if(!args.format || args.format==='series') throw new Error('Продолжение требует отдельного производственного фильма');
     const previous=loadProject(String(args['continue-from']));
@@ -90,8 +132,11 @@ async function cmdNew(id) {
     options.continuationFrom=previous.id;
   }
   if (args.format === 'series' && existed) throw new Error('Существующий сезон не перезаписывается: используйте episode для одной серии');
-  const project = args.format === 'series' ? createSeason(options) : buildProject(options);
+  let project = args.format === 'series' ? createSeason(options) : buildProject(options);
+  if(args.provider==='llm-local'){const result=await generateLocal(project,{endpoint:args['llm-endpoint'],model:args['llm-model'],api:args['llm-api']||'ollama',materials:args.materials?readJson(path.resolve(String(args.materials))):undefined,onAttempt:r=>log.info(JSON.stringify(r))});project=result.project;project.generation={provider:'llm-local',attempts:result.attempts,needsReview:true};}
+  if(documentaryMaterials)project=buildDocumentary(project,suppliedMaterials);
   writeJson(path.join(dir, 'project.json'), project);
+  if(documentaryMaterials)writeDocumentaryArtifacts(id,project);
   writeJson(path.join(dir, 'idea.json'), project.idea);
   if (existed && args.force) {
     // A forced rebuild starts a new film: drop stale stage/scene state so the
@@ -104,6 +149,7 @@ async function cmdNew(id) {
 }
 
 async function cmdVoice(id) {
+  assertSeriesContext(loadProject(id));
   const log = logger(id, 'voice');
   if (args.audio && !path.isAbsolute(String(args.audio)) && fs.existsSync(path.join(projectDir(id), String(args.audio)))) args.audio = path.join(projectDir(id), String(args.audio));
   markStage(id, 'voice', 'running');
@@ -124,10 +170,12 @@ async function cmdVoice(id) {
 }
 
 async function cmdTimeline(id) {
+  assertSeriesContext(loadProject(id));
   const log = logger(id, 'timeline');
   markStage(id, 'timeline', 'running');
   try {
-    const plan = buildPlan(id);
+    const plan = buildPlan(id,{aspect:args.aspect});
+    exportSubtitles(id,plan);
     const rep = qaPlan(id, plan);
     markStage(id, 'timeline', rep.errors.length ? 'failed' : 'done', {totalSec: plan.totalSec, source: plan.voiceSource});
     log.info(`timeline: ${plan.scenes.length} scenes, ${plan.totalSec.toFixed(1)}s (${plan.totalFrames} frames), voice=${plan.voiceSource}`);
@@ -140,8 +188,8 @@ async function cmdTimeline(id) {
   }
 }
 
-const sceneHash = (plan, sc) => sha1({v: ENGINE_VERSION, src: sourceHash(), fps: plan.fps, chars: plan.characters, scene: sc, lang: plan.language, subs: args['no-subs'] ? 0 : 1});
-export const scenesDir = (id, draft) => ensure(path.join(outDir(id), draft ? 'scenes_draft' : 'scenes'));
+const sceneHash = (plan, sc) => sha1({v: ENGINE_VERSION, src: sourceHash(), fps: plan.fps, width:plan.width,height:plan.height, chars: plan.characters, scene: sc, lang: plan.language, subs: args['no-subs'] ? 0 : 1});
+export const scenesDir = (id, draft) => ensure(path.join(renderDir(id), draft ? 'scenes_draft' : 'scenes'));
 
 async function cmdScenes(id) {
   const log = logger(id, 'scenes');
@@ -149,6 +197,7 @@ async function cmdScenes(id) {
   let done = 0, skipped = 0;
   try {
   const plan = loadPlan(id);
+  if(profiler)profiler.totalFrames=plan.scenes.reduce((n,s)=>n+s.durFrames,0);
   const draft = !!args.draft;
   const scale = draft ? 0.5 : 1;
   const dir = scenesDir(id, draft);
@@ -164,6 +213,7 @@ async function cmdScenes(id) {
   const ramGB = os.totalmem() / 1e9;
   const autoConc = ramGB < 12 ? 1 : Math.max(1, Math.min(3, Math.floor(os.cpus().length / 2)));
   const conc = Number(args.concurrency ?? autoConc);
+  if(profiler)Object.assign(profiler.data.context,{scale,concurrency:conc,planWidth:plan.width,planHeight:plan.height});
   if (!Number.isInteger(conc) || conc < 1 || conc > 16) throw new Error('--concurrency must be an integer 1–16');
   for (const sc of plan.scenes) {
     if (only && !only.includes(sc.id)) continue;
@@ -184,17 +234,19 @@ async function cmdScenes(id) {
     const comp = await selectComposition({serveUrl, id: 'Scene', inputProps, browserExecutable, chromiumOptions: chromeOpts()});
     const part = file.replace(/\.mp4$/, '.part.mp4');
     let last = -1;
-    await renderMedia({
+    const mediaResult=await renderMedia({
       composition: comp, serveUrl, browserExecutable, codec: 'h264', outputLocation: part, inputProps, muted: true, crf: draft ? 30 : 17, pixelFormat: 'yuv420p',
       imageFormat: 'jpeg', jpegQuality: 92, scale, concurrency: conc, x264Preset: draft ? 'veryfast' : 'medium', chromiumOptions: chromeOpts(), overwrite: true,
       onProgress: ({progress}) => { const p = Math.floor(progress * 10); if (p !== last) { last = p; process.stdout.write(`\r  ${sc.id} ${p * 10}%   `); } },
     });
+    if(profiler)profiler.data.scenes.push({scene:sc.id,frames:sc.durFrames,ms:Date.now()-t0,slowestFrames:mediaResult.slowestFrames,frameTimingBasis:'Remotion slowestFrames capture timings; not all frames'});
     process.stdout.write('\n');
+    const m = probe(part);
+    if(Math.abs(m.duration-sc.durFrames/FPS)>=.1||m.vcodec!=='h264'||m.width!==plan.width*scale||m.height!==plan.height*scale)throw new Error(`${sc.id}: staged render validation failed; previous ready scene preserved: ${part}`);
     fs.renameSync(part, file);
-    const m = probe(file);
     const exp = sc.durFrames / FPS;
     if (Math.abs(m.duration - exp) > 0.1) throw new Error(`${sc.id}: rendered ${m.duration}s, expected ${exp}s`);
-    state.scenes[key] = {hash: h, file: path.relative(ROOT_OUT(), file), sha: fileSha(file), frames: sc.durFrames, seconds: +((Date.now() - t0) / 1000).toFixed(1), at: new Date().toISOString()};
+    state.scenes[key] = {context:{source:sourceHash(),width:plan.width,height:plan.height,cpu:os.cpus()[0]?.model,node:process.versions.node.split('.')[0]},hash: h, file: path.relative(ROOT_OUT(), file), sha: fileSha(file), frames: sc.durFrames, seconds: +((Date.now() - t0) / 1000).toFixed(1), at: new Date().toISOString()};
     saveState(id, state);
     done++;
     log.info(`${sc.id}: done in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
@@ -231,11 +283,14 @@ async function cmdRender(id) {
     const draft = !!args.draft;
     const files = sceneFiles(id, plan, draft);
     for (const [sid, f] of Object.entries(files)) if (!fs.existsSync(f)) throw new Error(`scene ${sid} missing: ${f}`);
-    const list = path.join(outDir(id), draft ? 'concat_draft.txt' : 'concat.txt');
+    const list = path.join(renderDir(id), draft ? 'concat_draft.txt' : 'concat.txt');
     fs.writeFileSync(list, plan.scenes.map((s) => `file '${files[s.id].replace(/'/g, "'\\''")}'`).join('\n'));
-    const video = path.join(outDir(id), draft ? 'video_draft.mp4' : 'video.mp4');
-    ff(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', video]);
-    const m = probe(video);
+    const video = path.join(renderDir(id), draft ? 'video_draft.mp4' : 'video.mp4');
+    const part=video.replace(/\.mp4$/,'.part.mp4');
+    ff(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', part]);
+    const m = probe(part);
+    if(Math.abs(m.duration-plan.totalSec)>.25||m.vcodec!=='h264')throw new Error('Staged concatenation validation failed; previous video preserved');
+    fs.renameSync(part,video);
     log.info(`concatenated video: ${m.duration.toFixed(2)}s ${m.width}x${m.height} @${m.fps}fps`);
     markStage(id, 'render', 'done', {video});
   } catch (e) {
@@ -246,20 +301,22 @@ async function cmdRender(id) {
 }
 
 async function cmdFinal(id) {
+  assertPublicationAllowed(loadProject(id),{acceptUnverified:!!args['accept-unverified'],draft:!!args.draft});
   const log = logger(id, 'final');
   markStage(id, 'final', 'running');
   try {
     const plan = loadPlan(id);
     const draft = !!args.draft;
-    const video = path.join(outDir(id), draft ? 'video_draft.mp4' : 'video.mp4');
+    const video = path.join(renderDir(id), draft ? 'video_draft.mp4' : 'video.mp4');
     if (!fs.existsSync(video)) throw new Error('video.mp4 missing — run render first');
     const audio = path.join(projectDir(id), 'audio', 'mix_norm.wav');
     if (!fs.existsSync(audio)) throw new Error('mixed audio missing — run sound first');
-    const out = path.join(outDir(id), draft ? 'DRAFT.mp4' : 'FINAL.mp4');
+    const out = path.join(renderDir(id), draft ? 'DRAFT.mp4' : 'FINAL.mp4');
     const tmp = out.replace(/\.mp4$/, '.part.mp4');
     ff(['-i', video, '-i', audio, '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'libx264', '-crf', draft ? '28' : '21', '-preset', draft ? 'veryfast' : 'medium', '-pix_fmt', 'yuv420p', '-r', '24', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-t', plan.totalSec.toFixed(3), '-movflags', '+faststart', tmp]);
+    const m = probe(tmp);
+    if(!m.hasAudio||m.vcodec!=='h264'||m.acodec!=='aac'||Math.abs(m.duration-plan.totalSec)>.25)throw new Error('Final staged media validation failed; previous MP4 preserved');
     fs.renameSync(tmp, out);
-    const m = probe(out);
     log.info(`${path.basename(out)}: ${m.duration.toFixed(2)}s ${m.width}x${m.height} @${m.fps}fps ${m.vcodec}/${m.acodec} (${(fs.statSync(out).size / 1e6).toFixed(1)} MB)`);
     markStage(id, 'final', 'done', {file: out, seconds: m.duration});
   } catch (e) {
@@ -276,7 +333,7 @@ async function cmdQa(id) {
     const plan = loadPlan(id);
     const draft = !!args.draft;
     const parts = [qaPlan(id, plan)];
-    if (!args['plan-only']) parts.push(qaMedia(id, plan, sceneFiles(id, plan, draft), path.join(outDir(id), draft ? 'DRAFT.mp4' : 'FINAL.mp4'), draft));
+    if (!args['plan-only']) parts.push(qaMedia(id, plan, sceneFiles(id, plan, draft), path.join(renderDir(id), draft ? 'DRAFT.mp4' : 'FINAL.mp4'), draft));
     const rep = writeReport(id, parts);
     rep.errors.forEach((e) => log.error(e));
     rep.warnings.forEach((w) => log.warn(w));
@@ -289,9 +346,10 @@ async function cmdQa(id) {
   }
 }
 
-async function cmdFrame(id) {
+async function cmdFrame(id,frameOptions={}) {
   const log = logger(id, 'frame');
-  const plan = loadPlan(id);
+  const plan = frameOptions.previewPlan||loadPlan(id);
+  const previewSource=sourceHash();
   const sc = plan.scenes.find((s) => s.id === (args.scene || plan.scenes[0].id));
   if (!sc) throw new Error('scene not found');
   const t = Number(args.t ?? 1);
@@ -302,11 +360,48 @@ async function cmdFrame(id) {
   const serveUrl = await getBundle(log);
   const inputProps = {plan, sceneIndex: sc.index, subtitles: !args['no-subs']};
   const comp = await selectComposition({serveUrl, id: 'Scene', inputProps, browserExecutable, chromiumOptions: chromeOpts()});
-  const out = args.out ? path.resolve(String(args.out)) : path.join(ensure(path.join(outDir(id), 'frames')), `${sc.id}_f${String(frame).padStart(4, '0')}.png`);
+  const out = args.out ? path.resolve(String(args.out)) : path.join(ensure(path.join(renderDir(id), 'frames')), `${sc.id}_f${String(frame).padStart(4, '0')}.png`);
   await renderStill({composition: comp, serveUrl, browserExecutable, output: out, frame, inputProps, imageFormat: 'png', scale: Number(args.scale) || 1, chromiumOptions: chromeOpts()});
+  if(frameOptions.previewPlan)writeJson(out+'.meta.json',{revision:plan.projectHash,sourceHash:previewSource,scene:sc.id,frame,time:t});
   log.info(`frame -> ${out}`);
   console.log(out);
 }
+
+async function cmdLLM(id) {
+ const p=loadProject(id);if(args.provider!=='llm-local')throw new Error('Explicit --provider llm-local required; default remains rules');
+ const result=await generateLocal(p,{endpoint:args['llm-endpoint'],model:args['llm-model'],api:args['llm-api']||'ollama',materials:args.materials?readJson(path.resolve(String(args.materials))):undefined,onAttempt:r=>console.log(JSON.stringify(r))});
+ writeJson(path.join(projectDir(id),'history',`pre-llm-${Date.now()}.json`),p);
+ result.project.generation={provider:'llm-local',attempts:result.attempts,needsReview:true};writeJson(path.join(projectDir(id),'project.json'),result.project);
+ if(result.project.production?.knowledge)writeDocumentaryArtifacts(id,result.project);
+}
+
+async function cmdProfile(id) {
+ if(args['prerender-static'])throw new Error('Static prerender unavailable: no reference-frame equivalence evidence; disabled');
+ const project=loadProject(id),plan=await measured('timeline-sample',()=>buildPlan(id,{projectOverride:project,persist:false,ignoreAudio:true}));
+ profiler.totalFrames=plan.totalFrames||plan.scenes.reduce((n,s)=>n+s.durFrames,0);
+ profiler.data.context={mode:'still-sample',project:id,scale:.5,width:plan.width||project.settings.width,height:plan.height||project.settings.height,concurrency:1,timing:'estimated speech, no TTS, mix or video encode',node:process.version,platform:process.platform,cpus:os.cpus().map(c=>c.model),totalMemoryBytes:os.totalmem(),sourceHash:sourceHash()};
+ const {renderStill,selectComposition}=await import('@remotion/renderer');
+ const browserExecutable=await measured('browser',()=>prepareBrowser(logger(id,'profile')));
+ await measured('assets',ensureAssets);const serveUrl=await measured('bundle',()=>getBundle(logger(id,'profile')));
+ for(const sc of plan.scenes){const t=performance.now();const inputProps={plan,sceneIndex:sc.index,subtitles:true};
+ const comp=await measured(`composition:${sc.id}`,()=>selectComposition({serveUrl,id:'Scene',inputProps,browserExecutable,chromiumOptions:chromeOpts()}));
+ for(const frame of (args['profile-all-frames']?Array.from({length:sc.durFrames},(_,i)=>i):[...new Set([0,Math.floor(sc.durFrames/2),sc.durFrames-1])]))await profiler.frame(sc.id,frame,()=>renderStill({composition:comp,serveUrl,browserExecutable,inputProps,frame,imageFormat:'png',scale:.5,output:path.join(ensure(path.join(profiler.dir,'frames')),`${sc.id}-${frame}.png`),chromiumOptions:chromeOpts()}));
+ profiler.data.scenes.push({scene:sc.id,ms:performance.now()-t,frames:sc.durFrames,sampled:true});}
+}
+
+async function cmdFrames(id){
+ const count=Number(args['per-scene']??3);if(!Number.isInteger(count)||count<1||count>8)throw new Error('--per-scene must be 1–8');
+ const log=logger(id,'frames'),plan=loadPlan(id),browserExecutable=await prepareBrowser(log);
+ await ensureAssets();const serveUrl=await getBundle(log),{renderStill,selectComposition}=await import('@remotion/renderer');
+ const dir=ensure(path.join(renderDir(id),'frames',new Date().toISOString().replace(/[:.]/g,'-'))),items=[],textBounds=[];
+ for(const scene of plan.scenes){if(!/^[a-zA-Z0-9_-]{1,40}$/.test(scene.id))throw new Error('Unsafe scene id for frames output');const inputProps={plan,sceneIndex:scene.index,subtitles:true,measureTextBounds:true};const composition=await selectComposition({serveUrl,id:'Scene',inputProps,browserExecutable,chromiumOptions:chromeOpts()});
+ for(let i=0;i<count;i++){const frame=count===1?Math.floor(scene.durFrames/2):Math.round(i*(scene.durFrames-1)/(count-1));const file=path.join(dir,`${scene.id}-${frame}.png`);
+ await renderStill({serveUrl,composition,browserExecutable,inputProps,frame,scale:.5,imageFormat:'png',output:file,chromiumOptions:chromeOpts(),onBrowserLog:entry=>{if(entry.text.startsWith('KOVEYER_TEXT_BOUNDS:')){try{textBounds.push({scene:scene.id,...JSON.parse(entry.text.slice('KOVEYER_TEXT_BOUNDS:'.length))});}catch{log.warn('Invalid text bbox report');}}}});items.push({src:'data:image/png;base64,'+fs.readFileSync(file).toString('base64'),label:`${scene.id} · frame ${frame} · ${(frame/plan.fps).toFixed(2)}s`});}}
+ const inputProps={items},composition=await selectComposition({serveUrl,id:'FrameContactSheet',inputProps,browserExecutable,chromiumOptions:chromeOpts()});
+ await renderStill({serveUrl,composition,browserExecutable,inputProps,frame:0,imageFormat:'png',output:path.join(dir,'contact-sheet.png'),chromiumOptions:chromeOpts()});
+ writeJson(path.join(dir,'frames.json'),{project:id,projectHash:plan.projectHash,sourceHash:sourceHash(),frames:items.map(({label})=>label),textBounds,textBoundsStatus:textBounds.length?'measured-in-Chrome':'NO_MEASUREMENTS: do not assume no overflow',selectionVersion:plan.selectionVersion,scale:.5});log.info(`Real frames and PNG contact sheet: ${dir}`);
+}
+async function cmdModels(){if(args._[1]!=='fetch'||args._[2]!=='whisper-tiny')throw new Error('Usage: models fetch whisper-tiny --allow-download');console.log(JSON.stringify(await fetchWhisper({allowDownload:args['allow-download']===true}),null,2));}
 
 async function cmdAll(id) {
   const log = logger(id, 'all');
@@ -315,6 +410,9 @@ async function cmdAll(id) {
     await cmdNew(id);
   }
   if (loadProject(id).production?.kind==='season') throw new Error('Выберите эпизод сезона: каждый экспортируется отдельно.');
+  const estimatePlan=buildPlan(id,{projectOverride:loadProject(id),persist:false,ignoreAudio:true});
+  const estimate=renderEstimate(estimatePlan.totalFrames,loadState(id),{source:sourceHash(),width:estimatePlan.width,height:estimatePlan.height,cpu:os.cpus()[0]?.model,node:process.versions.node.split('.')[0]});
+  log.info('Render estimate (not total pipeline): '+JSON.stringify(estimate));writeJson(path.join(outDir(id),'render-estimate.json'),estimate);
   const stages = [
     ['voice', cmdVoice], ['timeline', cmdTimeline], ['scenes', cmdScenes],
     ['sound', cmdSound], ['render', cmdRender], ['final', cmdFinal], ['qa', cmdQa],
@@ -322,10 +420,10 @@ async function cmdAll(id) {
   const t0 = Date.now();
   for (const [name, fn] of stages) {
     log.info(`=== stage ${name} started ===`);
-    await fn(id);
+    await measured(name,()=>fn(id));
     log.info(`=== stage ${name} done (${((Date.now() - t0) / 1000).toFixed(0)}s total) ===`);
   }
-  const final = path.join(OUTPUT, id, args.draft ? 'DRAFT.mp4' : 'FINAL.mp4');
+  const final = path.join(renderDir(id), args.draft ? 'DRAFT.mp4' : 'FINAL.mp4');
   if (fs.existsSync(final)) log.info(`pipeline finished: ${final}`);
   else log.warn('pipeline finished but FINAL.mp4 not found — check qa report');
 }
@@ -333,7 +431,7 @@ async function cmdAll(id) {
 async function cmdUi(id, args) {
   const port = Number(args.port || process.env.PORT || 7788);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('--port must be 1..65535');
-  startUI({port});
+  startUI({port,host:String(args.host || '127.0.0.1'),allowedHosts:args['allowed-host'] ? String(args['allowed-host']).split(',') : []});
   // Keep the process alive until SIGINT/SIGTERM (startUI exits on both);
   // otherwise the CLI's trailing process.exit() would kill the server.
   await new Promise(() => {});
@@ -350,8 +448,11 @@ function cmdList() {
 }
 
 async function cmdDoctor() {
+  if(args.fix)fixEnvironment();
   const checks = [];
   const add = (name, ok, info) => { checks.push({name, ok, info}); console.log(`${ok ? '✔' : '✘'} ${name}${info ? ' — ' + info : ''}`); };
+  console.log('Whisper alignment: '+JSON.stringify(whisperStatus()));
+  if(args._[1]){const alignment=readJson(path.join(projectDir(args._[1]),'alignment-report.json'),null);console.log('Project word alignment: '+JSON.stringify(alignment||{status:'energy-estimated / not yet prepared'}));}
   add('node', Number(process.versions.node.split('.')[0]) >= 22, process.version);
   try { const v = probe.length ? FFMPEG() : ''; add('ffmpeg', true, v); } catch (e) { add('ffmpeg', false, e.message); }
   try { runPython('gen_assets.py', [path.join(ENGINE, 'public')]); add('python+numpy', true, 'grain asset generated'); } catch (e) { add('python+numpy', false, e.message.slice(0, 120)); }
@@ -365,7 +466,13 @@ async function cmdDoctor() {
 }
 
 const HELP = `Koveyer Dhoix'a — pipeline
-  node render.mjs doctor                         check environment
+  node render.mjs frames <id> [--per-scene 3]  real Chrome stills + labelled PNG sheet
+  node render.mjs models fetch whisper-tiny --allow-download  explicit network permission
+  node render.mjs selfcheck [--plan-only]       offline diagnostic folder + ZIP
+  node render.mjs llm <id> --provider llm-local --llm-model <name> [--materials materials.json]
+  node render.mjs --profile <id>                sample real still timings, no project writes
+  node render.mjs all <id> --profile            measure pipeline stages + slow frames
+  node render.mjs doctor [--fix]                 diagnose / save detected paths (no installs)
   node render.mjs ui [--port 7788]               local web UI (create/run/download MP4)
   node render.mjs idea [--lang ru|en] [--theme t] [--count n]
   node render.mjs new <id> [--lang ru] [--duration 45] [--topic "..."] [--characters 2]
@@ -378,9 +485,20 @@ const HELP = `Koveyer Dhoix'a — pipeline
   node render.mjs render <id> [--draft]          scenes + lossless concat
   node render.mjs final <id> [--draft]           mux audio -> FINAL.mp4
   node render.mjs qa <id> [--plan-only] [--draft]
+  node render.mjs preview <id> --scene s01 --t 1    single Chrome frame, estimated timings
   node render.mjs frame <id> --scene s01 --t 2.5
   node render.mjs all <id> [--draft]             whole pipeline (stage logs in projects/<id>/logs/all.log)
   node render.mjs episode <series-id> --episode 2 --force
+  node render.mjs smoke [id] [--plan-only] [--voice none] [--aspect 9:16]
+  node render.mjs export <id> --aspect 16:9|9:16|1:1 [--render --draft]
+  node render.mjs publish <id> [--aspect 9:16]
+  node render.mjs voices [--download ru-narrator]    list registry / explicit model download
+  node render.mjs subtitles <id> [--strict]         SRT/VTT/ASS + reading QA
+  node render.mjs make "TOPIC" [--id ID --format explainer --mode unverified-draft --voice none]
+  node render.mjs research <id> --topic "Рюриковичи"   offline knowledge and documentary plan
+  node render.mjs recover <season-id>             finish interrupted season publication
+  node render.mjs history <id>
+  node render.mjs restore <id> --snapshot project-...json
   node render.mjs list
 templates: ${TEMPLATE_IDS.join(', ')}`;
 
@@ -406,18 +524,109 @@ for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
 process.on('uncaughtException', (e) => { failRunningStage(args._[1], e); console.error(`✘ ${e.message}`); process.exit(1); });
 process.on('unhandledRejection', (e) => { failRunningStage(args._[1], e); console.error(`✘ ${e?.message || e}`); process.exit(1); });
 
+async function cmdPreview(id){const project=loadProject(id);assertSeriesContext(project);const plan=buildPlan(id,{projectOverride:project,persist:false,ignoreAudio:true});return cmdFrame(id,{previewPlan:plan});}
+async function cmdPublish(id) {
+  assertPublicationAllowed(loadProject(id),{acceptUnverified:!!args['accept-unverified'],draft:!!args.draft});
+  const plan=loadPlan(id),dir=ensure(path.join(renderDir(id),'publish'));
+  const video=path.join(renderDir(id),args.draft?'DRAFT.mp4':'FINAL.mp4');
+  publishPackage(plan,dir,{video});
+  const sources=path.join(projectDir(id),'SOURCES.md');if(fs.existsSync(sources))fs.copyFileSync(sources,path.join(dir,'SOURCES.md'));
+  exportSubtitles(id,plan);
+  fs.cpSync(path.join(projectDir(id),'subtitles'),path.join(dir,'subtitles'),{recursive:true});
+  console.log(`Publishing package: ${dir}`);
+}
+async function cmdExport(id) {
+  if(!args.aspect)args.aspect='16:9';
+  await cmdTimeline(id);
+  if(args.render){args.concurrency=args.concurrency||1;await cmdSound(id);await cmdRender(id);await cmdFinal(id);}
+  await cmdPublish(id);
+}
+async function cmdSmoke(id) {
+  id=id||`smoke-${Date.now()}`;
+  if(!args._[1])process.on('exit',lockProject(id,{createDir:false}));
+  const dir=projectDir(id);if(fs.existsSync(dir))throw new Error('Smoke project exists: choose a new id; no overwrite');
+  const pack=findPack('Рюриковичи'),claims=pack.claims.filter(c=>['oleg','moscow-line','ivan4'].includes(c.id));
+  const base=buildProject({id,topic:'Проверка документальной графики',duration:30});
+  const p=buildDocumentary(base,{...pack,claims,causalLinks:[]});
+  p.title={ru:'Smoke: карта, время, родословная',en:'Documentary smoke'};
+  p.settings.duration=18;p.settings.voiceMode=args.voice||'tts';p.settings.music='none';
+  p.scenes.forEach(s=>s.minDur=6);p.production.smoke=true;
+  if(args.extended){
+    const envs=['rus_market','rus_port','rus_scriptorium'];
+    p.characters=p.characters.map((c,i)=>({...c,...LIB_CHARS.find(x=>x.id===`ensemble${i+1}`),id:c.id,name:c.name,voice:c.voice}));
+    p.scenes.forEach((s,i)=>{s.env.id=envs[i];s.crowd={presets:['ensemble1','ensemble2','ensemble3','ensemble4'],count:6,depth:.65};s.transition={in:i?'wipe':'iris',out:'fade'};s.light.grade=['sepia','dawn','silver'][i];s.sfx=[{t:.2,kind:i===2?'page_turn':'bell',gain:.1}];});
+    p.settings.music='solemn';
+  }
+  writeJson(path.join(dir,'project.json'),p);writeDocumentaryArtifacts(id,p);
+  args.draft=true;args.concurrency=1;if(profiler)Object.assign(profiler.data.context,{draft:true,concurrency:1});
+  if(args['plan-only']){await measured('timeline',()=>cmdTimeline(id));await measured('qa',()=>cmdQa(id));await measured('publish',()=>cmdPublish(id));}
+  else {await cmdAll(id);await cmdPublish(id);}
+  console.log(`Smoke project: ${id}; output: ${renderDir(id)}`);
+}
+async function cmdVoices() {
+  if(args.download || args.preview) {
+    const profile=VOICE_REGISTRY.find(p=>p.id===String(args.download||args.preview));
+    if(!profile)throw new Error('Unknown voice registry profile');
+    const log={info:console.log,warn:console.warn};
+    const model=await ensureModel(profile.model,log);
+    if(args.preview) {
+      const dir=ensure(path.join(OUTPUT,'voice-previews')),file=path.join(dir,`${profile.id}.wav`),jobs=path.join(dir,`${profile.id}.jobs.json`);
+      if(fs.existsSync(file)&&!args.force)throw new Error('Preview exists; use --force to regenerate');
+      writeJson(jobs,[{id:profile.id,text:String(args.text||'Рюрик и Ольга. История требует проверки источников.'),model,...profile.prosody,lang:profile.language,out:file}]);
+      runPython('tts.py',[jobs]);const results=readJson(`${jobs}.results.json`);
+      if(results.failed?.length||!fs.existsSync(file))throw new Error('Piper preview failed; inspect results.json');
+      console.log(file);
+    } else console.log(model);
+  } else console.log(JSON.stringify(VOICE_REGISTRY,null,2));
+}
+async function cmdSubtitles(id) {
+  const result=exportSubtitles(id,loadPlan(id));
+  console.log(JSON.stringify({errors:result.errors,warnings:result.warnings,cues:result.cues.length},null,2));
+  if(result.errors.length||(args.strict&&result.warnings.length))throw new Error('Subtitle QA failed');
+}
+async function cmdResearch(id) {
+  const project=loadProject(id),topic=String(args.topic||project.logline?.[project.language]||project.title[project.language]);
+  const pack=research(id,topic);
+  if(!pack.claims.length){console.log('Empty offline template created: no matching package, no network used. Project unchanged.');return;}
+  // Long topics are partitioned by authored epochs. A manifest is explicit, never silently truncates.
+  if(pack.claims.length>Math.floor(project.settings.duration/8)*2) {
+    const epochs=[...new Set(pack.claims.map(c=>c.epoch||'research'))];
+    const episodes=epochs.map((epoch,i)=>({id:`${id.slice(0,30)}-e${String(i+1).padStart(2,'0')}`,epoch,claims:pack.claims.filter(c=>(c.epoch||'research')===epoch)}));
+    for(const e of episodes) {
+      const childDir=projectDir(e.id);
+      if(fs.existsSync(childDir))throw new Error(`Episode exists: ${e.id}; no overwrite`);
+    }
+    for(const e of episodes) {
+      const p=buildDocumentary({...project,id:e.id,settings:{...project.settings,duration:Math.max(30,e.claims.length*5)}},{...pack,claims:e.claims,relations:(pack.relations||[]).filter(r=>r.claimIds.every(id=>e.claims.some(c=>c.id===id))),causalLinks:(pack.causalLinks||[]).filter(l=>e.claims.some(c=>c.id===l.cause)&&e.claims.some(c=>c.id===l.consequence))});
+      writeJson(path.join(projectDir(e.id),'project.json'),p);writeDocumentaryArtifacts(e.id,p);
+    }
+    writeJson(path.join(projectDir(id),'documentary-episodes.json'),{episodes:episodes.map(({claims,...e})=>e)});
+    console.log('Topic split into epoch episodes; see documentary-episodes.json');return;
+  }
+  const updated=buildDocumentary(project,pack);
+  writeJson(path.join(projectDir(id),'project.json'),updated);writeDocumentaryArtifacts(id,updated);
+  console.log(`documentary-rules-v2: ${pack.claims.length} claims; offline bibliography requires manual review`);
+}
+async function cmdRecover(id) {console.log(recoverSeason(id) ? 'Season recovered' : 'No pending transaction');}
+async function cmdHistory(id) {console.log(JSON.stringify(listHistory(projectDir(id)),null,2));}
+async function cmdRestore(id) {console.log(`Restored ${restoreSnapshot(projectDir(id),String(args.snapshot || ''))}`);}
 async function cmdEpisode(id) { const p=regenerateEpisode(id,Number(args.episode),!!args.force); console.log(`Episode ready: ${p.id}`); }
 
-const table = {episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
+async function cmdMake(){const result=makeUniversal({id:args.id,topic:args._[1],format:args.format||'explainer',duration:Number(args.duration||60),language:args.lang||'ru',mode:args.mode,materials:args.materials?readJson(path.resolve(String(args.materials))):undefined,voiceMode:args.voice||'tts',autoResearch:!!args['auto-research'],allowNetwork:!!args['allow-network']});console.log(JSON.stringify(result,null,2));}
+
+const table = {make:cmdMake,frames:cmdFrames,models:cmdModels,selfcheck:async()=>{const r=await selfcheck({planOnly:!!args['plan-only']});if(!r.complete)process.exitCode=1;},llm:cmdLLM,profile:cmdProfile,preview:cmdPreview,smoke:cmdSmoke,export:cmdExport,publish:cmdPublish,voices:cmdVoices,subtitles:cmdSubtitles,research:cmdResearch,recover:cmdRecover,history:cmdHistory,restore:cmdRestore,episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
 try {
   if (!cmd || !table[cmd]) { console.log(HELP); process.exit(cmd ? 1 : 0); }
+  if(cmd==='smoke'&&args.profile&&!args._[1])args._[1]=`smoke-${Date.now()}`;
   const id = args._[1];
-  if (!['idea', 'list', 'doctor', 'new', 'ui'].includes(cmd)) need(id);
-  if (!['idea', 'list', 'doctor', 'ui'].includes(cmd) && id) {
-    const unlock = lockProject(id);
+  if (!['make','models','selfcheck','smoke','voices', 'idea', 'list', 'doctor', 'new', 'ui', 'restore', 'history', 'recover'].includes(cmd)) need(id);
+  if (!['make','models','selfcheck','voices','idea', 'list', 'doctor', 'ui'].includes(cmd) && id) {
+    const unlock = lockProject(id,{createDir:cmd!=='smoke'});
     process.on('exit', unlock);
   }
-  await table[cmd](id, args);
+  if(args['prerender-static'])throw new Error('Static prerender disabled: reference-frame tolerance not validated');
+  if(args.profile||cmd==='profile'){if(!id)throw new Error('--profile requires a project id');profiler=new Profile(path.join(outDir(id),'profile',new Date().toISOString().replace(/[:.]/g,'-')));profiler.data.context={mode:cmd,project:id,draft:!!args.draft,requestedConcurrency:args.concurrency||null,node:process.version,platform:process.platform,totalMemoryBytes:os.totalmem(),cpu:os.cpus()[0]?.model,sourceHash:sourceHash()};}
+  let profileError;try{await measured(cmd,()=>table[cmd](id,args));}catch(e){profileError=e;throw e;}finally{if(profiler)await profiler.finish(profileError);}
   process.exit(process.exitCode || 0);
 } catch (e) {
   console.error(`✘ ${e.message}`);

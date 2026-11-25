@@ -46,3 +46,19 @@ __pycache__/
 
 # Local render-test dependencies (not production assets)
 /engine/.cache/
+
+# Machine-local detected paths (no tokens)
+/engine/local-environment.json
+
+# Other local model weight formats / private signing material (never hand off)
+*.onnx_data
+*.safetensors
+*.gguf
+*.pt
+*.pth
+*.pem
+*.pfx
+*.p12
+
+# Local audit/test caches and optional DOM-only development dependencies
+/.cache/

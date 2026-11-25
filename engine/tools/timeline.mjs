@@ -1,8 +1,13 @@
+import {refreshSceneSelection,graphicContentKey,SELECTION_VERSION} from './documentary-semantics.mjs';
+import {projectGraphics} from './project-graphics.mjs';
+import {readableSources} from './documentary-semantics.mjs';
+import {outputSize,viewport} from '../src/lib/viewport.ts';
+import {analyzeAudio} from './speech-analysis.mjs';
 // TIMELINE stage: project.json + voice manifest -> plan.json (all times numeric, shots generated, scenes sized).
 import {ttsLineHash} from './voice.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
-import {projectDir, readJson, writeJson, sha1, FPS, WIDTH, HEIGHT} from './lib.mjs';
+import {projectDir, readJson, writeJson, sha1, fileSha, FPS} from './lib.mjs';
 import {estimateLine, LEAD, TAIL, GAP} from './script.mjs';
 const MOVES = ['push', 'drift', 'pan', 'dolly', 'pull', 'crane'];
 const TYPE_CYCLE = ['wide', 'medium', 'close'];
@@ -67,15 +72,21 @@ function autoShots(sc, dur) {
   return shots;
 }
 
-export function buildPlan(id) {
+export function buildPlan(id,{aspect,projectOverride,persist=true,ignoreAudio=false}={}) {
   const dir = projectDir(id);
-  const project = readJson(path.join(dir, 'project.json'));
+  const project = projectOverride||readJson(path.join(dir, 'project.json'));
+  const size=outputSize(aspect||project.settings.aspect);
+  const planDir=aspect?path.join(dir,'exports',aspect.replace(':','x')):dir;
   if(project.production?.kind==='season') throw new Error('Сезон — контейнер: выберите отдельный эпизод для таймлайна.');
-  const mf = readJson(path.join(dir, 'voice', 'manifest.json'), {source: 'none', lines: {}});
+  const mf = ignoreAudio?{source:'none',lines:{}}:readJson(path.join(dir, 'voice', 'manifest.json'), {source: 'none', lines: {}});
   const lang = project.language;
   const fps = FPS;
+  const speechWarnings=[];
   let cursor = 0, frameCursor = 0, usedFiles = 0, totalLines = 0;
-  const scenes = project.scenes.map((sc, index) => {
+  let previousGraphic;const graphic=project.production?.provider==='documentary-rules-v2'?projectGraphics(project.production.knowledge):null;
+  const scenes = project.scenes.map((original, index) => {
+    const sc=graphic&&original.kind!=='safety'?{...original,doc:refreshSceneSelection({...original,__graphic:graphic},project.production.knowledge,previousGraphic)}:original;
+    if(graphic)previousGraphic=graphicContentKey(sc.doc);
     const starts = {};
     let c = sc.kind === 'title' ? 0 : LEAD;
     const lines = sc.lines.map((l) => {
@@ -92,7 +103,9 @@ export function buildPlan(id) {
       }
       if (file) usedFiles++;
       const dur = file ? m.dur : estimateLine(l.text[lang], l.voice, lang);
-      const rs = {...l, sceneStart: +c.toFixed(3), sceneEnd: +(c + dur).toFixed(3), file};
+      let speech;
+      if(file)try{speech=analyzeAudio(path.resolve(dir,file),l.text[lang],{words:m.words,phonemes:m.phonemes,wordTiming:m.wordTiming});}catch(e){speechWarnings.push(`${l.id}: audio analysis unavailable; legacy lip sync fallback: ${e.message}`);}
+      const rs = {...l, speech, audioHash:file?fileSha(path.resolve(dir,file)):undefined, sceneStart: +c.toFixed(3), sceneEnd: +(c + dur).toFixed(3), file};
       starts[l.id] = rs.sceneStart;
       c += dur + (l.pause ?? GAP);
       return rs;
@@ -115,20 +128,22 @@ export function buildPlan(id) {
       pstates: (sc.pstates || []).map((s) => ({...s, t: rt(s.t)})),
       shots, overlay,
     };
+    if(out.doc&&project.production?.knowledge){const claims=project.production.knowledge.claims;out.doc={...out.doc,subjects:out.lines.flatMap(l=>(l.claimIds||[]).map(id=>claims.find(c=>c.id===id))).filter(Boolean).map(c=>({id:c.id,name:c.person||'Исторический эпизод',years:c.date.value,status:c.status,needsReview:c.needsReview,sourceRefs:readableSources(project.production.knowledge,c.sources),sources:readableSources(project.production.knowledge,c.sources).map(s=>s.title).join('; ')}))};}
     cursor += durSec; frameCursor += durFrames;
     return out;
   });
   const voiceSource = usedFiles === totalLines && totalLines > 0 ? (mf.source === 'files' ? 'tts' : mf.source) : 'estimated';
   const plan = {
-    version: 1, projectHash: sha1(project), voiceManifestHash: sha1(mf), id: project.id, language: lang, title: project.title, fps, width: WIDTH, height: HEIGHT,
+    selectionVersion:graphic?SELECTION_VERSION:undefined,version: 1, schemaVersion:2, projectHash: sha1(project), voiceManifestHash: sha1(mf), id: project.id, language: lang, title: project.title, fps, width: size.width, height: size.height, aspect:aspect||project.settings.aspect||'16:9', safeZone:viewport(size.width,size.height).safe,
     totalFrames: frameCursor, totalSec: frameCursor / fps, voiceSource,
-    production: project.production, characters: project.characters, voices: project.voices, scenes, music: {mood: project.settings.music},
+    speechWarnings, production: project.production, characters: project.characters, voices: project.voices, scenes, music: {mood: project.settings.music},
   };
   plan.hash = sha1({...plan, hash: undefined});
-  writeJson(path.join(dir, 'plan.json'), plan);
-  writeJson(path.join(dir, 'timeline.json'), {
+  if(persist){writeJson(path.join(planDir, 'plan.json'), plan);
+  writeJson(path.join(planDir, 'timeline.json'), {
     fps, source: voiceSource, totalSec: plan.totalSec,
     scenes: scenes.map((s) => ({id: s.id, title: s.title, start: s.startSec, duration: s.durSec, startFrame: s.startFrame, frames: s.durFrames, lines: s.lines.map((l) => ({id: l.id, voice: l.voice, text: l.text[lang], start: +l.start.toFixed(3), end: +l.end.toFixed(3), file: l.file || null}))})),
   });
+  }
   return plan;
 }

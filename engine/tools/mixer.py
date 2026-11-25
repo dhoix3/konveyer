@@ -116,6 +116,11 @@ SFX = {'door_open': door_open, 'door_close': door_close, 'knock': knock, 'impact
        'notification': notification, 'phone_buzz': phone_buzz, 'alarm': alarm, 'tick': tick, 'thunder': thunder, 'heartbeat': heartbeat,
        'riser': riser, 'sting': sting, 'beep': beep, 'static': static, 'powerdown': powerdown, 'click': click, 'cup_set': cup_set,
        'keyboard': keyboard, 'swell': swell, 'fall_thud': fall_thud, 'glass': glass, 'shutter': shutter}
+def bell():
+    return fade(norm(sine(523.25, 1.2)*edecay(int(1.2*SR), .4)+sine(1047,1.2)*edecay(int(1.2*SR),.2)*.3),.004,.1)
+def page_turn():
+    return fade(norm(fftf(noise(int(.5*SR)),lo=900,hi=6500)*np.sin(np.pi*tt(.5)/.5),.4))
+SFX.update({'bell':bell,'page_turn':page_turn,'cloth_rustle':lambda:fade(norm(fftf(noise(int(.35*SR)),hi=1200),.25))})
 _cache = {}
 def get_sfx(kind):
     if kind.startswith('footstep'):
@@ -180,6 +185,13 @@ MOODS = {
     'emotional': dict(bpm=66, root=98.0, prog=[[0, 4, 7], [-3, 0, 4], [-5, -1, 2], [-7, -3, 0]], drums=0, arp=1, pulse=0, bright=4500),
     'lofi': dict(bpm=78, root=82.4, prog=[[0, 3, 7, 10], [5, 8, 12], [3, 7, 10], [7, 10, 14]], drums=1, arp=1, pulse=0, bright=3000),
 }
+MOODS.update({
+ 'solemn':dict(bpm=52,root=65.4,prog=[[0,7,12],[-5,2,7]],drums=0,arp=0,pulse=0,bright=2200),
+ 'pastoral':dict(bpm=74,root=110.,prog=[[0,4,7],[5,9,12]],drums=0,arp=1,pulse=0,bright=4500),
+ 'triumphant':dict(bpm=108,root=82.4,prog=[[0,4,7],[-5,0,4]],drums=1,arp=1,pulse=1,bright=5500),
+ 'elegiac':dict(bpm=56,root=73.4,prog=[[0,3,7],[-4,0,3]],drums=0,arp=1,pulse=0,bright=2500),
+})
+
 def pad_note(f, d):
     n = int(d * SR); t = np.arange(n) / SR; y = np.zeros(n, np.float32)
     for det in (-0.004, 0.0, 0.004):
@@ -297,4 +309,5 @@ def main():
     with wave.open(outp, 'wb') as w:
         w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes())
     print(f'mixed {dur:.2f}s, ducking {float(duck.mean()) * 100:.0f}% of timeline, peak {pk:.2f}')
-main()
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,17 @@
+# Canonical repository text is LF on every platform, including Windows.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.mp4 binary
+*.wav binary
+*.onnx binary
+*.zip binary
+*.safetensors binary
+*.gguf binary
+
+*.ttf binary

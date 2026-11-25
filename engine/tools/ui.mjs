@@ -1,3 +1,10 @@
+import {makeUniversal,reviewUniversal,assertPublicationAllowed} from './universal.mjs';
+import {topicProfile} from './topic-profile.mjs';
+import {STUDIO_STYLE,STUDIO_SCRIPT} from './studio-page.mjs';
+import {prepareMaterials} from './research-materials.mjs';
+import {EDITOR_MARKUP,EDITOR_SCRIPT} from './editor-page.mjs';
+import {catalog,previewProject,editorProject,editScene,travelHistory,documentaryWizard,frameSVG,estimate} from './editor.mjs';
+import {findPack,validatePack} from './knowledge.mjs';
 // Local web UI for Koveyer Dhoix'a — zero dependencies (node:http only).
 //
 // Serves a single page where the user enters the topic, duration, language,
@@ -7,15 +14,19 @@
 // and the CLI stay fully interchangeable and the architecture is unchanged.
 //
 //   node render.mjs ui [--port 7788]
+import {HttpError, readBody, createSecurity, LOGIN_PAGE} from './ui-security.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
+import {listHistory} from './storage.mjs';
+import {lockProject} from './project-lock.mjs';
+import {recoverAllSeasons, refreshSeasonContexts} from './series.mjs';
 import {normalizeBrief} from './production.mjs';
 import path from 'node:path';
 import http from 'node:http';
 import {spawn, spawnSync} from 'node:child_process';
 import {
   ENGINE, PROJECTS, OUTPUT, projectDir, outDir, ensure, readJson, writeJson,
-  safeId, assertId, markStage,
+  safeId, assertId, markStage,sha1,sourceHash,
 } from './lib.mjs';
 import {MUSIC_MOODS, LANGS, STYLES, TEMPLATE_IDS} from './script.mjs';
 
@@ -33,14 +44,24 @@ function listProjects() {
     const pj = path.join(PROJECTS, d, 'project.json');
     if (!fs.existsSync(pj)) continue;
     let p = {};
-    try { p = readJson(pj, {}); } catch { continue; }
+    try { p = readJson(pj, {});if(!p||typeof p!=='object'||Array.isArray(p))throw new Error('ожидается объект проекта'); } catch(e) {p={__uiError:'Повреждён project.json: '+e.message,title:{ru:'Повреждённый проект · '+d}};}
+    let contextWarning=p.__uiError||null;
+    if(p.production?.kind==='season' && !jobs.get(d)?.running) {
+      let unlock;try{unlock=lockProject(d);p=refreshSeasonContexts(d);}catch(e){contextWarning=e.message;}finally{unlock?.();}
+    }
+    if(p.production?.seriesId) {
+      let parent;try{parent=readJson(path.join(projectDir(p.production.seriesId),'project.json'),null);}catch(e){contextWarning='Повреждён контекст сезона: '+e.message;}
+      const entry=parent?.production?.episodes?.find(e=>e.id===d);
+      if(entry?.stale)contextWarning=entry.staleReason;
+    }
+    if(p.production?.seriesId && fs.existsSync(path.join(projectDir(p.production.seriesId),'season-transaction.json')))continue;
     const statePath = path.join(PROJECTS, d, 'state.json');
-    const state = readJson(statePath, {stages: {}});
+    let state;try{state=readJson(statePath,{stages:{}})||{stages:{}};}catch(e){state={stages:{}};contextWarning='Повреждён state.json: восстановите из истории; '+e.message;}
     const job = jobs.get(d);
     let mtime = 0;
     try { mtime = fs.statSync(pj).mtimeMs; } catch {}
     rows.push({
-      id: d,
+      id: d, contextWarning,
       title: p.title || {},
       language: p.language || 'ru',
       scenes: Array.isArray(p.scenes) ? p.scenes.length : 0,
@@ -48,6 +69,7 @@ function listProjects() {
       production:p.production ? {kind:p.production.kind,seriesId:p.production.seriesId,episodes:p.production.episodes,format:p.production.brief?.format} : null,
       topic: p.idea?.topic,
       stages: state.stages || {},
+      elapsedSeconds:jobs.get(d)?.running?Math.floor((Date.now()-jobs.get(d).started)/1000):null,
       final: fs.existsSync(path.join(OUTPUT, d, 'FINAL.mp4')),
       draft: fs.existsSync(path.join(OUTPUT, d, 'DRAFT.mp4')),
       job: job ? {stage: job.stage, running: job.running, code: job.code, started: job.started} : null,
@@ -123,14 +145,12 @@ function stopJob(id) {
   return job;
 }
 
-class HttpError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
-}
 
 function createProject(body) {
   const id = String(body.id || '').trim();
   if (!safeId(id)) throw new HttpError(400, 'некорректный id проекта: разрешены буквы, цифры, «-» и «_», до 40 символов');
   if (jobs.get(id)?.running) throw new HttpError(409, 'Нельзя перезаписать выполняющийся проект');
+  if(body.aspect&&!['16:9','9:16','1:1'].includes(body.aspect))throw new HttpError(400,'Неизвестное соотношение сторон');
   const narrator = String(body.narrator || '');
   if (narrator && !MODEL_RE.test(narrator)) throw new HttpError(400, 'некорректная модель голоса');
   const topic = String(body.topic ?? '').trim();
@@ -159,8 +179,10 @@ function createProject(body) {
   let scratch;
   if (body.format) {
     const materials=body.materials || {};
+    if(body.format==='documentary'&&materials.schemaVersion===1){try{validatePack(materials);}catch(e){throw new HttpError(400,e.message);}}
+    const canonical=body.format==='documentary'&&materials.schemaVersion===1;
     try { normalizeBrief({name:body.name,topic,format:body.format,genre:body.genre,narrative:body.narrative,episodes:body.episodes,
-      language:lang,duration,characters,sources:materials.sources,claims:materials.claims}); } catch(e) { throw new HttpError(400,e.message); }
+      language:lang,duration,characters,sources:canonical?[]:materials.sources,claims:canonical?[]:materials.claims}); } catch(e) { throw new HttpError(400,e.message); }
     if(narrator) args.push('--voice-model',narrator);
     args.push('--format',body.format,'--name',body.name || topic,'--genre',body.genre || 'drama','--narrative',body.narrative || 'chronological','--episodes',String(body.episodes || 3));
     scratch=fs.mkdtempSync(path.join(os.tmpdir(),'koveyer-materials-'));
@@ -181,6 +203,7 @@ function createProject(body) {
     p.settings.voiceModels = {...(p.settings.voiceModels || {}), narrator};
     writeJson(pj, p);
   }
+  if(body.aspect){const file=path.join(projectDir(id),'project.json');const p=readJson(file);p.settings.aspect=body.aspect;writeJson(file,p);}
   let summary = null;
   try {
     const p = readJson(path.join(projectDir(id), 'project.json'));
@@ -197,20 +220,12 @@ function json(res, code, obj) {
   res.end(body);
 }
 
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', (c) => { data += c; if (data.length > 1e6) { reject(new Error('body too large')); req.destroy(); } });
-    req.on('end', () => { try { const body = data ? JSON.parse(data) : {}; if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('object required'); resolve(body); } catch { reject(new HttpError(400, 'bad json: expected object')); } });
-    req.on('error', reject);
-  });
-}
 
 function serveFile(req, res, file) {
   if (!fs.existsSync(file)) return json(res, 404, {error: 'file not found'});
   const stat = fs.statSync(file);
   const ext = path.extname(file).toLowerCase();
-  const type = ext === '.mp4' ? 'video/mp4' : ext === '.json' ? 'application/json' : 'application/octet-stream';
+  const type = ext === '.mp4' ? 'video/mp4' : ext === '.png'?'image/png':ext === '.json' ? 'application/json' : 'application/octet-stream';
   const range = req.headers.range;
   if (range) {
     const m = /^bytes=(\d*)-(\d*)$/.exec(range);
@@ -272,7 +287,7 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
 .bar i{display:block;height:100%;background:linear-gradient(90deg,#1f6feb,#58a6ff);width:30%;animation:slide 1.1s infinite}
 @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
 .muted{color:var(--dim);font-size:12px}
-</style></head><body>
+</style>${STUDIO_STYLE}</head><body>
 <header><h1>&#127916; Koveyer Dhoix'a</h1><span class="sub">идея &rarr; сценарий &rarr; голос &rarr; сцены &rarr; звук &rarr; MP4</span></header>
 <main>
 <section>
@@ -283,6 +298,7 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <h2>Создать производство</h2>
   <p class="muted">Локальный правиловый сценарист · стилизованная SVG-графика · не LLM</p>
   <h3>1. Замысел</h3>
+  <details><summary>Универсальный вход · офлайн, экспериментальный</summary><label><input id="universalEnabled" type="checkbox"> Создать через make вместо legacy сценариста</label><label>Тип ролика</label><select id="universalFormat"><option value="explainer">Объяснение</option><option value="documentary">Документальный</option><option value="story">История / сказка</option><option value="tutorial">Обучение</option><option value="top">Топ-N</option><option value="promo">Промо</option><option value="kids">Детский</option><option value="skit">Скетч</option><option value="review">Обзор</option></select><label>Достоверность</label><select id="universalMode"><option value="">Определить по теме/материалам</option><option value="verified">По материалам · требует проверки</option><option value="unverified-draft">Непроверенная заявка</option><option value="creative">Вымысел</option></select><p class="muted">Сеть не используется. Веб-исследование пока не реализовано. Тип ролика сохраняется как намерение; отдельные структуры сценария будут в следующей фазе. Без материалов factual режим создаёт заявку, не факты.</p></details>
   <label for="projectName">Название</label><input id="projectName" maxlength="160" placeholder="Название фильма или сезона">
   <div class="row"><div><label for="format">Формат</label><select id="format"><option value="fiction">Художественный фильм</option><option value="documentary">Документальный разбор</option><option value="reconstruction">Учебная реконструкция</option><option value="series">Мини-сериал (вымысел)</option></select></div>
   <div><label for="genre">Жанр</label><select id="genre"><option value="drama">Драма</option><option value="science">Научный</option><option value="history">Исторический</option><option value="disaster">Катастрофа</option><option value="fantasy">Фантастика</option><option value="post-apocalyptic">Постапокалипсис</option></select></div></div>
@@ -290,6 +306,7 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <textarea id="topic" maxlength="4000" placeholder="Тема, конфликт, события и желаемое завершение"></textarea>
   <label for="continueFrom">Продолжение проекта (id, необязательно)</label><input id="continueFrom" maxlength="40" placeholder="Например: terra-e01">
   <h3>2. Производство</h3>
+  <label for="aspect">Соотношение сторон</label><select id="aspect"><option value="16:9">16:9 · горизонтальное</option><option value="9:16">9:16 · вертикальное</option><option value="1:1">1:1 · квадрат</option></select>
   <div class="row"><div><label for="episodes">Эпизодов (только сериал)</label><input id="episodes" type="number" min="1" max="12" value="3"></div><div><label for="narrative">Повествование</label><select id="narrative"><option value="chronological">Хронология</option><option value="investigation">Исследование</option><option value="character">От лица героев</option></select></div></div>
   <div class="row">
     <div><label for="duration">Длительность, сек</label><input id="duration" type="number" min="25" max="180" value="90"></div>
@@ -327,22 +344,25 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <h2 id="stageTitle">Этапы</h2>
   <div class="chips" id="chips"><span class="muted">выберите проект</span></div>
   <div class="muted" id="progress" role="status" style="display:none">Генерация выполняется. Этапы и журнал обновляются автоматически.</div>
+  <button class="small secondary" onclick="restoreVersion()">История / восстановить</button>
   <button class="small secondary" onclick="previewScript()">Предпросмотр сценария</button>
   <button class="small secondary" onclick="regenerateEpisode()">Пересоздать эпизод сезона</button>
   <pre id="scriptPreview" style="white-space:pre-wrap" hidden></pre>
   <video id="player" controls preload="none" style="width:100%;max-height:440px;margin-top:12px" hidden></video>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px" id="stageBtns"></div>
   <label style="display:flex;gap:6px;align-items:center;color:var(--dim);font-size:12px;margin:0 0 8px">
-    <input type="checkbox" id="draft" style="width:auto"> draft (быстрый черновик, half-res)
+    <input type="checkbox" id="draft" style="width:auto"> Быстрый черновик · половинное разрешение
   </label>
   <div id="downloads"></div>
   <h2 style="margin-top:14px">Журнал</h2>
   <pre id="log">&mdash;</pre>
 </section>
+${EDITOR_MARKUP}
 </main>
 <script>
+var UI_LANG='ru';
 var STAGES = ['voice','timeline','scenes','sound','render','final','qa'];
-var LABELS = {voice:'голос',timeline:'таймлайн',scenes:'сцены',sound:'звук',render:'рендер',final:'mux',qa:'QA'};
+var LABELS = {voice:'голос',timeline:'таймлайн',scenes:'сцены',sound:'звук',render:'рендер',final:'сборка MP4',qa:'контроль качества'};
 var current = null, pollTimer = null, logTimer = null;
 var projectsCache = [];
 function el(id){ return document.getElementById(id); }
@@ -376,7 +396,7 @@ function fillNarrator(){
   var lang = el('lang').value;
   var opts = lang === 'ru'
     ? [['','по умолчанию (denis)'],['ru_RU-dmitri-medium','dmitri'],['ru_RU-ruslan-medium','ruslan'],['ru_RU-irina-medium','irina (женский)']]
-    : [['','по умолчанию (ryan)'],['en_US-amy-medium','amy (female)']];
+    : [['','по умолчанию (ryan)'],['en_US-amy-medium','amy (женский)']];
   var h = '';
   for (var i = 0; i < opts.length; i++) h += '<option value="' + opts[i][0] + '">' + opts[i][1] + '</option>';
   el('narrator').innerHTML = h;
@@ -402,7 +422,7 @@ function renderProjects(list){
   for (var i = 0; i < projectsCache.length; i++){
     var p = projectsCache[i];
     var title = (p.title && (p.title[p.language] || p.title.ru)) || p.id;
-    var status = p.job && p.job.running ? '⏳ ' + p.job.stage : (p.final ? 'MP4 сохранён · проверьте этапы' : '…');
+    var status = p.contextWarning ? '⚠ Контекст устарел или недоступен: см. сценарий сезона' : p.job && p.job.running ? '⏳ ' + p.job.stage : (p.final ? 'MP4 сохранён · проверьте этапы' : '…');
     h += '<div class="proj ' + (p.id === current ? 'active' : '') + '" onclick="select(\\'' + p.id + '\\')">' +
       '<div class="t">' + esc(title) + '</div>' +
       '<div class="m">' + esc(p.id) + ' · ' + p.scenes + ' сцен · ' + esc(p.template || 'freeform') + '</div>' +
@@ -432,10 +452,12 @@ async function loadLog(){
 async function create(){
   try {
     msg('создание…');
+    if(el('universalEnabled').checked){var materials=JSON.parse(el('materials').value||'null');var made=await api('/api/universal/make',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:el('pid').value||undefined,topic:el('topic').value,format:el('universalFormat').value,mode:el('universalMode').value||undefined,duration:Number(el('duration').value),language:el('lang').value,voiceMode:el('voiceMode').value,materials:materials})});current=made.id;msg(made.next+' · '+made.mode,'ok');await refresh();loadLog();return;}
+
     var body = {
       continueFrom:el('continueFrom').value,name:el('projectName').value,format:el('format').value,genre:el('genre').value,narrative:el('narrative').value,episodes:el('episodes').value,
       materials:JSON.parse(el('materials').value || '{}'),
-      topic: el('topic').value, duration: el('duration').value, lang: el('lang').value,
+      aspect:el('aspect').value, topic: el('topic').value, duration: el('duration').value, lang: el('lang').value,
       characters: el('characters').value, style: el('style').value, music: el('music').value,
       template: el('template').value, voiceMode: el('voiceMode').value, narrator: el('narrator').value,
       force: el('force').checked
@@ -488,7 +510,7 @@ function renderStage(){
   var container = p && p.production && p.production.kind==='season';
   el('progress').style.display = running ? 'block' : 'none';
   var title = p ? ((p.title && (p.title[p.language] || p.title.ru)) || current) : current;
-  el('stageTitle').textContent = 'Этапы — ' + title;
+  el('stageTitle').textContent = (UI_LANG==='en'?'Stages — ':'Этапы — ') + title;
   var dl = '';
   if (p && p.final) dl += '<a class="dl" href="/file?id=' + encodeURIComponent(current) + '&name=FINAL.mp4">&#11015; FINAL.mp4</a>';
   if (p && p.draft) dl += '<a class="dl" href="/file?id=' + encodeURIComponent(current) + '&name=DRAFT.mp4">&#11015; DRAFT.mp4</a>';
@@ -498,11 +520,11 @@ function renderStage(){
   if (player.dataset.url !== videoUrl) { player.dataset.url = videoUrl; if (videoUrl) player.src = videoUrl; else player.removeAttribute('src'); }
   player.hidden = !videoUrl;
   var buttons = btns.querySelectorAll('button');
-  for (var j = 0; j < buttons.length; j++) buttons[j].disabled = !!running || !!container;
+  for (var j = 0; j < buttons.length; j++) buttons[j].disabled = !!running || !!container || !!(p && p.contextWarning);
 }
 async function checkReady(){
   msg('Проверка компонентов…');
-  try { var result = await api('/api/check', {method:'POST'});
+  try { var result = await api('/api/check', {method:'POST',headers:{'content-type':'application/json'},body:'{}'});
     el('log').textContent = result.report;
     msg(result.ready ? 'Компоненты готовы' : 'Есть проблемы: см. журнал проверки', result.ready ? 'ok' : 'err');
   } catch(e){ msg(e.message, 'err'); }
@@ -518,6 +540,17 @@ async function regenerateEpisode(){
   if(!Number.isInteger(number) || number<1 || !confirm('Пересоздать сценарий только этого эпизода? Другие серии сохранятся.')) return;
   try {await api('/api/episode',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:current,episode:number})});msg('Перегенерация эпизода запущена','ok');}
   catch(e){msg(e.message,'err');}
+}
+async function restoreVersion(){
+  if(!current)return;
+  try {
+    var result=await api('/api/history?id='+encodeURIComponent(current));
+    if(!result.snapshots.length){msg('Снимков пока нет');return;}
+    var index=Number(prompt(result.snapshots.map(function(s,i){return (i+1)+'. '+s.file;}).join(String.fromCharCode(10))));
+    var snapshot=result.snapshots[index-1];if(!snapshot || !confirm('Восстановить снимок? Текущая версия тоже будет сохранена.'))return;
+    await api('/api/restore',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:current,snapshot:snapshot.file})});
+    msg('Восстановление запущено; затем пересоберите voice и timeline','ok');
+  }catch(e){msg(e.message,'err');}
 }
 async function previewScript(){
   if (!current) return;
@@ -541,14 +574,68 @@ async function boot(){
 }
 boot();
 </script>
+${EDITOR_SCRIPT}
+${STUDIO_SCRIPT}
 </body></html>`;
 
-export function startUI({port = 7788} = {}) {
+export function startUI({port = 7788, host = '127.0.0.1', token = process.env.KOVEYER_GUI_TOKEN, allowedHosts = []} = {}) {
+  const security=createSecurity({host,token,allowedHosts});
+  recoverAllSeasons();
   const server = http.createServer(async (req, res) => {
     try {
       const u = new URL(req.url, 'http://localhost');
       const p = u.pathname;
-      if (req.method === 'POST' && req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) return json(res, 403, {error:'cross-origin request forbidden'});
+      security.checkBoundary(req,server.address().port);
+      if(req.method==='POST' && p==='/api/login') {
+        const body=await readBody(req,4096);
+        if(!security.login(body.token))return json(res,401,{error:'Unauthorized'});
+        res.setHeader('set-cookie',security.cookie());return json(res,200,{ok:true});
+      }
+      if(!security.authorized(req)) {
+        if(req.method==='GET' && p==='/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end(LOGIN_PAGE);}
+        return json(res,401,{error:'GUI authentication required'});
+      }
+      if(req.method==='POST'&&['/api/universal/make','/api/universal/review','/api/universal/profile'].includes(p)){const body=await readBody(req);try{if(p==='/api/universal/make')return json(res,200,makeUniversal(body));if(p==='/api/universal/profile')return json(res,200,topicProfile(body.topic,body));if(!safeId(body.id))throw new Error('Некорректный id');return json(res,200,reviewUniversal(body.id,body));}catch(e){throw new HttpError(400,e.message);}}
+      if(req.method==='POST'&&p==='/api/materials/prepare'){const body=await readBody(req);try{return json(res,200,prepareMaterials(body));}catch(e){throw new HttpError(400,e.message);}}
+      if(p.startsWith('/api/editor')) {
+        if(req.method==='GET' && p==='/api/editor/catalog')return json(res,200,catalog());
+        if(req.method==='GET' && p==='/api/editor/knowledge') {
+          const pack=findPack(String(u.searchParams.get('topic')||''));
+          if(!pack)return json(res,404,{error:'No offline package: supply materials; no network lookup performed'});
+          return json(res,200,pack);
+        }
+        if(req.method==='GET') {
+          const id=u.searchParams.get('id');if(!safeId(id))return json(res,400,{error:'bad id'});
+          if(p==='/api/editor')return json(res,200,previewProject(id));
+          if(p==='/api/editor/estimate')return json(res,200,estimate(editorProject(id)));
+          if(p==='/api/editor/frame') {
+            const scene=u.searchParams.get('scene');if(!safeId(scene)||!editorProject(id).scenes.some(s=>s.id===scene))return json(res,400,{error:'bad scene'});
+            if(u.searchParams.get('actual')==='1') {
+              const meta=readJson(path.join(outDir(id),'frames',`editor-${scene}.png.meta.json`),null);
+              const latest=jobs.get(id);
+              if(latest?.stage==='preview'&&latest.preview?.scene===scene&&(latest.running||latest.code!==0))return json(res,409,{error:'Current preview job not successful; inspect log'});
+              if(!meta||meta.sourceHash!==sourceHash()||meta.revision!==sha1(editorProject(id)))return json(res,409,{error:'No current Chrome frame: save and run preview; check job log for missing dependencies'});
+              return serveFile(req,res,path.join(outDir(id),'frames',`editor-${scene}.png`));
+            }
+            res.writeHead(200,{'content-type':'image/svg+xml; charset=utf-8','cache-control':'no-store','content-security-policy':"default-src 'none'; style-src 'unsafe-inline'"});return res.end(frameSVG(id,scene));
+          }
+        }
+        if(req.method==='POST') {
+          const body=await readBody(req);if(!safeId(body.id))return json(res,400,{error:'bad id'});
+          if(jobs.get(body.id)?.running)return json(res,409,{error:'Project job running; stop/wait before editing'});
+          if(p==='/api/editor/edit')return json(res,200,editScene(body.id,body));
+          if(p==='/api/editor/history')return json(res,200,travelHistory(body.id,body));
+          if(p==='/api/editor/documentary')return json(res,200,documentaryWizard(body.id,body));
+          if(p==='/api/editor/frame') {
+            const project=editorProject(body.id);
+            if(sha1(project)!==body.revision)return json(res,409,{error:'Project changed; reload'});
+            if(!safeId(body.sceneId)||!project.scenes.some(s=>s.id===body.sceneId)||!Number.isFinite(body.t)||body.t<0||body.t>180)return json(res,400,{error:'bad frame parameters'});
+            const out=path.join(ensure(path.join(outDir(body.id),'frames')),`editor-${body.sceneId}.png`);
+            const job=startJob(body.id,'preview',['--scene',body.sceneId,'--t',String(body.t),'--out',out]);job.preview={scene:body.sceneId,time:body.t};return json(res,200,{ok:true,pid:job.pid});
+          }
+        }
+        return json(res,404,{error:'Unknown editor endpoint'});
+      }
       if (req.method === 'GET' && p === '/api/script') {
         const id = u.searchParams.get('id');
         if (!safeId(id)) return json(res, 400, {error:'bad id'});
@@ -562,7 +649,7 @@ export function startUI({port = 7788} = {}) {
         return res.end(PAGE);
       }
       if (req.method === 'POST' && p === '/api/check') {
-        const check = spawnSync(process.execPath, [path.join(ENGINE,'render.mjs'), 'doctor'], {cwd:ENGINE, encoding:'utf8', timeout:30000});
+        const check = await new Promise(resolve=>{const child=spawn(process.execPath,[path.join(ENGINE,'render.mjs'),'doctor'],{cwd:ENGINE,windowsHide:true});let stdout='',stderr='';const timer=setTimeout(()=>child.kill(),30000);child.stdout.on('data',b=>{stdout=(stdout+b).slice(-100000);});child.stderr.on('data',b=>{stderr=(stderr+b).slice(-100000);});child.on('error',error=>{clearTimeout(timer);resolve({status:null,error});});child.on('close',status=>{clearTimeout(timer);resolve({status,stdout,stderr});});});
         return json(res, 200, {ready:check.status === 0, report:(check.stdout || '') + (check.stderr || '') + (check.error?.message || '')});
       }
       if (req.method === 'POST' && p === '/api/open') {
@@ -604,13 +691,24 @@ export function startUI({port = 7788} = {}) {
         const job=startJob(id,'episode',['--episode',String(episode),'--force']);
         return json(res,200,{ok:true,pid:job.pid});
       }
+      if(req.method==='GET' && p==='/api/history') {
+        const id=u.searchParams.get('id');if(!safeId(id))return json(res,400,{error:'bad id'});
+        return json(res,200,{snapshots:listHistory(projectDir(id))});
+      }
+      if(req.method==='POST' && p==='/api/restore') {
+        const {id,snapshot}=await readBody(req);
+        if(!safeId(id) || !listHistory(projectDir(id)).some(x=>x.file===snapshot))return json(res,400,{error:'bad snapshot'});
+        startJob(id,'restore',['--snapshot',snapshot]);return json(res,200,{ok:true});
+      }
       if (req.method === 'POST' && p === '/api/run') {
         const {id, stage, draft} = await readBody(req);
         if (!safeId(id)) return json(res, 400, {error: 'bad id'});
         if (stage !== 'all' && !STAGES.includes(stage)) return json(res, 400, {error: 'bad stage'});
         if (!fs.existsSync(path.join(projectDir(id), 'project.json'))) return json(res, 404, {error: 'project not found'});
         if (readJson(path.join(projectDir(id),'project.json')).production?.kind==='season') return json(res,400,{error:'Выберите проект отдельного эпизода'});
-        const extra = draft ? ['--draft'] : [];
+        if(['all','scenes','render','final'].includes(stage)){const review=previewProject(id);if(review.qa.errors.length)return json(res,422,{error:'Fix QA errors before render',qa:review.qa});}
+        if(['all','final'].includes(stage)){try{assertPublicationAllowed(editorProject(id),{draft:!!draft});}catch(e){throw new HttpError(422,e.message);}}
+        const extra = draft ? ['--draft','--concurrency','1'] : ['--concurrency','1'];
         const job = startJob(id, stage, extra);
         return json(res, 200, {ok: true, stage: job.stage, pid: job.pid});
       }
@@ -625,12 +723,13 @@ export function startUI({port = 7788} = {}) {
       json(res, e.status || (e.message?.includes('unknown') || e.message?.includes('требуется') ? 400 : 500), {error: String(e.message || e)});
     }
   });
+  server.headersTimeout=10000;server.requestTimeout=30000;
   server.on('error', (e) => {
     console.error(`ui: ${e.message} (port ${port})`);
     process.exit(1);
   });
-  server.listen(port, '0.0.0.0', () => {
-    console.log(`Koveyer Dhoix'a UI: http://localhost:${port}  (listening on 0.0.0.0)`);
+  server.listen(port, host, () => {
+    console.log(`Koveyer Dhoix'a UI: http://localhost:${server.address().port}  (listening on ${host})`);
     console.log('Ctrl+C to stop. The UI spawns the same render.mjs CLI — logs stay in projects/<id>/logs/.');
   });
   const shutdown = () => {

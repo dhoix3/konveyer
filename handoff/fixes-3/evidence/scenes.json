@@ -1,0 +1,190 @@
+{
+  "selectionVersion": "documentary-selection-4",
+  "rendered": false,
+  "rows": [
+    {
+      "scene": "s01",
+      "type": "map",
+      "hero": "Рюрик",
+      "reason": "Географическое/маршрутное событие и относящиеся к нему места",
+      "claims": [
+        "rurik",
+        "oleg"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s02",
+      "type": "timeline",
+      "hero": "Олег",
+      "reason": "Хронологическое событие сцены: 911; 945",
+      "claims": [
+        "treaty",
+        "igor"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s03",
+      "type": "timeline",
+      "hero": "Ольга",
+      "reason": "Хронологическое событие сцены: X век; X век",
+      "claims": [
+        "olga",
+        "olga-baptism"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s04",
+      "type": "timeline",
+      "hero": "Святослав",
+      "reason": "Хронологическое событие сцены: 965; 972",
+      "claims": [
+        "sviatoslav",
+        "sviatoslav-end"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 8
+    },
+    {
+      "scene": "s05",
+      "type": "timeline",
+      "hero": "Владимир",
+      "reason": "Хронологическое событие сцены: 988; конец X–XI век",
+      "claims": [
+        "vladimir",
+        "christianity"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s06",
+      "type": "timeline",
+      "hero": "Ярослав",
+      "reason": "Хронологическое событие сцены: 1019–1054",
+      "claims": [
+        "yaroslav"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s07",
+      "type": "timeline",
+      "hero": "Князья в Любече",
+      "reason": "Хронологическое событие сцены: 1097; 1113–1125",
+      "claims": [
+        "lyubech",
+        "monomakh"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s08",
+      "type": "timeline",
+      "hero": "Князья Руси",
+      "reason": "Хронологическое событие сцены: XII век; 1147",
+      "claims": [
+        "fragmentation",
+        "yuri"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s09",
+      "type": "timeline",
+      "hero": "Бату",
+      "reason": "Хронологическое событие сцены: 1237–1240; 1242",
+      "claims": [
+        "mongols",
+        "nevsky"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 8
+    },
+    {
+      "scene": "s10",
+      "type": "timeline",
+      "hero": "Александр Невский",
+      "reason": "Хронологическое событие сцены: XIII век",
+      "claims": [
+        "nevsky-horde"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s11",
+      "type": "timeline",
+      "hero": "Иван Калита",
+      "reason": "Хронологическое событие сцены: XIV век; 1478",
+      "claims": [
+        "kalita",
+        "ivan3"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s12",
+      "type": "timeline",
+      "hero": "Иван III",
+      "reason": "Хронологическое событие сцены: 1480",
+      "claims": [
+        "ugra"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s13",
+      "type": "tree",
+      "hero": "Василий III",
+      "reason": "Родственные отношения героя Василий III заданы в knowledge",
+      "claims": [
+        "moscow-line",
+        "ivan4"
+      ],
+      "tree": [
+        "Иван III",
+        "Василий III",
+        "Иван IV",
+        "Фёдор Иванович"
+      ],
+      "anonymousRoles": 2,
+      "crowd": 0
+    },
+    {
+      "scene": "s14",
+      "type": "timeline",
+      "hero": "Иван IV",
+      "reason": "Хронологическое событие сцены: 1565–1572; 1598",
+      "claims": [
+        "oprichnina",
+        "end"
+      ],
+      "tree": [],
+      "anonymousRoles": 2,
+      "crowd": 0
+    }
+  ]
+}

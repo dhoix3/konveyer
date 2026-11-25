@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-24T12:43:00.931Z",
+  "stages": [
+    {
+      "name": "profile",
+      "status": "failed",
+      "error": "Chrome не найден. Установите Chrome или задайте REMOTION_BROWSER_EXECUTABLE. Для явной загрузки: REMOTION_ALLOW_BROWSER_DOWNLOAD=1.",
+      "ms": 91.651445
+    },
+    {
+      "name": "timeline-sample",
+      "status": "ok",
+      "ms": 1.2557620000000043
+    },
+    {
+      "name": "browser",
+      "status": "failed",
+      "error": "Chrome не найден. Установите Chrome или задайте REMOTION_BROWSER_EXECUTABLE. Для явной загрузки: REMOTION_ALLOW_BROWSER_DOWNLOAD=1.",
+      "ms": 4.651372999999978
+    }
+  ],
+  "scenes": [],
+  "frames": [],
+  "memory": {
+    "nodePeakRSSBytes": 89812992,
+    "treePeakRSSBytes": 96542720,
+    "samples": 1,
+    "scope": "Node maxRSS; sampled process-tree RSS (shared pages may be counted twice); not system commit"
+  },
+  "errors": [
+    "Chrome не найден. Установите Chrome или задайте REMOTION_BROWSER_EXECUTABLE. Для явной загрузки: REMOTION_ALLOW_BROWSER_DOWNLOAD=1."
+  ],
+  "context": {
+    "mode": "still-sample",
+    "project": "sc-20261124124300115-4f9fe9",
+    "scale": 0.5,
+    "width": 1920,
+    "height": 1080,
+    "concurrency": 1,
+    "timing": "estimated speech, no TTS, mix or video encode",
+    "node": "v22.22.3",
+    "platform": "linux",
+    "cpus": [
+      "Intel(R) Xeon(R) Processor @ 2.60GHz",
+      "Intel(R) Xeon(R) Processor @ 2.60GHz"
+    ],
+    "totalMemoryBytes": 4131278848,
+    "sourceHash": "b5908e2e648b3ffd"
+  },
+  "elapsedMs": 107.00663200000002,
+  "estimate": null
+}

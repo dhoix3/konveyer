@@ -23,6 +23,14 @@ export type LookSpec =
   | {prop: string};
 
 export interface CharacterDef {
+  namedPerson?:string;
+  anonymous?:boolean;
+  beard?:boolean;
+  age?: 'child'|'adult'|'elder';
+  hairStyle?: 'braid'|'curly'|'bald'|'long';
+  headwear?: 'fur'|'conical'|'veil'|'hood';
+  costume?: 'tunic' | 'cloak' | 'chainmail' | 'robe';
+  era?: [number, number];
   id: string;
   name: L10n;
   role: string;
@@ -104,6 +112,8 @@ export interface Shot {
 }
 
 export interface Line {
+  claimIds?:string[];
+  speech?: import('./lipsync.ts').SpeechData;
   id: string;
   voice: string; // voice id (narrator or character voice)
   text: L10n;
@@ -139,10 +149,12 @@ export interface LightDef {
   intensity: number; // 0..1
   flicker?: number; // 0..1
   pulse?: {color: string; period: number}; // e.g. alarm lights
-  grade?: 'teal_orange' | 'cold' | 'warm' | 'noir' | 'sick' | 'dawn' | 'dusk' | 'space';
+  grade?: 'teal_orange' | 'cold' | 'warm' | 'noir' | 'sick' | 'dawn' | 'dusk' | 'space' | 'sepia' | 'silver';
 }
 
 export interface SceneSpec {
+  crowd?: {presets: string[]; count: number; depth: number};
+  doc?: import('../doc/DocumentaryGraphics.tsx').DocumentaryGraphic;
   id: string;
   kind?: 'story' | 'title';
   title: L10n;
@@ -160,7 +172,7 @@ export interface SceneSpec {
   musicLevel?: number; // 0..1
   silence?: boolean;
   minDur?: number;
-  transition?: {in?: 'cut' | 'fade' | 'dip'; out?: 'cut' | 'fade' | 'dip'};
+  transition?: {in?: 'cut' | 'fade' | 'dip' | 'wipe' | 'iris'; out?: 'cut' | 'fade' | 'dip' | 'wipe' | 'iris'};
   overlay?: {type: 'question' | 'caption'; text: L10n; t: number};
   fx?: string[]; // extra fx ids
 }
@@ -212,6 +224,7 @@ export interface ResolvedScene extends Omit<SceneSpec, 'beats' | 'shots' | 'line
 }
 
 export interface Plan {
+  production?:{knowledge?:{sources?:{id:string;title:string;shortTitle?:string}[];claims:{id:string;person?:string;needsReview?:boolean;date:{value:string};status:string;sources:string[]}[]}};
   version: number;
   id: string;
   language: Lang;

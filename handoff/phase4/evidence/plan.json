@@ -1,0 +1,3169 @@
+{
+  "version": 1,
+  "schemaVersion": 2,
+  "projectHash": "0737254d9b59acdbadee838182cc4befe9bb8699",
+  "voiceManifestHash": "070eb743bd1214e7202fffc4444fdb7c1a2c4a3d",
+  "id": "phase34-rurikids",
+  "language": "ru",
+  "title": {
+    "ru": "Рюриковичи",
+    "en": "Рюриковичи"
+  },
+  "fps": 24,
+  "width": 1920,
+  "height": 1080,
+  "aspect": "16:9",
+  "safeZone": {
+    "left": 153.6,
+    "right": 1766.4,
+    "top": 86.4,
+    "bottom": 907.1999999999999
+  },
+  "totalFrames": 2880,
+  "totalSec": 120,
+  "voiceSource": "estimated",
+  "speechWarnings": [],
+  "production": {
+    "schemaVersion": 1,
+    "brief": {
+      "format": "documentary",
+      "genre": "history",
+      "narrative": "chronological",
+      "language": "ru",
+      "duration": 120,
+      "characters": 2,
+      "episodes": 3,
+      "season": 1,
+      "name": "Рюриковичи",
+      "topic": "Рюриковичи",
+      "style": "cinematic-stickman",
+      "voiceMode": "tts",
+      "sources": [],
+      "claims": [],
+      "context": null
+    },
+    "provider": "documentary-rules-v2",
+    "notes": [
+      "Offline authored; needsReview=true. Causal statements are claims, not generated conjecture."
+    ],
+    "kind": "documentary",
+    "fiction": false,
+    "knowledge": {
+      "schemaVersion": 1,
+      "id": "rurikids",
+      "topic": "Рюриковичи",
+      "aliases": [
+        "Рюриковичи",
+        "Rurikids"
+      ],
+      "verification": "Offline authored; bibliography not checked online; no quotations",
+      "sources": [
+        {
+          "id": "pvl",
+          "title": "Повесть временных лет. Подготовка текста Д. С. Лихачёва; перевод Д. С. Лихачёва и Б. А. Романова. М.; Л.: АН СССР, 1950."
+        },
+        {
+          "id": "hypatian",
+          "title": "Полное собрание русских летописей. Т. 2: Ипатьевская летопись. 2-е изд. СПб., 1908. Запись под 6655 (1147) годом."
+        },
+        {
+          "id": "novgorod",
+          "title": "Новгородская первая летопись старшего и младшего изводов. Под ред. А. Н. Насонова. М.; Л.: АН СССР, 1950. Запись под 6750 (1242) годом."
+        },
+        {
+          "id": "franklin",
+          "title": "Simon Franklin, Jonathan Shepard. The Emergence of Rus 750–1200. Longman, 1996."
+        },
+        {
+          "id": "martin",
+          "title": "Janet Martin. Medieval Russia, 980–1584. 2nd ed. Cambridge University Press, 2007."
+        },
+        {
+          "id": "skrynnikov",
+          "title": "Р. Г. Скрынников. Иван Грозный. М.: Наука, 1975."
+        },
+        {
+          "id": "dunning",
+          "title": "Chester S. L. Dunning. Russia’s First Civil War: The Time of Troubles and the Founding of the Romanov Dynasty. Pennsylvania State University Press, 2001."
+        }
+      ],
+      "claims": [
+        {
+          "id": "rurik",
+          "text": "Летопись относит призвание Рюрика к 862 году; историчность рассказа спорна.",
+          "date": {
+            "value": "862",
+            "precision": "year"
+          },
+          "place": "Ладога / Новгород",
+          "status": "disputed",
+          "sources": [
+            "pvl"
+          ],
+          "confidence": 0.55,
+          "needsReview": true,
+          "epoch": "origins",
+          "narration": "Призвание Рюрика — спорный летописный рассказ.",
+          "era": [
+            862,
+            862
+          ],
+          "person": "Рюрик"
+        },
+        {
+          "id": "oleg",
+          "text": "Летопись датирует захват Киева Олегом 882 годом; ранняя хронология условна.",
+          "date": {
+            "value": "882",
+            "precision": "year"
+          },
+          "place": "Киев",
+          "status": "disputed",
+          "sources": [
+            "pvl"
+          ],
+          "confidence": 0.55,
+          "needsReview": true,
+          "epoch": "origins",
+          "narration": "Захват Киева Олегом: ранние даты условны.",
+          "era": [
+            882,
+            882
+          ],
+          "person": "Олег"
+        },
+        {
+          "id": "treaty",
+          "text": "Повесть временных лет сохраняет текст договора Руси с Византией под 911 годом.",
+          "date": {
+            "value": "911",
+            "precision": "year"
+          },
+          "place": "Константинополь",
+          "status": "supported",
+          "sources": [
+            "pvl"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "origins",
+          "narration": "Летопись сохранила договор с Византией.",
+          "era": [
+            911,
+            911
+          ],
+          "person": "Олег"
+        },
+        {
+          "id": "igor",
+          "text": "По летописи, Игорь погиб при повторном сборе дани у древлян.",
+          "date": {
+            "value": "945",
+            "precision": "year"
+          },
+          "place": "Древлянская земля",
+          "status": "supported",
+          "sources": [
+            "pvl"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "origins",
+          "narration": "Повторный сбор дани привёл Игоря к гибели.",
+          "era": [
+            945,
+            945
+          ],
+          "person": "Игорь"
+        },
+        {
+          "id": "olga",
+          "text": "Летописный рассказ связывает Ольгу с упорядочением сбора дани после гибели Игоря.",
+          "date": {
+            "value": "X век",
+            "precision": "century"
+          },
+          "place": "Киев",
+          "status": "supported",
+          "sources": [
+            "pvl"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "origins",
+          "narration": "После гибели Игоря Ольга упорядочила дань.",
+          "era": [
+            945,
+            960
+          ],
+          "person": "Ольга"
+        },
+        {
+          "id": "olga-baptism",
+          "text": "Ольга приняла христианство; точная дата крещения остаётся предметом обсуждения.",
+          "date": {
+            "value": "X век",
+            "precision": "century"
+          },
+          "place": "Константинополь",
+          "status": "disputed",
+          "sources": [
+            "franklin"
+          ],
+          "confidence": 0.55,
+          "needsReview": true,
+          "epoch": "origins",
+          "narration": "Дата крещения Ольги остаётся спорной.",
+          "era": [
+            900,
+            999
+          ],
+          "person": "Ольга"
+        },
+        {
+          "id": "sviatoslav",
+          "text": "Летопись связывает поход Святослава с поражением хазар; последствия изменили степные связи Руси.",
+          "date": {
+            "value": "965",
+            "precision": "year"
+          },
+          "place": "Хазария",
+          "status": "supported",
+          "sources": [
+            "pvl"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "kiev",
+          "narration": "Поход Святослава ослабил хазар.",
+          "era": [
+            965,
+            965
+          ],
+          "person": "Святослав"
+        },
+        {
+          "id": "sviatoslav-end",
+          "text": "Летопись сообщает о гибели Святослава в столкновении с печенегами.",
+          "date": {
+            "value": "972",
+            "precision": "year"
+          },
+          "place": "Днепровские пороги",
+          "status": "supported",
+          "sources": [
+            "pvl"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "kiev",
+          "narration": "Святослав погиб в бою с печенегами.",
+          "era": [
+            972,
+            972
+          ],
+          "person": "Святослав"
+        },
+        {
+          "id": "vladimir",
+          "text": "Крещение Руси традиционно датируют 988 годом; последовательность событий обсуждается.",
+          "date": {
+            "value": "988",
+            "precision": "year"
+          },
+          "place": "Киев",
+          "status": "disputed",
+          "sources": [
+            "franklin"
+          ],
+          "confidence": 0.55,
+          "needsReview": true,
+          "epoch": "kiev",
+          "narration": "Детали крещения Руси вызывают споры.",
+          "era": [
+            988,
+            988
+          ],
+          "person": "Владимир"
+        },
+        {
+          "id": "christianity",
+          "text": "Принятие христианства усилило церковные и культурные связи Руси с Византией.",
+          "date": {
+            "value": "конец X–XI век",
+            "precision": "range"
+          },
+          "place": "Русь",
+          "status": "supported",
+          "sources": [
+            "franklin"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "kiev",
+          "narration": "Христианство укрепило связи с Византией.",
+          "era": [
+            980,
+            1099
+          ],
+          "person": "Владимир"
+        },
+        {
+          "id": "yaroslav",
+          "text": "При Ярославе Киев стал важным центром книжности и церковного строительства.",
+          "date": {
+            "value": "1019–1054",
+            "precision": "range"
+          },
+          "place": "Киев",
+          "status": "supported",
+          "sources": [
+            "franklin"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "kiev",
+          "narration": "Ярослав поддерживал книжность и строительство.",
+          "era": [
+            1019,
+            1054
+          ],
+          "person": "Ярослав"
+        },
+        {
+          "id": "lyubech",
+          "text": "Любечский съезд закрепил принцип наследственных владений князей, но не прекратил усобицы.",
+          "date": {
+            "value": "1097",
+            "precision": "year"
+          },
+          "place": "Любеч",
+          "status": "supported",
+          "sources": [
+            "pvl"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "division",
+          "narration": "Любеч закрепил вотчины, но не прекратил усобицы.",
+          "era": [
+            1097,
+            1097
+          ],
+          "person": "Князья в Любече"
+        },
+        {
+          "id": "monomakh",
+          "text": "Владимир Мономах княжил в Киеве и стремился сдерживать княжеские конфликты.",
+          "date": {
+            "value": "1113–1125",
+            "precision": "range"
+          },
+          "place": "Киев",
+          "status": "supported",
+          "sources": [
+            "martin"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "division",
+          "narration": "Мономах сдерживал княжеские конфликты.",
+          "era": [
+            1113,
+            1125
+          ],
+          "person": "Владимир Мономах"
+        },
+        {
+          "id": "fragmentation",
+          "text": "Рост региональных центров и династические разделы способствовали политической раздробленности.",
+          "date": {
+            "value": "XII век",
+            "precision": "century"
+          },
+          "place": "Русь",
+          "status": "supported",
+          "sources": [
+            "martin"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "division",
+          "narration": "Разделы владений усиливали раздробленность.",
+          "era": [
+            1100,
+            1199
+          ],
+          "person": "Князья Руси"
+        },
+        {
+          "id": "yuri",
+          "text": "Первое летописное упоминание Москвы связано со встречей Юрия Долгорукого со Святославом Ольговичем.",
+          "date": {
+            "value": "1147",
+            "precision": "year"
+          },
+          "place": "Москва",
+          "status": "supported",
+          "sources": [
+            "hypatian"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "division",
+          "narration": "Москва упомянута в связи с Юрием Долгоруким.",
+          "era": [
+            1147,
+            1147
+          ],
+          "person": "Юрий Долгорукий"
+        },
+        {
+          "id": "mongols",
+          "text": "Монгольское нашествие разорило многие города Руси и установило зависимость княжеств от Орды.",
+          "date": {
+            "value": "1237–1240",
+            "precision": "range"
+          },
+          "place": "Северо-Восточная и Южная Русь",
+          "status": "supported",
+          "sources": [
+            "martin"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "horde",
+          "narration": "Нашествие привело к зависимости от Орды.",
+          "era": [
+            1237,
+            1240
+          ],
+          "person": "Бату"
+        },
+        {
+          "id": "nevsky",
+          "text": "Александр Невский возглавлял русские силы в сражении на Чудском озере.",
+          "date": {
+            "value": "1242",
+            "precision": "year"
+          },
+          "place": "Чудское озеро",
+          "status": "supported",
+          "sources": [
+            "novgorod"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "horde",
+          "narration": "Невский возглавлял войско на Чудском озере.",
+          "era": [
+            1242,
+            1242
+          ],
+          "person": "Александр Невский"
+        },
+        {
+          "id": "nevsky-horde",
+          "text": "Политика Александра Невского включала признание власти ордынских ханов.",
+          "date": {
+            "value": "XIII век",
+            "precision": "century"
+          },
+          "place": "Северо-Восточная Русь",
+          "status": "supported",
+          "sources": [
+            "martin"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "horde",
+          "narration": "Он признавал власть ордынских ханов.",
+          "era": [
+            1200,
+            1299
+          ],
+          "person": "Александр Невский"
+        },
+        {
+          "id": "kalita",
+          "text": "При Иване Калите усилились позиции московского княжества в отношениях с Ордой.",
+          "date": {
+            "value": "XIV век",
+            "precision": "century"
+          },
+          "place": "Москва",
+          "status": "supported",
+          "sources": [
+            "martin"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "moscow",
+          "narration": "При Калите позиции княжества усилились.",
+          "era": [
+            1300,
+            1399
+          ],
+          "person": "Иван Калита"
+        },
+        {
+          "id": "ivan3",
+          "text": "Иван III подчинил Новгород Москве; самостоятельность Новгородской республики была утрачена.",
+          "date": {
+            "value": "1478",
+            "precision": "year"
+          },
+          "place": "Новгород",
+          "status": "supported",
+          "sources": [
+            "martin"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "moscow",
+          "narration": "Иван Третий лишил Новгород самостоятельности.",
+          "era": [
+            1478,
+            1478
+          ],
+          "person": "Иван III"
+        },
+        {
+          "id": "ugra",
+          "text": "Стояние на Угре традиционно рассматривают как рубеж прекращения ордынской зависимости Москвы.",
+          "date": {
+            "value": "1480",
+            "precision": "year"
+          },
+          "place": "Угра",
+          "status": "supported",
+          "sources": [
+            "martin"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "moscow",
+          "narration": "Угра — рубеж конца ордынской зависимости.",
+          "era": [
+            1480,
+            1480
+          ],
+          "person": "Иван III"
+        },
+        {
+          "id": "moscow-line",
+          "text": "Василий III был сыном Ивана III и отцом Ивана IV; Фёдор Иванович был сыном Ивана IV.",
+          "narration": "Иван Четвёртый — внук Ивана Третьего и отец Фёдора.",
+          "date": {
+            "value": "XV–XVI века",
+            "precision": "range"
+          },
+          "place": "Москва",
+          "status": "supported",
+          "sources": [
+            "martin",
+            "dunning"
+          ],
+          "confidence": 0.9,
+          "needsReview": true,
+          "epoch": "tsardom",
+          "era": [
+            1460,
+            1598
+          ],
+          "person": "Василий III"
+        },
+        {
+          "id": "ivan4",
+          "text": "Иван IV венчался на царство в 1547 году.",
+          "date": {
+            "value": "1547",
+            "precision": "year"
+          },
+          "place": "Москва",
+          "status": "supported",
+          "sources": [
+            "skrynnikov"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "tsardom",
+          "narration": "Иван Четвёртый венчался на царство.",
+          "era": [
+            1547,
+            1547
+          ],
+          "person": "Иван IV"
+        },
+        {
+          "id": "oprichnina",
+          "text": "Опричнина Ивана IV сопровождалась репрессиями и разорением; оценки её целей различаются.",
+          "date": {
+            "value": "1565–1572",
+            "precision": "range"
+          },
+          "place": "Русское государство",
+          "status": "supported",
+          "sources": [
+            "skrynnikov"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "tsardom",
+          "narration": "Опричнина сопровождалась разорением.",
+          "era": [
+            1565,
+            1572
+          ],
+          "person": "Иван IV"
+        },
+        {
+          "id": "end",
+          "text": "Со смертью Фёдора Ивановича пресеклась правившая московская линия Рюриковичей, но не весь род.",
+          "date": {
+            "value": "1598",
+            "precision": "year"
+          },
+          "place": "Москва",
+          "status": "supported",
+          "sources": [
+            "dunning"
+          ],
+          "confidence": 0.85,
+          "needsReview": true,
+          "epoch": "tsardom",
+          "narration": "Пресеклась московская линия, но не весь род.",
+          "era": [
+            1598,
+            1598
+          ],
+          "person": "Фёдор Иванович"
+        }
+      ],
+      "causalLinks": [
+        {
+          "cause": "igor",
+          "consequence": "olga",
+          "qualification": "Летописная последовательность: гибель при сборе дани и последующее упорядочение дани Ольгой."
+        },
+        {
+          "cause": "vladimir",
+          "consequence": "christianity",
+          "qualification": "Принятие христианства укрепляло культурные связи с Византией."
+        }
+      ]
+    }
+  },
+  "characters": [
+    {
+      "id": "historian0",
+      "name": {
+        "ru": "Рассказчик",
+        "en": "Рассказчик"
+      },
+      "role": "protagonist",
+      "shirt": "#344253",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "narrator",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian1",
+      "name": {
+        "ru": "Рюрик",
+        "en": "Рюрик"
+      },
+      "role": "protagonist",
+      "shirt": "#8a4537",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "hero",
+      "costume": "cloak",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian2",
+      "name": {
+        "ru": "Олег",
+        "en": "Олег"
+      },
+      "role": "protagonist",
+      "shirt": "#507368",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "friend",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian3",
+      "name": {
+        "ru": "Игорь",
+        "en": "Игорь"
+      },
+      "role": "protagonist",
+      "shirt": "#927b4f",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "doc",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian4",
+      "name": {
+        "ru": "Ольга",
+        "en": "Ольга"
+      },
+      "role": "protagonist",
+      "shirt": "#65656d",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "boss",
+      "costume": "chainmail",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian5",
+      "name": {
+        "ru": "Святослав",
+        "en": "Святослав"
+      },
+      "role": "protagonist",
+      "shirt": "#344253",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "kid",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian6",
+      "name": {
+        "ru": "Владимир",
+        "en": "Владимир"
+      },
+      "role": "protagonist",
+      "shirt": "#8a4537",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "narrator",
+      "costume": "cloak",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian7",
+      "name": {
+        "ru": "Ярослав",
+        "en": "Ярослав"
+      },
+      "role": "protagonist",
+      "shirt": "#507368",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "hero",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian8",
+      "name": {
+        "ru": "Князья в Любече",
+        "en": "Князья в Любече"
+      },
+      "role": "protagonist",
+      "shirt": "#927b4f",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "friend",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian9",
+      "name": {
+        "ru": "Владимир Мономах",
+        "en": "Владимир Мономах"
+      },
+      "role": "protagonist",
+      "shirt": "#65656d",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "doc",
+      "costume": "chainmail",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian10",
+      "name": {
+        "ru": "Князья Руси",
+        "en": "Князья Руси"
+      },
+      "role": "protagonist",
+      "shirt": "#344253",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "boss",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian11",
+      "name": {
+        "ru": "Юрий Долгорукий",
+        "en": "Юрий Долгорукий"
+      },
+      "role": "protagonist",
+      "shirt": "#8a4537",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "kid",
+      "costume": "cloak",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian12",
+      "name": {
+        "ru": "Бату",
+        "en": "Бату"
+      },
+      "role": "protagonist",
+      "shirt": "#507368",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "narrator",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian13",
+      "name": {
+        "ru": "Александр Невский",
+        "en": "Александр Невский"
+      },
+      "role": "protagonist",
+      "shirt": "#927b4f",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "hero",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian14",
+      "name": {
+        "ru": "Иван Калита",
+        "en": "Иван Калита"
+      },
+      "role": "protagonist",
+      "shirt": "#65656d",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "friend",
+      "costume": "chainmail",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian15",
+      "name": {
+        "ru": "Иван III",
+        "en": "Иван III"
+      },
+      "role": "protagonist",
+      "shirt": "#344253",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "doc",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian16",
+      "name": {
+        "ru": "Василий III",
+        "en": "Василий III"
+      },
+      "role": "protagonist",
+      "shirt": "#8a4537",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "boss",
+      "costume": "cloak",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian17",
+      "name": {
+        "ru": "Иван IV",
+        "en": "Иван IV"
+      },
+      "role": "protagonist",
+      "shirt": "#507368",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "kid",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    },
+    {
+      "id": "historian18",
+      "name": {
+        "ru": "Фёдор Иванович",
+        "en": "Фёдор Иванович"
+      },
+      "role": "protagonist",
+      "shirt": "#927b4f",
+      "pants": "#27334f",
+      "shoes": "#e8e8e8",
+      "accessory": "none",
+      "accessoryColor": "#5a3a22",
+      "height": 1,
+      "build": "normal",
+      "eyes": "round",
+      "voice": "narrator",
+      "costume": "tunic",
+      "era": [
+        800,
+        1600
+      ]
+    }
+  ],
+  "voices": [
+    {
+      "id": "narrator",
+      "label": {
+        "ru": "Диктор",
+        "en": "Narrator"
+      },
+      "gender": "male",
+      "ageRange": "35-50",
+      "timbre": "deep, warm baritone with slight rasp",
+      "speed": 0.94,
+      "intonation": "low, measured, rising tension toward the end of each paragraph",
+      "mood": "ominous curiosity",
+      "accent": {
+        "ru": "нейтральный русский",
+        "en": "neutral General American"
+      },
+      "delivery": {
+        "ru": "второе лицо, шёпот в тихих местах, паузы перед поворотами",
+        "en": "second person, near-whisper in quiet moments, pauses before twists"
+      },
+      "prompt": {
+        "ru": "Мужской голос, 35-50 лет, глубокий тёплый баритон с лёгкой хрипотцой, медленный темп (0.94x), документально-кинематографическая подача, сдержанное напряжение, паузы перед поворотами, обращение на «ты». Без пафоса и крика.",
+        "en": "Male voice, 35-50, deep warm baritone with a slight rasp, slow pace (0.94x), cinematic documentary delivery, restrained tension, pauses before twists, addressing the viewer as \"you\". No melodrama, never shouting."
+      },
+      "piper": {
+        "ru": "ru_RU-denis-medium",
+        "en": "en_US-ryan-medium",
+        "pitch": 0.9
+      }
+    },
+    {
+      "id": "hero",
+      "label": {
+        "ru": "Герой",
+        "en": "Hero"
+      },
+      "gender": "male",
+      "ageRange": "22-32",
+      "timbre": "light, slightly nasal tenor, youthful",
+      "speed": 1.04,
+      "intonation": "natural, expressive, breaks when afraid",
+      "mood": "confused, determined",
+      "accent": {
+        "ru": "нейтральный",
+        "en": "neutral American"
+      },
+      "delivery": {
+        "ru": "разговорно, живые эмоции",
+        "en": "conversational, lively emotion"
+      },
+      "prompt": {
+        "ru": "Молодой мужской голос 22-32 года, светлый тенор, живая разговорная подача, голос срывается на страхе, скорость 1.04x.",
+        "en": "Young male voice, 22-32, light tenor, lively conversational delivery, voice cracks when afraid, 1.04x speed."
+      },
+      "piper": {
+        "ru": "ru_RU-denis-medium",
+        "en": "en_US-ryan-medium",
+        "pitch": 1.1
+      }
+    },
+    {
+      "id": "friend",
+      "label": {
+        "ru": "Подруга",
+        "en": "Friend"
+      },
+      "gender": "female",
+      "ageRange": "22-32",
+      "timbre": "bright, clear mezzo",
+      "speed": 1.08,
+      "intonation": "quick, bright, warm",
+      "mood": "worried, supportive",
+      "accent": {
+        "ru": "нейтральный",
+        "en": "neutral American"
+      },
+      "delivery": {
+        "ru": "быстро и тепло",
+        "en": "quick and warm"
+      },
+      "prompt": {
+        "ru": "Женский голос 22-32 года, яркое чистое меццо, быстрый тёплый темп 1.08x, заботливая интонация.",
+        "en": "Female voice, 22-32, bright clear mezzo, quick warm pace 1.08x, caring intonation."
+      },
+      "piper": {
+        "ru": "ru_RU-irina-medium",
+        "en": "en_US-amy-medium",
+        "pitch": 1
+      }
+    },
+    {
+      "id": "doc",
+      "label": {
+        "ru": "Эксперт",
+        "en": "Expert"
+      },
+      "gender": "male",
+      "ageRange": "50-65",
+      "timbre": "dry, gravelly bass-baritone",
+      "speed": 0.92,
+      "intonation": "precise, lecturing, dry humor",
+      "mood": "calm, concerned",
+      "accent": {
+        "ru": "интеллигентный",
+        "en": "light British"
+      },
+      "delivery": {
+        "ru": "академично, с паузами",
+        "en": "academic, with pauses"
+      },
+      "prompt": {
+        "ru": "Мужской голос 50-65 лет, сухой с хрипотцой, академичная точная подача, темп 0.92x.",
+        "en": "Male voice 50-65, dry and gravelly, precise academic delivery, 0.92x pace."
+      },
+      "piper": {
+        "ru": "ru_RU-denis-medium",
+        "en": "en_US-ryan-medium",
+        "pitch": 0.82
+      }
+    },
+    {
+      "id": "boss",
+      "label": {
+        "ru": "Шеф",
+        "en": "Boss"
+      },
+      "gender": "male",
+      "ageRange": "40-55",
+      "timbre": "firm, commanding baritone",
+      "speed": 1,
+      "intonation": "clipped, authoritative",
+      "mood": "stern",
+      "accent": {
+        "ru": "деловой",
+        "en": "corporate American"
+      },
+      "delivery": {
+        "ru": "отрывисто, командно",
+        "en": "clipped, commanding"
+      },
+      "prompt": {
+        "ru": "Мужской голос 40-55 лет, твёрдый командный баритон, отрывистая подача.",
+        "en": "Male voice 40-55, firm commanding baritone, clipped delivery."
+      },
+      "piper": {
+        "ru": "ru_RU-denis-medium",
+        "en": "en_US-ryan-medium",
+        "pitch": 0.95
+      }
+    },
+    {
+      "id": "kid",
+      "label": {
+        "ru": "Ребёнок",
+        "en": "Child"
+      },
+      "gender": "neutral",
+      "ageRange": "7-10",
+      "timbre": "high, bright, curious",
+      "speed": 1.1,
+      "intonation": "rising, curious",
+      "mood": "excited",
+      "accent": {
+        "ru": "нейтральный",
+        "en": "neutral"
+      },
+      "delivery": {
+        "ru": "эмоционально, с вопросами",
+        "en": "excited, questioning"
+      },
+      "prompt": {
+        "ru": "Детский голос 7-10 лет, высокий яркий, любопытная интонация, темп 1.1x.",
+        "en": "Child voice 7-10, high and bright, curious intonation, 1.1x pace."
+      },
+      "piper": {
+        "ru": "ru_RU-irina-medium",
+        "en": "en_US-amy-medium",
+        "pitch": 1.25
+      }
+    }
+  ],
+  "scenes": [
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.583333333333334,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "scroll",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian1",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.861,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.722,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s01_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Призвание Рюрика — спорный летописный рассказ.",
+            "en": "Призвание Рюрика — спорный летописный рассказ."
+          },
+          "claimIds": [
+            "rurik"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 4.296,
+          "start": 0.7,
+          "end": 4.296
+        },
+        {
+          "id": "s01_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Захват Киева Олегом: ранние даты условны.",
+            "en": "Захват Киева Олегом: ранние даты условны."
+          },
+          "claimIds": [
+            "oleg"
+          ],
+          "pause": 0.1,
+          "sceneStart": 4.396,
+          "sceneEnd": 7.618,
+          "start": 4.396,
+          "end": 7.618
+        }
+      ],
+      "fx": [],
+      "id": "s01",
+      "title": {
+        "ru": "origins",
+        "en": "origins"
+      },
+      "env": {
+        "id": "rus_river",
+        "time": "day"
+      },
+      "era": [
+        862,
+        882
+      ],
+      "claimIds": [
+        "rurik",
+        "oleg"
+      ],
+      "doc": {
+        "mode": "map",
+        "chapter": "Как менялась власть Рюриковичей?",
+        "name": "Рюрик / Олег",
+        "years": "862 / 882",
+        "sources": "pvl",
+        "status": "disputed",
+        "labels": [
+          "Ладога / Новгород",
+          "Киев"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian1",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian2",
+          "x": 1110,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 0,
+      "startSec": 0,
+      "durSec": 8.583333333333334,
+      "startFrame": 0,
+      "durFrames": 206
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.583333333333334,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "round_shield",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian2",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.861,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.722,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s02_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Летопись сохранила договор с Византией.",
+            "en": "Летопись сохранила договор с Византией."
+          },
+          "claimIds": [
+            "treaty"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.772,
+          "start": 9.283333333333333,
+          "end": 12.355333333333334
+        },
+        {
+          "id": "s02_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Повторный сбор дани привёл Игоря к гибели.",
+            "en": "Повторный сбор дани привёл Игоря к гибели."
+          },
+          "claimIds": [
+            "igor"
+          ],
+          "pause": 0.1,
+          "sceneStart": 3.872,
+          "sceneEnd": 7.168,
+          "start": 12.455333333333334,
+          "end": 15.751333333333335
+        }
+      ],
+      "fx": [],
+      "id": "s02",
+      "title": {
+        "ru": "origins",
+        "en": "origins"
+      },
+      "env": {
+        "id": "rus_ladoga",
+        "time": "day"
+      },
+      "era": [
+        911,
+        945
+      ],
+      "claimIds": [
+        "treaty",
+        "igor"
+      ],
+      "doc": {
+        "mode": "timeline",
+        "chapter": "Истоки и летописные версии",
+        "name": "Олег / Игорь",
+        "years": "911 / 945",
+        "sources": "pvl",
+        "status": "supported",
+        "labels": [
+          "911: Константинополь",
+          "945: Древлянская земля"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian2",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian3",
+          "x": 1110,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 1,
+      "startSec": 8.583333333333334,
+      "durSec": 8.583333333333334,
+      "startFrame": 206,
+      "durFrames": 206
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.583333333333334,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "scroll",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian4",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.861,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.722,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s03_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "После гибели Игоря Ольга упорядочила дань.",
+            "en": "После гибели Игоря Ольга упорядочила дань."
+          },
+          "claimIds": [
+            "olga"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.997,
+          "start": 17.866666666666667,
+          "end": 21.163666666666668
+        },
+        {
+          "id": "s03_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Дата крещения Ольги остаётся спорной.",
+            "en": "Дата крещения Ольги остаётся спорной."
+          },
+          "claimIds": [
+            "olga-baptism"
+          ],
+          "pause": 0.1,
+          "sceneStart": 4.097,
+          "sceneEnd": 7.018,
+          "start": 21.26366666666667,
+          "end": 24.18466666666667
+        }
+      ],
+      "fx": [],
+      "id": "s03",
+      "title": {
+        "ru": "origins",
+        "en": "origins"
+      },
+      "env": {
+        "id": "rus_hall",
+        "time": "day"
+      },
+      "era": [
+        900,
+        999
+      ],
+      "claimIds": [
+        "olga",
+        "olga-baptism",
+        "moscow-line"
+      ],
+      "doc": {
+        "mode": "tree",
+        "chapter": "Истоки и летописные версии",
+        "name": "Ольга",
+        "years": "X век / X век",
+        "sources": "pvl, franklin",
+        "status": "supported / disputed",
+        "labels": [
+          "Иван III",
+          "Василий III",
+          "Иван IV",
+          "Фёдор Иванович"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian4",
+          "x": 850,
+          "facing": "r"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 2,
+      "startSec": 17.166666666666668,
+      "durSec": 8.583333333333334,
+      "startFrame": 412,
+      "durFrames": 206
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.583333333333334,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "round_shield",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian5",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.861,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.722,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s04_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Поход Святослава ослабил хазар.",
+            "en": "Поход Святослава ослабил хазар."
+          },
+          "claimIds": [
+            "sviatoslav"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.172,
+          "start": 26.45,
+          "end": 28.922
+        },
+        {
+          "id": "s04_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Святослав погиб в бою с печенегами.",
+            "en": "Святослав погиб в бою с печенегами."
+          },
+          "claimIds": [
+            "sviatoslav-end"
+          ],
+          "pause": 0.1,
+          "sceneStart": 3.272,
+          "sceneEnd": 6.045,
+          "start": 29.022,
+          "end": 31.795
+        }
+      ],
+      "fx": [],
+      "id": "s04",
+      "title": {
+        "ru": "kiev",
+        "en": "kiev"
+      },
+      "env": {
+        "id": "rus_camp",
+        "time": "day"
+      },
+      "era": [
+        965,
+        972
+      ],
+      "claimIds": [
+        "sviatoslav",
+        "sviatoslav-end"
+      ],
+      "doc": {
+        "mode": "map",
+        "chapter": "Киев и христианство",
+        "name": "Святослав",
+        "years": "965 / 972",
+        "sources": "pvl",
+        "status": "supported",
+        "labels": [
+          "Хазария",
+          "Днепровские пороги"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian5",
+          "x": 850,
+          "facing": "r"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 3,
+      "startSec": 25.75,
+      "durSec": 8.583333333333334,
+      "startFrame": 618,
+      "durFrames": 206
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.583333333333334,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "scroll",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian6",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.861,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.722,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s05_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Детали крещения Руси вызывают споры.",
+            "en": "Детали крещения Руси вызывают споры."
+          },
+          "claimIds": [
+            "vladimir"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.547,
+          "start": 35.03333333333334,
+          "end": 37.88033333333333
+        },
+        {
+          "id": "s05_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Христианство укрепило связи с Византией.",
+            "en": "Христианство укрепило связи с Византией."
+          },
+          "claimIds": [
+            "christianity"
+          ],
+          "pause": 0.1,
+          "sceneStart": 3.647,
+          "sceneEnd": 6.794,
+          "start": 37.980333333333334,
+          "end": 41.12733333333333
+        }
+      ],
+      "fx": [],
+      "id": "s05",
+      "title": {
+        "ru": "kiev",
+        "en": "kiev"
+      },
+      "env": {
+        "id": "rus_monastery",
+        "time": "day"
+      },
+      "era": [
+        980,
+        1099
+      ],
+      "claimIds": [
+        "vladimir",
+        "christianity"
+      ],
+      "doc": {
+        "mode": "timeline",
+        "chapter": "Киев и христианство",
+        "name": "Владимир",
+        "years": "988 / конец X–XI век",
+        "sources": "franklin",
+        "status": "disputed / supported",
+        "labels": [
+          "988: Киев",
+          "конец X–XI век: Русь"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian6",
+          "x": 850,
+          "facing": "r"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 4,
+      "startSec": 34.333333333333336,
+      "durSec": 8.583333333333334,
+      "startFrame": 824,
+      "durFrames": 206
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.583333333333334,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "round_shield",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian7",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.861,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.722,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s06_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Ярослав поддерживал книжность и строительство.",
+            "en": "Ярослав поддерживал книжность и строительство."
+          },
+          "claimIds": [
+            "yaroslav"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 4.296,
+          "start": 43.616666666666674,
+          "end": 47.21266666666667
+        }
+      ],
+      "fx": [],
+      "id": "s06",
+      "title": {
+        "ru": "kiev",
+        "en": "kiev"
+      },
+      "env": {
+        "id": "rus_veche",
+        "time": "day"
+      },
+      "era": [
+        1019,
+        1054
+      ],
+      "claimIds": [
+        "yaroslav",
+        "moscow-line"
+      ],
+      "doc": {
+        "mode": "tree",
+        "chapter": "Киев и христианство",
+        "name": "Ярослав",
+        "years": "1019–1054",
+        "sources": "franklin",
+        "status": "supported",
+        "labels": [
+          "Иван III",
+          "Василий III",
+          "Иван IV",
+          "Фёдор Иванович"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian7",
+          "x": 850,
+          "facing": "r"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 5,
+      "startSec": 42.91666666666667,
+      "durSec": 8.583333333333334,
+      "startFrame": 1030,
+      "durFrames": 206
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.583333333333334,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "scroll",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian8",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.861,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.722,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s07_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Любеч закрепил вотчины, но не прекратил усобицы.",
+            "en": "Любеч закрепил вотчины, но не прекратил усобицы."
+          },
+          "claimIds": [
+            "lyubech"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 4.446,
+          "start": 52.20000000000001,
+          "end": 55.946000000000005
+        },
+        {
+          "id": "s07_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Мономах сдерживал княжеские конфликты.",
+            "en": "Мономах сдерживал княжеские конфликты."
+          },
+          "claimIds": [
+            "monomakh"
+          ],
+          "pause": 0.1,
+          "sceneStart": 4.546,
+          "sceneEnd": 7.543,
+          "start": 56.04600000000001,
+          "end": 59.043000000000006
+        }
+      ],
+      "fx": [],
+      "id": "s07",
+      "title": {
+        "ru": "division",
+        "en": "division"
+      },
+      "env": {
+        "id": "rus_fortress",
+        "time": "day"
+      },
+      "era": [
+        1097,
+        1125
+      ],
+      "claimIds": [
+        "lyubech",
+        "monomakh"
+      ],
+      "doc": {
+        "mode": "map",
+        "chapter": "Княжества и усобицы",
+        "name": "Князья в Любече / Владимир Мономах",
+        "years": "1097 / 1113–1125",
+        "sources": "pvl, martin",
+        "status": "supported",
+        "labels": [
+          "Любеч",
+          "Киев"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian8",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian9",
+          "x": 1110,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 6,
+      "startSec": 51.50000000000001,
+      "durSec": 8.583333333333334,
+      "startFrame": 1236,
+      "durFrames": 206
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.583333333333334,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "round_shield",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian10",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.861,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.722,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s08_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Разделы владений усиливали раздробленность.",
+            "en": "Разделы владений усиливали раздробленность."
+          },
+          "claimIds": [
+            "fragmentation"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 4.071,
+          "start": 60.783333333333346,
+          "end": 64.15433333333334
+        },
+        {
+          "id": "s08_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Москва упомянута в связи с Юрием Долгоруким.",
+            "en": "Москва упомянута в связи с Юрием Долгоруким."
+          },
+          "claimIds": [
+            "yuri"
+          ],
+          "pause": 0.1,
+          "sceneStart": 4.171,
+          "sceneEnd": 7.618,
+          "start": 64.25433333333335,
+          "end": 67.70133333333334
+        }
+      ],
+      "fx": [],
+      "id": "s08",
+      "title": {
+        "ru": "division",
+        "en": "division"
+      },
+      "env": {
+        "id": "rus_steppe",
+        "time": "day"
+      },
+      "era": [
+        1100,
+        1199
+      ],
+      "claimIds": [
+        "fragmentation",
+        "yuri"
+      ],
+      "doc": {
+        "mode": "timeline",
+        "chapter": "Княжества и усобицы",
+        "name": "Князья Руси / Юрий Долгорукий",
+        "years": "XII век / 1147",
+        "sources": "martin, hypatian",
+        "status": "supported",
+        "labels": [
+          "XII век: Русь",
+          "1147: Москва"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian10",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian11",
+          "x": 1110,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 7,
+      "startSec": 60.08333333333334,
+      "durSec": 8.583333333333334,
+      "startFrame": 1442,
+      "durFrames": 206
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.583333333333334,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "scroll",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian12",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.861,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.722,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s09_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Нашествие привело к зависимости от Орды.",
+            "en": "Нашествие привело к зависимости от Орды."
+          },
+          "claimIds": [
+            "mongols"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.847,
+          "start": 69.36666666666667,
+          "end": 72.51366666666667
+        },
+        {
+          "id": "s09_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Невский возглавлял войско на Чудском озере.",
+            "en": "Невский возглавлял войско на Чудском озере."
+          },
+          "claimIds": [
+            "nevsky"
+          ],
+          "pause": 0.1,
+          "sceneStart": 3.947,
+          "sceneEnd": 7.318,
+          "start": 72.61366666666667,
+          "end": 75.98466666666667
+        }
+      ],
+      "fx": [],
+      "id": "s09",
+      "title": {
+        "ru": "horde",
+        "en": "horde"
+      },
+      "env": {
+        "id": "rus_moscow",
+        "time": "day"
+      },
+      "era": [
+        1237,
+        1242
+      ],
+      "claimIds": [
+        "mongols",
+        "nevsky",
+        "moscow-line"
+      ],
+      "doc": {
+        "mode": "tree",
+        "chapter": "Нашествие и Орда",
+        "name": "Бату / Александр Невский",
+        "years": "1237–1240 / 1242",
+        "sources": "martin, novgorod",
+        "status": "supported",
+        "labels": [
+          "Иван III",
+          "Василий III",
+          "Иван IV",
+          "Фёдор Иванович"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian12",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian13",
+          "x": 1110,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 8,
+      "startSec": 68.66666666666667,
+      "durSec": 8.583333333333334,
+      "startFrame": 1648,
+      "durFrames": 206
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.583333333333334,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "round_shield",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian13",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.861,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.722,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s10_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Он признавал власть ордынских ханов.",
+            "en": "Он признавал власть ордынских ханов."
+          },
+          "claimIds": [
+            "nevsky-horde"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.547,
+          "start": 77.95,
+          "end": 80.797
+        }
+      ],
+      "fx": [],
+      "id": "s10",
+      "title": {
+        "ru": "horde",
+        "en": "horde"
+      },
+      "env": {
+        "id": "rus_chamber",
+        "time": "day"
+      },
+      "era": [
+        1200,
+        1299
+      ],
+      "claimIds": [
+        "nevsky-horde"
+      ],
+      "doc": {
+        "mode": "map",
+        "chapter": "Нашествие и Орда",
+        "name": "Александр Невский",
+        "years": "XIII век",
+        "sources": "martin",
+        "status": "supported",
+        "labels": [
+          "Северо-Восточная Русь"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian13",
+          "x": 850,
+          "facing": "r"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 9,
+      "startSec": 77.25,
+      "durSec": 8.583333333333334,
+      "startFrame": 1854,
+      "durFrames": 206
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.541666666666666,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "scroll",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian14",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.847,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.694,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s11_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "При Калите позиции княжества усилились.",
+            "en": "При Калите позиции княжества усилились."
+          },
+          "claimIds": [
+            "kalita"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.772,
+          "start": 86.53333333333333,
+          "end": 89.60533333333333
+        },
+        {
+          "id": "s11_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Иван Третий лишил Новгород самостоятельности.",
+            "en": "Иван Третий лишил Новгород самостоятельности."
+          },
+          "claimIds": [
+            "ivan3"
+          ],
+          "pause": 0.1,
+          "sceneStart": 3.872,
+          "sceneEnd": 7.393,
+          "start": 89.70533333333333,
+          "end": 93.22633333333333
+        }
+      ],
+      "fx": [],
+      "id": "s11",
+      "title": {
+        "ru": "moscow",
+        "en": "moscow"
+      },
+      "env": {
+        "id": "rus_river",
+        "time": "day"
+      },
+      "era": [
+        1300,
+        1478
+      ],
+      "claimIds": [
+        "kalita",
+        "ivan3"
+      ],
+      "doc": {
+        "mode": "timeline",
+        "chapter": "Возвышение Москвы",
+        "name": "Иван Калита / Иван III",
+        "years": "XIV век / 1478",
+        "sources": "martin",
+        "status": "supported",
+        "labels": [
+          "XIV век: Москва",
+          "1478: Новгород"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian14",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian15",
+          "x": 1110,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 10,
+      "startSec": 85.83333333333333,
+      "durSec": 8.541666666666666,
+      "startFrame": 2060,
+      "durFrames": 205
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.541666666666666,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "round_shield",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian15",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.847,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.694,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s12_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Угра — рубеж конца ордынской зависимости.",
+            "en": "Угра — рубеж конца ордынской зависимости."
+          },
+          "claimIds": [
+            "ugra"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.922,
+          "start": 95.075,
+          "end": 98.297
+        }
+      ],
+      "fx": [],
+      "id": "s12",
+      "title": {
+        "ru": "moscow",
+        "en": "moscow"
+      },
+      "env": {
+        "id": "rus_ladoga",
+        "time": "day"
+      },
+      "era": [
+        1480,
+        1480
+      ],
+      "claimIds": [
+        "ugra",
+        "moscow-line"
+      ],
+      "doc": {
+        "mode": "tree",
+        "chapter": "Возвышение Москвы",
+        "name": "Иван III",
+        "years": "1480",
+        "sources": "martin",
+        "status": "supported",
+        "labels": [
+          "Иван III",
+          "Василий III",
+          "Иван IV",
+          "Фёдор Иванович"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian15",
+          "x": 850,
+          "facing": "r"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 11,
+      "startSec": 94.375,
+      "durSec": 8.541666666666666,
+      "startFrame": 2265,
+      "durFrames": 205
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.541666666666666,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "scroll",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian16",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.847,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.694,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s13_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Иван Четвёртый — внук Ивана Третьего и отец Фёдора.",
+            "en": "Иван Четвёртый — внук Ивана Третьего и отец Фёдора."
+          },
+          "claimIds": [
+            "moscow-line"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 4.671,
+          "start": 103.61666666666667,
+          "end": 107.58766666666668
+        },
+        {
+          "id": "s13_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Иван Четвёртый венчался на царство.",
+            "en": "Иван Четвёртый венчался на царство."
+          },
+          "claimIds": [
+            "ivan4"
+          ],
+          "pause": 0.1,
+          "sceneStart": 4.771,
+          "sceneEnd": 7.543,
+          "start": 107.68766666666667,
+          "end": 110.45966666666668
+        }
+      ],
+      "fx": [],
+      "id": "s13",
+      "title": {
+        "ru": "tsardom",
+        "en": "tsardom"
+      },
+      "env": {
+        "id": "rus_hall",
+        "time": "day"
+      },
+      "era": [
+        1460,
+        1598
+      ],
+      "claimIds": [
+        "moscow-line",
+        "ivan4"
+      ],
+      "doc": {
+        "mode": "map",
+        "chapter": "Царство и конец московской линии",
+        "name": "Василий III / Иван IV",
+        "years": "XV–XVI века / 1547",
+        "sources": "martin, dunning, skrynnikov",
+        "status": "supported",
+        "labels": [
+          "Москва",
+          "Москва"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian16",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian17",
+          "x": 1110,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 12,
+      "startSec": 102.91666666666667,
+      "durSec": 8.541666666666666,
+      "startFrame": 2470,
+      "durFrames": 205
+    },
+    {
+      "kind": "story",
+      "transition": {
+        "in": "cut",
+        "out": "cut"
+      },
+      "musicLevel": 0.6,
+      "minDur": 8.541666666666666,
+      "props": [
+        {
+          "id": "evidence",
+          "kind": "round_shield",
+          "x": 650,
+          "on": "floor",
+          "color": "#b39b70"
+        }
+      ],
+      "pstates": [],
+      "sfx": [],
+      "beats": [
+        {
+          "t": 0,
+          "char": "historian17",
+          "do": "think",
+          "emotion": "thinking"
+        }
+      ],
+      "shots": [
+        {
+          "t": 0,
+          "type": "wide",
+          "move": "drift",
+          "cut": "cut"
+        },
+        {
+          "t": 2.847,
+          "type": "medium",
+          "move": "push",
+          "cut": "cut"
+        },
+        {
+          "t": 5.694,
+          "type": "close",
+          "move": "pull",
+          "cut": "cut"
+        }
+      ],
+      "lines": [
+        {
+          "id": "s14_0",
+          "voice": "narrator",
+          "text": {
+            "ru": "Опричнина сопровождалась разорением.",
+            "en": "Опричнина сопровождалась разорением."
+          },
+          "claimIds": [
+            "oprichnina"
+          ],
+          "pause": 0.1,
+          "sceneStart": 0.7,
+          "sceneEnd": 3.547,
+          "start": 112.15833333333335,
+          "end": 115.00533333333334
+        },
+        {
+          "id": "s14_1",
+          "voice": "narrator",
+          "text": {
+            "ru": "Пресеклась московская линия, но не весь род.",
+            "en": "Пресеклась московская линия, но не весь род."
+          },
+          "claimIds": [
+            "end"
+          ],
+          "pause": 0.1,
+          "sceneStart": 3.647,
+          "sceneEnd": 7.093,
+          "start": 115.10533333333335,
+          "end": 118.55133333333335
+        }
+      ],
+      "fx": [],
+      "id": "s14",
+      "title": {
+        "ru": "tsardom",
+        "en": "tsardom"
+      },
+      "env": {
+        "id": "rus_camp",
+        "time": "day"
+      },
+      "era": [
+        1565,
+        1598
+      ],
+      "claimIds": [
+        "oprichnina",
+        "end"
+      ],
+      "doc": {
+        "mode": "timeline",
+        "chapter": "Итог: московская линия, не весь род",
+        "name": "Иван IV / Фёдор Иванович",
+        "years": "1565–1572 / 1598",
+        "sources": "skrynnikov, dunning",
+        "status": "supported",
+        "labels": [
+          "1565–1572: Русское государство",
+          "1598: Москва"
+        ],
+        "note": "Стилизация, не портретная реконструкция"
+      },
+      "light": {
+        "key": "sun",
+        "x": 1300,
+        "y": 120,
+        "color": "#e8d7b4",
+        "rim": "#958c67",
+        "intensity": 0.6,
+        "grade": "warm"
+      },
+      "ambience": "forest",
+      "actors": [
+        {
+          "char": "historian17",
+          "x": 850,
+          "facing": "r"
+        },
+        {
+          "char": "historian18",
+          "x": 1110,
+          "facing": "l"
+        }
+      ],
+      "historicalAction": "council",
+      "index": 13,
+      "startSec": 111.45833333333334,
+      "durSec": 8.541666666666666,
+      "startFrame": 2675,
+      "durFrames": 205
+    }
+  ],
+  "music": {
+    "mood": "emotional"
+  },
+  "hash": "3a640775390cbc93b449f39ed8100ff5079ca9fe"
+}

@@ -1,4 +1,6 @@
+import {WORLD} from '../lib/types.ts';
 import React from 'react';
+import {LocalFonts} from '../lib/LocalFonts.tsx';
 import {AbsoluteFill} from 'remotion';
 import type {ActionName, CharacterDef, ResolvedScene} from '../lib/types.ts';
 import {compileTrack} from '../char/track.ts';
@@ -21,24 +23,26 @@ const mk = (action: ActionName, x: number): ResolvedScene => ({
 });
 
 // Visual regression sheet: every action rendered with the same skeleton at time t (used for anatomy review)
-export const PoseSheet: React.FC<{t: number}> = ({t}) => {
+export const PoseSheet: React.FC<{t: number;costumes?:boolean}> = ({t,costumes=false}) => {
   const def: CharacterDef = LIB_CHARS[0];
   return (
     <AbsoluteFill style={{background: '#1b2030'}}>
-      <svg width={1920} height={1080}>
-        {SHEET_ACTIONS.map((a, i) => {
-          const col = i % 7;
-          const row = Math.floor(i / 7);
-          const gx = 150 + col * 270;
-          const gy = 330 + row * 250;
+      <LocalFonts/>
+      <svg width="100%" height="100%" viewBox={`0 0 ${WORLD.w} ${WORLD.h}`} preserveAspectRatio="xMidYMid meet">
+        {(costumes?(['idle','point','think','wave'] as ActionName[]):SHEET_ACTIONS).map((a, i) => {
+          const col = costumes?i:i%7;
+          const row = costumes?0:Math.floor(i/7);
+          const gx = costumes?250+col*470:150+col*270;
+          const gy = costumes?850:330+row*250;
+          const figure:CharacterDef=costumes?{...def,height:.94,costume:(['tunic','cloak','chainmail','robe'] as const)[i],headwear:(['fur','conical','veil','hood'] as const)[i],beard:i%2===0,build:'stocky'}:def;
           const sc = mk(a, 0);
           const tr = compileTrack(sc, 'hero');
           const st = {...tr.at(t), x: 0};
-          const sk = solveChar(def, st, 0);
+          const sk = solveChar(figure, st, 0);
           return (
-            <g key={a} transform={`translate(${gx},${gy}) scale(0.5)`}>
-              <Character def={def} state={st} sk={sk} face={emotionAt([], 0)} blink={0} look={{x: 1, y: 0}} talk={0} t={t} groundY={0} light={sc.light} />
-              <text x={0} y={70} fill="#fff" fontSize={40} textAnchor="middle" fontFamily="monospace">{a}</text>
+            <g key={a} transform={`translate(${gx},${gy}) scale(${costumes?1.8:.5})`}>
+              <Character def={figure} state={st} sk={sk} face={emotionAt([], 0)} blink={0} look={{x: 1, y: 0}} talk={0} t={t} groundY={0} light={sc.light} />
+              <text x={0} y={70} fill="#fff" fontSize={40} textAnchor="middle" fontFamily="Koveyer Sans, sans-serif">{costumes?figure.costume:a}</text>
             </g>
           );
         })}

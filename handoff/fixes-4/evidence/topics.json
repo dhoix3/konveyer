@@ -1,0 +1,855 @@
+{
+  "total": 84,
+  "verifiedWithFixtures": true,
+  "networkUsed": false,
+  "topics": [
+    {
+      "topic": "Как работает вакцина",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "Информационный материал, не медицинская рекомендация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "Нужна ли прививка",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "Информационный материал, не медицинская рекомендация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "Симптомы гриппа и диагностика",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "Информационный материал, не медицинская рекомендация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "Лечение диабета",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "Информационный материал, не медицинская рекомендация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "Диета и БАД",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "Информационный материал, не медицинская рекомендация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "Антибиотики и иммунитет",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "Информационный материал, не медицинская рекомендация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "How vaccines work",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "General information, not medical advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Medical diagnosis",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "General information, not medical advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Dietary supplements",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "General information, not medical advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Disease symptoms",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "General information, not medical advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Insulin treatment",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "General information, not medical advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Health and medicine",
+      "expectedDomain": "health",
+      "domain": "health",
+      "type": "factual",
+      "sensitivity": [
+        "health"
+      ],
+      "disclaimers": [
+        "General information, not medical advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Можно ли оспорить штраф",
+      "expectedDomain": "law",
+      "domain": "law",
+      "type": "factual",
+      "sensitivity": [
+        "law"
+      ],
+      "disclaimers": [
+        "Общая информация, не юридическая консультация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "Права арендатора",
+      "expectedDomain": "law",
+      "domain": "law",
+      "type": "factual",
+      "sensitivity": [
+        "law"
+      ],
+      "disclaimers": [
+        "Общая информация, не юридическая консультация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "Как работает договор",
+      "expectedDomain": "law",
+      "domain": "law",
+      "type": "factual",
+      "sensitivity": [
+        "law"
+      ],
+      "disclaimers": [
+        "Общая информация, не юридическая консультация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "Судебный процесс",
+      "expectedDomain": "law",
+      "domain": "law",
+      "type": "factual",
+      "sensitivity": [
+        "law"
+      ],
+      "disclaimers": [
+        "Общая информация, не юридическая консультация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "Авторское право и закон",
+      "expectedDomain": "law",
+      "domain": "law",
+      "type": "factual",
+      "sensitivity": [
+        "law"
+      ],
+      "disclaimers": [
+        "Общая информация, не юридическая консультация. Обратитесь к квалифицированному специалисту."
+      ]
+    },
+    {
+      "topic": "Appealing a fine",
+      "expectedDomain": "law",
+      "domain": "law",
+      "type": "factual",
+      "sensitivity": [
+        "law"
+      ],
+      "disclaimers": [
+        "General information, not legal advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Legal contracts",
+      "expectedDomain": "law",
+      "domain": "law",
+      "type": "factual",
+      "sensitivity": [
+        "law"
+      ],
+      "disclaimers": [
+        "General information, not legal advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Tenant rights",
+      "expectedDomain": "law",
+      "domain": "law",
+      "type": "factual",
+      "sensitivity": [
+        "law"
+      ],
+      "disclaimers": [
+        "General information, not legal advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Copyright law",
+      "expectedDomain": "law",
+      "domain": "law",
+      "type": "factual",
+      "sensitivity": [
+        "law"
+      ],
+      "disclaimers": [
+        "General information, not legal advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Inheritance and lawyers",
+      "expectedDomain": "law",
+      "domain": "law",
+      "type": "factual",
+      "sensitivity": [
+        "law"
+      ],
+      "disclaimers": [
+        "General information, not legal advice. Consult a qualified professional."
+      ]
+    },
+    {
+      "topic": "Что такое инфляция",
+      "expectedDomain": "finance",
+      "domain": "finance",
+      "type": "factual",
+      "sensitivity": [
+        "finance"
+      ],
+      "disclaimers": [
+        "Общая информация, не инвестиционная рекомендация. Решения обсудите со специалистом; возможны убытки."
+      ]
+    },
+    {
+      "topic": "Инвестиции в акции",
+      "expectedDomain": "finance",
+      "domain": "finance",
+      "type": "factual",
+      "sensitivity": [
+        "finance"
+      ],
+      "disclaimers": [
+        "Общая информация, не инвестиционная рекомендация. Решения обсудите со специалистом; возможны убытки."
+      ]
+    },
+    {
+      "topic": "Ипотечный кредит",
+      "expectedDomain": "finance",
+      "domain": "finance",
+      "type": "factual",
+      "sensitivity": [
+        "finance"
+      ],
+      "disclaimers": [
+        "Общая информация, не инвестиционная рекомендация. Решения обсудите со специалистом; возможны убытки."
+      ]
+    },
+    {
+      "topic": "Пенсионные вклады",
+      "expectedDomain": "finance",
+      "domain": "finance",
+      "type": "factual",
+      "sensitivity": [
+        "finance"
+      ],
+      "disclaimers": [
+        "Общая информация, не инвестиционная рекомендация. Решения обсудите со специалистом; возможны убытки."
+      ]
+    },
+    {
+      "topic": "Налоги и бюджет",
+      "expectedDomain": "finance",
+      "domain": "finance",
+      "type": "factual",
+      "sensitivity": [
+        "finance"
+      ],
+      "disclaimers": [
+        "Общая информация, не инвестиционная рекомендация. Решения обсудите со специалистом; возможны убытки."
+      ]
+    },
+    {
+      "topic": "What is inflation",
+      "expectedDomain": "finance",
+      "domain": "finance",
+      "type": "factual",
+      "sensitivity": [
+        "finance"
+      ],
+      "disclaimers": [
+        "General information, not investment advice. Consult a professional; losses are possible."
+      ]
+    },
+    {
+      "topic": "Investing in stocks",
+      "expectedDomain": "finance",
+      "domain": "finance",
+      "type": "factual",
+      "sensitivity": [
+        "finance"
+      ],
+      "disclaimers": [
+        "General information, not investment advice. Consult a professional; losses are possible."
+      ]
+    },
+    {
+      "topic": "Mortgage rates",
+      "expectedDomain": "finance",
+      "domain": "finance",
+      "type": "factual",
+      "sensitivity": [
+        "finance"
+      ],
+      "disclaimers": [
+        "General information, not investment advice. Consult a professional; losses are possible."
+      ]
+    },
+    {
+      "topic": "Cryptocurrency and bitcoin",
+      "expectedDomain": "finance",
+      "domain": "finance",
+      "type": "factual",
+      "sensitivity": [
+        "finance"
+      ],
+      "disclaimers": [
+        "General information, not investment advice. Consult a professional; losses are possible."
+      ]
+    },
+    {
+      "topic": "Financial deposits",
+      "expectedDomain": "finance",
+      "domain": "finance",
+      "type": "factual",
+      "sensitivity": [
+        "finance"
+      ],
+      "disclaimers": [
+        "General information, not investment advice. Consult a professional; losses are possible."
+      ]
+    },
+    {
+      "topic": "Парламентские выборы",
+      "expectedDomain": "politics",
+      "domain": "politics",
+      "type": "factual",
+      "sensitivity": [
+        "politics"
+      ],
+      "disclaimers": [
+        "Обзор требует проверки источников и представления различных позиций."
+      ]
+    },
+    {
+      "topic": "Президент и правительство",
+      "expectedDomain": "politics",
+      "domain": "politics",
+      "type": "factual",
+      "sensitivity": [
+        "politics"
+      ],
+      "disclaimers": [
+        "Обзор требует проверки источников и представления различных позиций."
+      ]
+    },
+    {
+      "topic": "Политические санкции",
+      "expectedDomain": "politics",
+      "domain": "politics",
+      "type": "factual",
+      "sensitivity": [
+        "politics"
+      ],
+      "disclaimers": [
+        "Обзор требует проверки источников и представления различных позиций."
+      ]
+    },
+    {
+      "topic": "Democracy and elections",
+      "expectedDomain": "politics",
+      "domain": "politics",
+      "type": "factual",
+      "sensitivity": [
+        "politics"
+      ],
+      "disclaimers": [
+        "This overview requires source review and representation of different perspectives."
+      ]
+    },
+    {
+      "topic": "Government and parliament",
+      "expectedDomain": "politics",
+      "domain": "politics",
+      "type": "factual",
+      "sensitivity": [
+        "politics"
+      ],
+      "disclaimers": [
+        "This overview requires source review and representation of different perspectives."
+      ]
+    },
+    {
+      "topic": "Political referendum",
+      "expectedDomain": "politics",
+      "domain": "politics",
+      "type": "factual",
+      "sensitivity": [
+        "politics"
+      ],
+      "disclaimers": [
+        "This overview requires source review and representation of different perspectives."
+      ]
+    },
+    {
+      "topic": "Почему небо голубое",
+      "expectedDomain": "physics",
+      "domain": "physics",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Как работает гравитация",
+      "expectedDomain": "physics",
+      "domain": "physics",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Квантовая физика",
+      "expectedDomain": "physics",
+      "domain": "physics",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Электрические магниты",
+      "expectedDomain": "physics",
+      "domain": "physics",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Why is the sky blue",
+      "expectedDomain": "physics",
+      "domain": "physics",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Thermodynamics and optics",
+      "expectedDomain": "physics",
+      "domain": "physics",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Что такое молекула",
+      "expectedDomain": "chemistry",
+      "domain": "chemistry",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Химические реакции",
+      "expectedDomain": "chemistry",
+      "domain": "chemistry",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Chemistry of molecules",
+      "expectedDomain": "chemistry",
+      "domain": "chemistry",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Basic chemistry",
+      "expectedDomain": "chemistry",
+      "domain": "chemistry",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Как идёт фотосинтез",
+      "expectedDomain": "biology",
+      "domain": "biology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Строение клетки",
+      "expectedDomain": "biology",
+      "domain": "biology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Генетика растений",
+      "expectedDomain": "biology",
+      "domain": "biology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "DNA and genetics",
+      "expectedDomain": "biology",
+      "domain": "biology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Plant biology",
+      "expectedDomain": "biology",
+      "domain": "biology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "How evolution works",
+      "expectedDomain": "biology",
+      "domain": "biology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Как работает компьютер",
+      "expectedDomain": "technology",
+      "domain": "technology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Роботы и алгоритмы",
+      "expectedDomain": "technology",
+      "domain": "technology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Программирование нейросетей",
+      "expectedDomain": "technology",
+      "domain": "technology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Computer processors",
+      "expectedDomain": "technology",
+      "domain": "technology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Internet technology",
+      "expectedDomain": "technology",
+      "domain": "technology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Software algorithms",
+      "expectedDomain": "technology",
+      "domain": "technology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "История Рюриковичей",
+      "expectedDomain": "history",
+      "domain": "history",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Летописи Средневековья",
+      "expectedDomain": "history",
+      "domain": "history",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Ancient history",
+      "expectedDomain": "history",
+      "domain": "history",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Archaeology and chronicles",
+      "expectedDomain": "history",
+      "domain": "history",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "География материков",
+      "expectedDomain": "geography",
+      "domain": "geography",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Океаны и континенты",
+      "expectedDomain": "geography",
+      "domain": "geography",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Geography and volcanoes",
+      "expectedDomain": "geography",
+      "domain": "geography",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Climate and continents",
+      "expectedDomain": "geography",
+      "domain": "geography",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Рецепт борща",
+      "expectedDomain": "cooking",
+      "domain": "cooking",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Кулинария: выпечка пирога",
+      "expectedDomain": "cooking",
+      "domain": "cooking",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Borscht recipe",
+      "expectedDomain": "cooking",
+      "domain": "cooking",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Cooking soup",
+      "expectedDomain": "cooking",
+      "domain": "cooking",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Футбольная тренировка",
+      "expectedDomain": "sport",
+      "domain": "sport",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Олимпийское плавание",
+      "expectedDomain": "sport",
+      "domain": "sport",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Football training",
+      "expectedDomain": "sport",
+      "domain": "sport",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Swimming and running",
+      "expectedDomain": "sport",
+      "domain": "sport",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Как работает память",
+      "expectedDomain": "psychology",
+      "domain": "psychology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Психология внимания",
+      "expectedDomain": "psychology",
+      "domain": "psychology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Psychology of emotions",
+      "expectedDomain": "psychology",
+      "domain": "psychology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Motivation and memory",
+      "expectedDomain": "psychology",
+      "domain": "psychology",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Что изучает наука",
+      "expectedDomain": "science",
+      "domain": "science",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    },
+    {
+      "topic": "Scientific method",
+      "expectedDomain": "science",
+      "domain": "science",
+      "type": "factual",
+      "sensitivity": [],
+      "disclaimers": []
+    }
+  ],
+  "multidomain": {
+    "schemaVersion": 2,
+    "domain": "health",
+    "matchedDomains": [
+      "health",
+      "law",
+      "finance",
+      "politics",
+      "physics",
+      "chemistry",
+      "biology",
+      "science"
+    ],
+    "type": "factual",
+    "format": "explainer",
+    "language": "ru",
+    "sensitivity": [
+      "health",
+      "law",
+      "finance",
+      "politics"
+    ],
+    "era": null,
+    "geography": null,
+    "graphics": [
+      "evidence"
+    ],
+    "disclaimers": [
+      "Информационный материал, не медицинская рекомендация. Обратитесь к квалифицированному специалисту.",
+      "Общая информация, не юридическая консультация. Обратитесь к квалифицированному специалисту.",
+      "Общая информация, не инвестиционная рекомендация. Решения обсудите со специалистом; возможны убытки.",
+      "Обзор требует проверки источников и представления различных позиций."
+    ],
+    "editorialTone": "neutral-informational",
+    "explanation": [
+      "Словарные совпадения (включая родительские домены): health, law, finance, politics, physics, chemistry, biology, science",
+      "Фактическая тема: нужны материалы",
+      "Эпоха не определена; география не угадывается"
+    ]
+  }
+}

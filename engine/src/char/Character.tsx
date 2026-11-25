@@ -1,3 +1,4 @@
+import {mouthOpening} from '../lib/lipsync.ts';
 import React from 'react';
 import {BONES, solve} from './skeleton.ts';
 import type {Skeleton, Pt} from './skeleton.ts';
@@ -30,7 +31,7 @@ const Body: React.FC<BodyProps> = ({def, sk, mode, rimColor}) => {
   const w = widths(def.build);
   const s = def.height;
   const lw = w.limb * s;
-  const tw = w.torso * s;
+  const tw = (w.torso+(def.costume?14:0)) * s;
   const rim = mode === 'rim';
   const ink = rim ? rimColor! : INK;
   const O = rim ? 1.5 : 4; // outline thickness
@@ -92,6 +93,13 @@ const Body: React.FC<BodyProps> = ({def, sk, mode, rimColor}) => {
       {/* neck */}
       <path d={P(neckBase, lerpPt(neckBase, sk.head, 0.75))} stroke={ink} strokeWidth={lw * 0.8 + O} strokeLinecap="round" />
       {!rim && <path d={P(neckBase, lerpPt(neckBase, sk.head, 0.75))} stroke={INK} strokeWidth={lw * 0.8} strokeLinecap="round" />}
+      {!rim && def.costume && <g>
+        <path d={`M${neckBase.x-tw/2} ${neckBase.y+10*s} L${sk.hip.x-tw*.8} ${sk.hip.y+35*s} L${sk.hip.x+tw*.8} ${sk.hip.y+35*s} L${neckBase.x+tw/2} ${neckBase.y+10*s}Z`} fill={def.costume==='robe'?'#3e4144':def.costume==='chainmail'?'#818c8d':def.shirt} stroke={INK} strokeWidth={3*s}/>
+        <path d={P(lerpPt(sk.hip,neckBase,0.1),lerpPt(sk.hip,neckBase,0.9))} stroke={def.costume==='chainmail'?'#8b9090':def.shirt} strokeWidth={tw+4} />
+        <path d={P({x:sk.hip.x-tw/2,y:sk.hip.y},{x:sk.hip.x+tw/2,y:sk.hip.y})} stroke="#b99961" strokeWidth={5*s}/>
+        {def.costume==='cloak' && <path d={P(neckBase,{x:sk.hip.x-tw,y:sk.hip.y+15*s},sk.hip)} fill={shade(def.shirt,-0.25)} stroke={INK} strokeWidth={2}/>}
+        {def.costume==='chainmail' && [0.3,0.5,0.7].map(v=><circle key={v} cx={lerpPt(sk.hip,neckBase,v).x} cy={lerpPt(sk.hip,neckBase,v).y} r={3*s} fill="none" stroke="#41494a"/>)}
+      </g>}
       {def.accessory === 'tie' && !rim && (
         <path d={P(lerpPt(sk.hip, neckBase, 0.9), lerpPt(sk.hip, neckBase, 0.45))} stroke={def.accessoryColor || '#b0252c'} strokeWidth={5 * s} strokeLinecap="round" />
       )}
@@ -110,11 +118,13 @@ interface FaceProps {
   blink: number;
   closed: number;
   look: {x: number; y: number};
+  viseme?: string;
+  audioDriven?: boolean;
   talk: number; // 0..1 mouth movement
   t: number;
 }
 
-const Face: React.FC<FaceProps> = ({def, sk, fx, face, blink, closed, look, talk, t}) => {
+const Face: React.FC<FaceProps> = ({def, sk, fx, face, blink, closed, look, talk, t, audioDriven, viseme}) => {
   const s = def.height;
   const R = BONES.headR * s;
   const sgn = fx >= 0 ? 1 : -1;
@@ -144,7 +154,7 @@ const Face: React.FC<FaceProps> = ({def, sk, fx, face, blink, closed, look, talk
   };
   const mw = 7.5 * s;
   const my = 15 * s;
-  const mouthOpen = clamp(face.mouthO + talk * (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 22))));
+  const mouthOpen = mouthOpening(talk,face.mouthO,t,audioDriven);
   const curve = face.mouthC * 6 * s;
   const mc = c * 0.9;
   const leftIsInner = 1; // for eye at c-h inner end is the right side
@@ -155,7 +165,7 @@ const Face: React.FC<FaceProps> = ({def, sk, fx, face, blink, closed, look, talk
         {eye(c - h, leftIsInner, 'e1')}
         {eye(c + h, -leftIsInner, 'e2')}
         {mouthOpen > 0.08 ? (
-          <ellipse cx={mc} cy={my + curve * 0.3} rx={mw * (0.45 + mouthOpen * 0.2)} ry={1.5 + mouthOpen * 6 * s} fill="#f4f1ec" />
+          <ellipse cx={mc} cy={my + curve * 0.3} rx={mw * (viseme==='round'?0.3:0.45 + mouthOpen * 0.2)} ry={1.5 + mouthOpen * 6 * s} fill="#f4f1ec" />
         ) : (
           <path d={`M${mc - mw},${my} Q${mc},${my + curve} ${mc + mw},${my}`} stroke="#f4f1ec" strokeWidth={2.2 * s} fill="none" strokeLinecap="round" />
         )}
@@ -172,7 +182,7 @@ const Face: React.FC<FaceProps> = ({def, sk, fx, face, blink, closed, look, talk
   );
 };
 
-const Accessory: React.FC<{def: CharacterDef; fx: number; R: number; t: number}> = ({def, fx, R, t}) => {
+const LegacyAccessory: React.FC<{def: CharacterDef; fx: number; R: number; t: number}> = ({def, fx, R, t}) => {
   const col = def.accessoryColor || '#c5502b';
   const f = fx;
   switch (def.accessory) {
@@ -210,6 +220,21 @@ const Accessory: React.FC<{def: CharacterDef; fx: number; R: number; t: number}>
   }
 };
 
+const Accessory: React.FC<{def:CharacterDef;fx:number;R:number;t:number}> = p => {
+  const {def,R}=p,col=def.accessoryColor||'#69513c';
+  return <><LegacyAccessory {...p}/>
+    {def.hairStyle==='braid' && <path d={`M${-R*.8} 0 Q${-R*1.3} ${R} ${-R*.8} ${R*1.8}`} fill="none" stroke={col} strokeWidth={R*.3} strokeDasharray="5 2"/>}
+    {def.hairStyle==='curly' && [-.7,-.35,0,.35,.7].map((x,i)=><circle key={i} cx={x*R} cy={-R*.8-Math.sin(i)*R*.2} r={R*.32} fill={col}/>)}
+    {def.hairStyle==='long' && <path d={`M${-R} ${R*.7} V${-R*.6} Q0 ${-R*1.7} ${R} ${-R*.6} V${R*.7}`} fill="none" stroke={col} strokeWidth={R*.25}/>}
+    {def.headwear==='fur' && <rect x={-R*1.1} y={-R*1.25} width={R*2.2} height={R*.65} rx={R*.2} fill="#554739"/>}
+    {def.headwear==='conical' && <path d={`M${-R} ${-R*.5} L0 ${-R*1.9} L${R} ${-R*.5}Z`} fill="#a7aba5" stroke="#3a3e3c" strokeWidth={2}/>}
+    {def.headwear==='veil' && <path d={`M${-R*1.15} ${R*.8} V${-R*.5} Q0 ${-R*1.6} ${R*1.15} ${-R*.5} V${R*.8}`} fill="none" stroke="#c2b8a1" strokeWidth={R*.3}/>}
+    {def.headwear==='hood' && <path d={`M${-R*1.15} ${R*.4} Q${-R*1.5} ${-R*1.6} 0 ${-R*1.4} Q${R*1.5} ${-R*1.6} ${R*1.15} ${R*.4}`} fill="none" stroke={def.shirt} strokeWidth={R*.3}/>}
+    {def.beard && <path d={`M${-R*.7} ${R*.45} Q0 ${R*1.9} ${R*.7} ${R*.45} L0 ${R*.8}Z`} fill={def.age==='elder'?'#bdbaae':col}/>}
+    {def.age==='elder' && <path d={`M${-R*.7} ${R*.2} h${R*.3} M${R*.4} ${R*.2} h${R*.3}`} stroke="#80766c" strokeWidth={1.5}/>}
+  </>;
+};
+
 export interface CharacterProps {
   def: CharacterDef;
   state: CharState;
@@ -217,6 +242,8 @@ export interface CharacterProps {
   face: FaceParams;
   blink: number;
   look: {x: number; y: number};
+  viseme?: string;
+  audioDriven?: boolean;
   talk: number;
   t: number;
   groundY: number;
@@ -224,7 +251,7 @@ export interface CharacterProps {
   opacity?: number;
 }
 
-export const Character: React.FC<CharacterProps> = ({def, state, sk, face, blink, look, talk, t, groundY, light, opacity = 1}) => {
+export const Character: React.FC<CharacterProps> = ({def, state, sk, face, blink, look, talk, t, groundY, light, opacity = 1, audioDriven, viseme}) => {
   const lx = light.x - sk.hip.x;
   const dirL = Math.sign(lx) || 1;
   const rimC = light.rim;
@@ -242,7 +269,7 @@ export const Character: React.FC<CharacterProps> = ({def, state, sk, face, blink
         <Body def={def} sk={sk} mode="rim" rimColor={rimC} />
       </g>
       <Body def={def} sk={sk} mode="main" />
-      <Face def={def} sk={sk} fx={state.fx} face={face} blink={blink} closed={state.eyeClosed} look={look} talk={talk} t={t} />
+      <Face def={def} sk={sk} fx={state.fx} face={face} blink={blink} closed={state.eyeClosed} look={look} talk={talk} t={t} audioDriven={audioDriven} viseme={viseme} />
     </g>
   );
 };

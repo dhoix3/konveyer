@@ -1,0 +1,1 @@
+PASS: changes.patch applies to temporary index read from main base HEAD 4e9ddcb, including new source/test/docs files. No branch/index/user files changed.

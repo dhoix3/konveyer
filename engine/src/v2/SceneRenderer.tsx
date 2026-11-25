@@ -1,3 +1,11 @@
+import {LandmarkStrip} from '../doc/Landmarks.tsx';
+import {TextBounds} from '../doc/TextBounds.tsx';
+import {Crowd} from '../char/Crowd.tsx';
+import {viewport} from '../lib/viewport.ts';
+import {mouthAt} from '../lib/lipsync.ts';
+import {LocalFonts} from '../lib/LocalFonts.tsx';
+import {documentaryLayout,fitActor,containedCamera} from '../doc/layout.ts';
+import {DocumentaryGraphics} from '../doc/DocumentaryGraphics.tsx';
 import React, {useMemo} from 'react';
 import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
 import type {Plan, ResolvedScene, PropDef, CharacterDef, LookSpec} from '../lib/types.ts';
@@ -9,7 +17,7 @@ import {emotionAt, blinkAt} from '../char/emotions.ts';
 import {Character, solveChar} from '../char/Character.tsx';
 import type {Skeleton} from '../char/skeleton.ts';
 import {PROPS, PROP_COLORS, PropShape, propTop} from '../char/props.tsx';
-import {compileCamera} from '../cine/camera.ts';
+import {SHOT_ZOOM,compileCamera} from '../cine/camera.ts';
 import {getEnv} from '../bg/envs.tsx';
 import {Rain, Snow, Fog, Dust, Embers, Grain, Vignette, Grade, KeyGlow} from '../fx/Fx.tsx';
 import {Counter, Subtitles, Question, TitleCard, Letterbox} from '../hud/Hud.tsx';
@@ -60,11 +68,12 @@ function surfaceY(propMap: Map<string, PropDef>, on: string, depth = 0): number 
   return surfaceY(propMap, host.on, depth + 1) - propTop(host.kind, host.scale ?? 1);
 }
 
-export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?: boolean}> = ({plan, sceneIndex, subtitles = true}) => {
+export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?: boolean;measureTextBounds?:boolean}> = ({plan, sceneIndex, subtitles = true,measureTextBounds=false}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const scene = plan.scenes[sceneIndex];
   const t = frame / fps;
+  const view=viewport(plan.width,plan.height);
   const env = getEnv(scene.env.id);
   const lang = plan.language;
   const ctx = useScene(plan, scene);
@@ -85,8 +94,10 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
       const p = ctx.propMap.get(f.prop);
       if (p) return {x: p.x, y: surfaceY(ctx.propMap, p.on, 0) - propTop(p.kind, p.scale ?? 1) - 30 - (PROPS[p.kind]?.top ? 0 : 20) + (p.on === 'air' ? ((p.y ?? 500) - GROUND) : 0)};
     }
-    return {x: f.x ?? 960, y: f.y ?? 520};
-  }, [ctx]);
+    const actor=scene.actors[0];
+    if(plan.width<plan.height && actor && ctx.tracks.has(actor.char)) {const {sk}=ctx.skAt(actor.char,tt);return {x:sk.hip.x,y:(sk.head.y+sk.lowest)/2};}
+    return {x: f.x ?? WORLD.w/2, y: f.y ?? 520};
+  }, [ctx,scene,plan.width,plan.height]);
   const camFn = useMemo(() => compileCamera(scene, focusFn), [scene, focusFn]);
   const cam = camFn(t);
 
@@ -132,7 +143,7 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
 
   const talkOf = (def: CharacterDef) => {
     const l = scene.lines.find((ln) => ln.voice === def.voice && t >= ln.sceneStart && t <= ln.sceneEnd);
-    return l ? 1 : 0;
+    return l?.speech ? mouthAt(l.speech,t-l.sceneStart) : l ? 1 : 0;
   };
 
   // --- props
@@ -220,19 +231,41 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
   const outT = scene.transition?.out ?? 'cut';
   const fadeIn = inT === 'cut' ? 0 : 1 - smooth(frame / (inT === 'dip' ? 8 : 14));
   const fadeOut = outT === 'cut' ? 0 : smooth((frame - (dF - (outT === 'dip' ? 8 : 14))) / (outT === 'dip' ? 8 : 14));
-  const black = Math.max(fadeIn, fadeOut, cam.black);
+  const black = Math.max(['wipe','iris'].includes(inT)?0:fadeIn,['wipe','iris'].includes(outT)?0:fadeOut,cam.black);
+  const reveal=inT==='wipe'?Math.min(1,t/.6):inT==='iris'?Math.min(1,t/.7):1;
+  const conceal=outT==='wipe'||outT==='iris'?Math.max(0,1-(scene.durSec-t)/.6):0;
 
+  const activeLine=scene.lines.find(l=>t>=l.sceneStart&&t<l.sceneEnd)||scene.lines[0];
+  const activeClaim=plan.production?.knowledge?.claims.find(c=>activeLine?.claimIds?.includes(c.id));
+  const sourceRefs=activeClaim?.sources.map(id=>({id,title:plan.production?.knowledge?.sources?.find(s=>s.id===id)?.shortTitle||plan.production?.knowledge?.sources?.find(s=>s.id===id)?.title||'Источник не указан'}));
+  const activeSubject=scene.doc?.subjects?.find(c=>activeLine?.claimIds?.includes(c.id))||(activeClaim?{name:activeClaim.person||'Исторический эпизод',years:activeClaim.date.value,status:activeClaim.status,sources:activeClaim.sources.join(', ')}:scene.doc?.subjects?.[0]);
   const sorted = [...chars];
+  const docBox=scene.doc?documentaryLayout(plan.width,plan.height).actors:null;
+  const focusChar=sorted.find(c=>c.def.namedPerson===activeSubject?.name||c.def.name[lang]===activeSubject?.name)||sorted.find(c=>c.a.char===scene.shots[cam.shot]?.focus?.char)||sorted[0];
+  const sk=focusChar?.sk;
+  const shotType=scene.shots[cam.shot]?.type;
+  const visibleChars=scene.doc&&['close','extreme_close'].includes(shotType)?sorted.filter(c=>c===focusChar):sorted;
+  const groupBounds=visibleChars.length?{left:Math.min(...visibleChars.map(c=>Math.min(c.sk.hip.x-150,c.sk.lHand.x-35,c.sk.rHand.x-35))),right:Math.max(...visibleChars.map(c=>Math.max(c.sk.hip.x+150,c.sk.lHand.x+35,c.sk.rHand.x+35))),top:Math.min(...visibleChars.map(c=>c.sk.head.y-85)),bottom:Math.max(...visibleChars.map(c=>c.sk.lowest+20))}:null;
+  const fit=docBox&&groupBounds?fitActor(docBox,groupBounds):null;
+  const portraitZoom=shotType==='close'?1.75:shotType==='medium'?1.25:1;
+  const shotStart=camFn(scene.shots[cam.shot]?.t??0);
+  const baseZoom=SHOT_ZOOM[shotType||'wide']??1;
+  const framed=fit&&docBox&&groupBounds?containedCamera(docBox,groupBounds,fit.scale*portraitZoom*cam.zoom/baseZoom,-(cam.cx-shotStart.cx)*fit.scale,-(cam.cy-shotStart.cy)*fit.scale,cam.rot,!['close','extreme_close'].includes(shotType)):null;
+  const docTransform=framed?`translate(${framed.x},${framed.y}) rotate(${framed.rotation}) scale(${framed.scale}) translate(${-framed.cx},${-framed.cy})`:null;
   return (
     <AbsoluteFill style={{background: '#000', overflow: 'hidden'}}>
+      <LocalFonts/>
       <AbsoluteFill>
-        <svg width={1920} height={1080} viewBox="0 0 1920 1080" style={{position: 'absolute', left: 0, top: 0}}>
-          <g transform={`translate(960,540) rotate(${cam.rot}) scale(${cam.zoom}) translate(${-cam.cx},${-cam.cy})`}>
+        {scene.doc&&<svg data-documentary-environment="full-frame" width="100%" height="100%" viewBox={`0 0 ${view.w} ${view.h}`} style={{position:'absolute',inset:0}}><g transform={`translate(${view.cx},${view.cy}) rotate(${cam.rot}) scale(${cam.zoom}) translate(${-cam.cx},${-cam.cy})`}>{layers.map(l=><g key={l.key} transform={`translate(${(cam.cx-960)*(1-l.depth)},${(cam.cy-540)*(1-l.depth)*.5})`}>{l.node}</g>)}<Crowd scene={scene} t={t}/></g></svg>}
+        {scene.doc&&<LandmarkStrip kind={scene.doc.landmarkKind||'settlement'}/>}
+        <svg width="100%" height="100%" viewBox={docBox?`0 0 ${docBox.w} ${docBox.h}`:`0 0 ${view.w} ${view.h}`} style={{position:'absolute',left:docBox?.x??0,top:docBox?.y??0,width:docBox?.w??'100%',height:docBox?.h??'100%',overflow:'hidden'}}>
+          <g transform={docTransform||`translate(${view.cx},${view.cy}) rotate(${cam.rot}) scale(${cam.zoom}) translate(${-cam.cx},${-cam.cy})`}>
             {layers.map((l) => (
               <g key={l.key} transform={`translate(${(cam.cx - 960) * (1 - l.depth)},${(cam.cy - 540) * (1 - l.depth) * 0.5})`}>{l.node}</g>
             ))}
+            <g transform={`translate(${(cam.cx-WORLD.w/2)*(1-(scene.crowd?.depth||.7))},0)`}>{!scene.doc&&<Crowd scene={scene} t={t}/>}</g>
             {propNodes.filter((p) => p && p.layer === 'back').map((p) => p!.node)}
-            {sorted.map((c) => (
+            {visibleChars.map((c) => (
               <Character
                 key={c.a.char}
                 def={c.def}
@@ -242,6 +275,8 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
                 blink={blinkAt(c.a.char, t)}
                 look={lookFor(c)}
                 talk={talkOf(c.def)}
+                audioDriven={scene.lines.find(l=>l.voice===c.def.voice&&t>=l.sceneStart&&t<l.sceneEnd)?.speech ? true : !scene.lines.some(l=>l.voice===c.def.voice&&t>=l.sceneStart&&t<l.sceneEnd) && scene.lines.some(l=>l.voice===c.def.voice&&!!l.speech)}
+                viseme={scene.lines.flatMap(l=>l.voice===c.def.voice?(l.speech?.visemes||[]).map(v=>({...v,start:v.start+l.sceneStart,end:v.end+l.sceneStart})):[]).find(v=>t>=v.start&&t<v.end)?.shape}
                 t={t}
                 groundY={GROUND}
                 light={scene.light}
@@ -256,15 +291,19 @@ export const SceneRenderer: React.FC<{plan: Plan; sceneIndex: number; subtitles?
         {scene.fx?.includes('embers') && <Embers t={t} />}
         <Dust t={t} color={scene.env.time === 'night' ? '#aabbff' : '#fff4d6'} n={isTitle ? 70 : 34} />
         <KeyGlow sx={sx} sy={sy} light={scene.light} t={t} />
-        <Grade light={scene.light} time={scene.env.time} t={t} pulse={pulse} />
-        <Vignette />
+        {!scene.doc&&<Grade light={scene.light} time={scene.env.time} t={t} pulse={pulse} />}
+        {!scene.doc&&<Vignette />}
         <Grain frame={frame} />
       </AbsoluteFill>
+      {measureTextBounds&&<TextBounds/>}
+      {scene.doc && <DocumentaryGraphics doc={{...scene.doc,...activeSubject,...(sourceRefs?{sourceRefs,needsReview:activeClaim?.needsReview}:{})}} />}
       {isTitle && <TitleCard title={plan.title[lang]} sub={scene.overlay?.text[lang]} kicker={lang === 'ru' ? 'А ЧТО ЕСЛИ' : 'WHAT IF'} t={t} dur={scene.durSec} />}
       {!isTitle && scene.counter && <Counter c={scene.counter} t={t} dur={scene.durSec} lang={lang} />}
       {!isTitle && scene.overlay?.type === 'question' && <Question text={scene.overlay.text[lang]} t={t} t0={scene.overlay.t} dur={scene.durSec} />}
       {subtitles && !isTitle && <Subtitles scene={scene} t={t} lang={lang} fps={fps} />}
-      <Letterbox bar={WORLD.bar} />
+      <Letterbox bar={!scene.doc&&plan.width/plan.height>1.5?WORLD.bar*plan.height/WORLD.h:0} />
+      {(inT==='wipe'||outT==='wipe') && <AbsoluteFill style={{background:'#000',clipPath:`inset(0 0 0 ${(1-Math.max(1-reveal,conceal))*100}%)`,opacity:Math.max(1-reveal,conceal)>0?1:0,pointerEvents:'none'}}/>}
+      {(inT==='iris'||outT==='iris') && <AbsoluteFill style={{background:`radial-gradient(circle, transparent ${Math.max(0,Math.min(reveal,1-conceal))*100}%, #000 101%)`,opacity:reveal<1||conceal>0?1:0,pointerEvents:'none'}}/>}
       <AbsoluteFill style={{background: '#000', opacity: black, pointerEvents: 'none'}} />
     </AbsoluteFill>
   );
