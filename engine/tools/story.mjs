@@ -370,8 +370,46 @@ const LIGHTS = {
   'station:indoor': () => L('emergency', 1400, 200, '#9aff7a', '#b6ff8a', 0.5, {grade: 'space', pulse: {color: '#7aff5a', period: 3.2}}),
   'stadium:day': () => L('sun', 1500, 150, '#fff0c0', '#ffd38a', 0.7, {grade: 'teal_orange'}),
   'school:indoor': () => L('lamp', 960, 150, '#ffe9c0', '#ffd9a0', 0.6, {grade: 'warm'}),
+  'void:night': () => L('none', 960, 400, '#9ec4ff', '#9ec4ff', 0.3, {grade: 'cold'}),
 };
 export const lightFor = (env, time) => (LIGHTS[`${env}:${time}`] || LIGHTS['street:day'])();
+
+// LIGHT_KEYS mirrors LightDef.key in src/lib/types.ts — the renderer contract.
+const LIGHT_KEYS = ['sun', 'moon', 'lamp', 'screen', 'neon', 'fire', 'emergency', 'none'];
+const LIGHT_GRADES = ['teal_orange', 'cold', 'warm', 'noir', 'sick', 'dawn', 'dusk', 'space', 'sepia', 'silver'];
+const numOr = (v, fallback, min, max) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+};
+const strOr = (v, fallback) => (typeof v === 'string' && v.trim() ? v.trim() : fallback);
+
+// CONTRACT (scene generator -> renderer): every resolved plan scene must expose a
+// complete LightDef — SceneRenderer/Character/Grade/KeyGlow read key/x/y/color/
+// rim/intensity without optionals.  Generators are expected to set `light` (see
+// SceneSpec in src/lib/types.ts), but older projects and third-party scene JSON
+// may miss it, so the single producer of plan.json completes the contract here:
+// missing/invalid fields fall back to the deterministic preset for the scene's
+// env:time.  This is a completing migration, never a silent content change for
+// well-formed scenes: valid provided fields are always kept.
+export function normalizeSceneLight(light, env = {}) {
+  const base = lightFor(env.id, env.time);
+  const raw = light && typeof light === 'object' && !Array.isArray(light) ? light : {};
+  const out = {
+    key: LIGHT_KEYS.includes(raw.key) ? raw.key : base.key,
+    x: numOr(raw.x, base.x, -400, 2320),
+    y: numOr(raw.y, base.y, -400, 1480),
+    color: strOr(raw.color, base.color),
+    rim: strOr(raw.rim, base.rim),
+    intensity: numOr(raw.intensity, base.intensity, 0, 1),
+  };
+  const flicker = Number(raw.flicker);
+  if (Number.isFinite(flicker)) out.flicker = Math.min(1, Math.max(0, flicker));
+  if (raw.pulse && typeof raw.pulse === 'object' && strOr(raw.pulse.color) && Number.isFinite(Number(raw.pulse.period)) && Number(raw.pulse.period) > 0) {
+    out.pulse = {color: strOr(raw.pulse.color), period: Number(raw.pulse.period)};
+  }
+  if (LIGHT_GRADES.includes(raw.grade)) out.grade = raw.grade;
+  return out;
+}
 
 // Ambience bed per environment (ids understood by tools/mixer.py).
 const AMBIENCE = {

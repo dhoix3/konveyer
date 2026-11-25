@@ -30,6 +30,23 @@ export function createSecurity({host='127.0.0.1',token,allowedHosts=[]}={}) {
   if(!loopback && (!token || Buffer.byteLength(token)<32))throw new Error('Network GUI requires KOVEYER_GUI_TOKEN (at least 32 bytes).');
   if(token && (!/^[A-Za-z0-9_-]{32,256}$/.test(token)))throw new Error('GUI token must be 32–256 URL-safe characters');
   const explicitHosts=new Set(allowedHosts.map(h=>h.toLowerCase()));
+  // Proxy preview hosts (e.g. the sandbox/e2b pattern "<port>-<id>.e2b.app")
+  // are safe to allow explicitly: same origin check still applies to every
+  // request, the Host header must match this pattern and the port is ignored
+  // because the proxy terminates TLS and forwards to the bound port.
+  const proxyRaw = process.env.KOVEYER_PROXY_HOSTS;
+  // Comma-separated globs; the only wildcard is "*" which matches one or more
+  // subdomain labels ("*.e2b.app" matches 7788-abc.e2b.app, not e2b.app).
+  const globToRe = (g) => {
+    const glob = String(g).trim();
+    const esc = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, (c) => '\\' + c);
+    // Leading "*." = one or more subdomain labels before the suffix.
+    if (/^\*\./.test(glob)) return '^([a-z0-9-]+\\.)+' + esc(glob.slice(2)) + '$';
+    return '^' + esc(glob).replace(/\*/g, '[a-z0-9-]+') + '$';
+  };
+  // NOTE: '*.x' means "one or more labels, then .x" so e2b.app itself never
+  // matches; 'a*.x' style infix wildcards map to a single label.
+  const proxyPattern = proxyRaw ? new RegExp(proxyRaw.split(',').map(globToRe).join('|'), 'i') : null;
   const hosts=new Set(['127.0.0.1','localhost','[::1]',host]);
   if(!loopback)for(const entries of Object.values(os.networkInterfaces()))for(const x of entries||[])hosts.add(x.family==='IPv6'?`[${x.address}]`:x.address);
   for(const h of allowedHosts){if(!/^[a-zA-Z0-9.-]+$/.test(h))throw new Error('invalid allowed host');hosts.add(h.toLowerCase());}
@@ -38,7 +55,13 @@ export function createSecurity({host='127.0.0.1',token,allowedHosts=[]}={}) {
     checkBoundary(req,port){
       let parsed;
       try{parsed=new URL(`http://${req.headers.host}`);}catch{throw new HttpError(403,'invalid Host');}
-      if(!hosts.has(parsed.hostname.toLowerCase()) || (!explicitHosts.has(parsed.hostname.toLowerCase()) && Number(parsed.port||80)!==port) || parsed.username || parsed.password || parsed.pathname!=='/')throw new HttpError(403,'Host not allowed');
+      const hostname=parsed.hostname.toLowerCase();
+      const proxyMatch=proxyPattern?.test(hostname)||false;
+      const portOk=Number(parsed.port||80)===port;
+      // Static/loopback hosts must hit the exact port; explicitly allowed
+      // hosts and proxy-preview hosts bypass the port check (the proxy
+      // terminates TLS on 443 and forwards to the bound port).
+      if(!(hosts.has(hostname) || explicitHosts.has(hostname) || proxyMatch) || (!explicitHosts.has(hostname) && !proxyMatch && !portOk) || parsed.username || parsed.password || parsed.pathname!=='/')throw new HttpError(403,'Host not allowed');
       if(req.headers['sec-fetch-site']==='cross-site')throw new HttpError(403,'cross-site request forbidden');
       if(req.headers.origin){
         let origin;try{origin=new URL(req.headers.origin);}catch{throw new HttpError(403,'invalid Origin');}

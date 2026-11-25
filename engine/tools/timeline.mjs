@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {projectDir, readJson, writeJson, sha1, fileSha, FPS} from './lib.mjs';
 import {estimateLine, LEAD, TAIL, GAP} from './script.mjs';
+import {normalizeSceneLight} from './story.mjs';
 const MOVES = ['push', 'drift', 'pan', 'dolly', 'pull', 'crane'];
 const TYPE_CYCLE = ['wide', 'medium', 'close'];
 const TYPE_ORDER = ['wide', 'medium', 'close', 'establishing', 'insert', 'extreme_close'];
@@ -126,6 +127,7 @@ export function buildPlan(id,{aspect,projectOverride,persist=true,ignoreAudio=fa
       beats: (sc.beats || []).map((b) => ({...b, t: rt(b.t)})).sort((a, b) => a.t - b.t),
       sfx: (sc.sfx || []).map((s) => ({...s, t: rt(s.t)})).sort((a, b) => a.t - b.t),
       pstates: (sc.pstates || []).map((s) => ({...s, t: rt(s.t)})),
+      light: normalizeSceneLight(sc.light, sc.env),
       shots, overlay,
     };
     if(out.doc&&project.production?.knowledge){const claims=project.production.knowledge.claims;out.doc={...out.doc,subjects:out.lines.flatMap(l=>(l.claimIds||[]).map(id=>claims.find(c=>c.id===id))).filter(Boolean).map(c=>({id:c.id,name:c.person||'Исторический эпизод',years:c.date.value,status:c.status,needsReview:c.needsReview,sourceRefs:readableSources(project.production.knowledge,c.sources),sources:readableSources(project.production.knowledge,c.sources).map(s=>s.title).join('; ')}))};}

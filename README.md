@@ -155,6 +155,19 @@ sampled RSS разделены. Без успешных замеров оцен�
 HEAD; `handoff/final/APPLY.md` — Windows и применение; `PR_DESCRIPTION.md` — описание
 для PR. Наличие структурной QA/тестов не означает проверку реального фильма.
 
+## Fixes 5 — контракт света и стабильный рендер
+
+Ошибка `TypeError: … reading 'pulse'` (universal-проекты без `scene.light`)
+исправлена контрактом: генератор пишет полный `LightDef`, `buildPlan` достраивает
+его для старых проектов (`normalizeSceneLight`), план-QA считает неполный свет
+ошибкой до рендера. Регрессия: `tests/fixes5.mjs` прогоняет реальный
+`SceneRenderer` headless (SSR) по сцене падения и одному пути каждого генератора
+— это проверка кода рендера, не пикселей. QA media помечает недоступные
+видеофильтры ffmpeg как `notChecked` (не «ошибка» и не «проверено»). GUI: редкие
+настройки — в «Дополнительно», озвучка в основном потоке, текстовая подсказка
+этапа и следующего шага; `KOVEYER_PROXY_HOSTS='*.домен'` разрешает reverse-proxy
+превью при неизменных проверках Host/Origin/token. [Отчёт](handoff/fixes-5/REPORT.md).
+
 ## Windows quality fixes 1
 
 After real Windows selfcheck: shared documentary safe-zones/claim footer/epoch-safe

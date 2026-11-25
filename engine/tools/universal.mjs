@@ -1,7 +1,7 @@
 import {combinedProfile,validateSensitiveMaterials,attachSafetyScenes} from './sensitive-policy.mjs';
 import fs from 'node:fs';import crypto from 'node:crypto';import path from 'node:path';
 import {projectDir,writeJson,readJson,sha1} from './lib.mjs';import {lockProject} from './project-lock.mjs';
-import {buildProject} from './script.mjs';import {T,S} from './story.mjs';
+import {buildProject} from './script.mjs';import {T,S,L} from './story.mjs';
 import {buildDocumentary,writeDocumentaryArtifacts} from './documentary.mjs';import {validatePack} from './knowledge.mjs';
 import {topicProfile,TRUST_MODES} from './topic-profile.mjs';
 export function assertPublicationAllowed(project,{acceptUnverified=false,draft=false}={}){
@@ -39,7 +39,7 @@ export function makeUniversal({id,topic,format='explainer',duration=60,language=
  if(materials)project=buildDocumentary(base,materials);
  else if(mode!=='creative'){
   const statements=language==='en'?['Research outline, not a factual script. Sources have not been supplied.','Add short attributed excerpts, then review each candidate claim.','This draft cannot be published as verified.']:['Исследовательская заявка, не фактический сценарий. Источники не добавлены.','Добавьте короткие выдержки с атрибуцией и проверьте каждое утверждение.','Этот черновик нельзя публиковать как проверенный материал.'];
-  project={...base,characters:base.characters.slice(0,1),voices:base.voices.filter(v=>v.id===base.characters[0].voice),scenes:statements.map((text,i)=>S({id:'s0'+(i+1),title:T('Подготовка материалов','Material preparation'),env:{id:'void',time:'night'},actors:[{char:base.characters[0].id,x:960,facing:'r'}],beats:[{t:0,char:base.characters[0].id,do:'think'}],lines:[{id:'s0'+(i+1)+'_0',voice:base.characters[0].voice,text:T(text,text),needsReview:true}],minDur:Number(duration)/3,doc:{mode:'evidence',profile:'generic',name:topic,chapter:language==='en'?'Unverified draft':'Непроверенный черновик',years:'—',sources:language==='en'?'No sources supplied':'Источники не добавлены',status:'unknown',needsReview:true,labels:[],note:'Outline only',events:[{label:text}]}})),production:{...base.production,kind:'outline',fiction:false}};
+  project={...base,characters:base.characters.slice(0,1),voices:base.voices.filter(v=>v.id===base.characters[0].voice),scenes:statements.map((text,i)=>S({id:'s0'+(i+1),title:T('Подготовка материалов','Material preparation'),env:{id:'void',time:'night'},light:L('none',960,300,'#8fb0ff','#8fb0ff',0.35,{grade:'cold'}),actors:[{char:base.characters[0].id,x:960,facing:'r'}],beats:[{t:0,char:base.characters[0].id,do:'think'}],lines:[{id:'s0'+(i+1)+'_0',voice:base.characters[0].voice,text:T(text,text),needsReview:true}],minDur:Number(duration)/3,doc:{mode:'evidence',profile:'generic',name:topic,chapter:language==='en'?'Unverified draft':'Непроверенный черновик',years:'—',sources:language==='en'?'No sources supplied':'Источники не добавлены',status:'unknown',needsReview:true,labels:[],note:'Outline only',events:[{label:text}]}})),production:{...base.production,kind:'outline',fiction:false}};
  }
  project.production={...project.production,universal:{schemaVersion:1,format,mode,profile,networkAllowed:false,requestedNetwork:!!allowNetwork,status:materials?'awaiting-review':mode==='creative'?'creative-draft':'needs-materials',notice:'networkAllowed stays false: network workflow not implemented'}};
  project=attachSafetyScenes(project);

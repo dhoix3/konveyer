@@ -102,7 +102,23 @@ try {
   assert.ok(listHistory(uiDir).length>=2);
   console.log('PASS authenticated GUI history listing and actual restore child process');
   assert.equal((await request('/api/create',{method:'POST',headers:{authorization:`Bearer ${token}`,'content-type':'text/plain'},body:'{}'})).status,415);
-  console.log('PASS live LAN-token GUI, login cookie, Host/Origin for GET, missing auth, byte limit and content type');
+  // Proxy-preview host allowlist: KOVEYER_PROXY_HOSTS="*.preview.test" admits
+  // "<anything>.preview.test" without a port (TLS proxy forwards to :port),
+  // but not the bare domain, foreign domains or spoofed suffixes; static
+  // loopback hosts still require the exact port.
+  process.env.KOVEYER_PROXY_HOSTS='*.preview.test';
+  try {
+    const sec=createSecurity({host:'0.0.0.0',token});
+    const ok=(h)=>{try{sec.checkBoundary({headers:{host:h}},port);return true;}catch{return false;}};
+    assert.ok(ok(`${port}-abc.preview.test`),'proxy subdomain allowed');
+    assert.ok(ok('x.y.preview.test'),'deep subdomain allowed');
+    assert.ok(!ok('preview.test'),'bare domain blocked');
+    assert.ok(!ok('evil.test'),'foreign domain blocked');
+    assert.ok(!ok('a.preview.test.invalid'),'spoofed suffix blocked');
+    assert.ok(!ok(`127.0.0.1:${port+1}`),'wrong port still blocked');
+    assert.ok(ok(`127.0.0.1:${port}`),'exact port still allowed');
+  } finally { delete process.env.KOVEYER_PROXY_HOSTS; }
+  console.log('PASS live LAN-token GUI, login cookie, Host/Origin for GET, missing auth, byte limit, content type and proxy-host allowlist');
 } finally {
   if(child && child.exitCode===null){child.kill('SIGTERM');await new Promise(r=>child.once('exit',r));}
   fs.rmSync(temp,{recursive:true,force:true});
