@@ -3,10 +3,12 @@ import {qaDocumentary} from './documentary.mjs';
 // QA stage: static checks on the plan (anatomy, contact, teleport, props, sync, duration) + checks on rendered media.
 import fs from 'node:fs';
 import path from 'node:path';
+import {spawnSync} from 'node:child_process';
 import {ENGINE, projectDir, readJson, writeJson, probe, ff, FPS, WIDTH, HEIGHT} from './lib.mjs';
 import {compileTrack, SPEED} from '../src/char/track.ts';
 import {solve, BONES, LIMITS} from '../src/char/skeleton.ts';
 import {measureLufs, TARGET_LUFS} from './sound.mjs';
+import {FFMPEG, ffmpegEnv} from './lib.mjs';
 
 const envSrc = fs.readFileSync(path.join(ENGINE, 'src/bg/envs.tsx'), 'utf8');
 const ENVS = {};
@@ -39,6 +41,15 @@ export function qaPlan(id, plan,{project}={}) {
     if (sc.durFrames < 24) E(S, 'scene shorter than 1 second');
     if (!(sc.env.id in ENVS)) E(S, `unknown environment "${sc.env.id}"`);
     else if (ENVS[sc.env.id] < 2) E(S, `environment "${sc.env.id}" has fewer than 2 live details`);
+    // Renderer contract: Character/Grade/KeyGlow read the key light without
+    // optionals, so an incomplete light must fail plan QA, not Chrome.
+    const light = sc.light;
+    if (!light || typeof light !== 'object') E(S, 'scene light missing — plan must provide a complete LightDef');
+    else {
+      for (const k of ['key', 'color', 'rim']) if (typeof light[k] !== 'string' || !light[k]) E(S, `scene light.${k} missing`);
+      for (const k of ['x', 'y', 'intensity']) if (!Number.isFinite(light[k])) E(S, `scene light.${k} is not a finite number`);
+      if (light.pulse !== undefined && (!light.pulse || typeof light.pulse !== 'object' || !light.pulse.color || !Number.isFinite(light.pulse.period) || light.pulse.period <= 0)) E(S, 'scene light.pulse must be {color, period>0}');
+    }
     if(sc.crowd) {
       if(!Number.isInteger(sc.crowd.count)||sc.crowd.count<1||sc.crowd.count>24||!Array.isArray(sc.crowd.presets)||!sc.crowd.presets.length||sc.crowd.presets.some(id=>!LIB_CHARS.some(c=>c.id===id))||sc.crowd.depth<.2||sc.crowd.depth>1.5)E(S,'invalid crowd');
     }
@@ -138,11 +149,27 @@ export function qaPlan(id, plan,{project}={}) {
   return {errors, warnings};
 }
 
+// Capability probe (cached per process): minimal ffmpeg builds, e.g. the
+// Remotion-bundled Linux binary, remux and filter audio but ship no video
+// filters.  A missing capability must be reported as explicitly "not
+// machine-checked" — never as a silent pass and never as a media error.
+let _videoFilters;
+export function videoFilterSupport() {
+  if (_videoFilters) return _videoFilters;
+  const r = spawnSync(FFMPEG(), ['-hide_banner', '-filters'], {encoding: 'utf8', windowsHide: true, env: ffmpegEnv()});
+  const list = r.status === 0 ? `${r.stdout}\n${r.stderr}` : '';
+  _videoFilters = {blackdetect: /\bblackdetect\b/.test(list), freezedetect: /\bfreezedetect\b/.test(list)};
+  return _videoFilters;
+}
+
 export function qaMedia(id, plan, sceneFiles, finalFile, draft = false) {
-  const errors = [], warnings = [];
+  const errors = [], warnings = [], notChecked = [];
   // Draft renders are half resolution by design — check against that.
   const W = plan.width*(draft?0.5:1);
   const H = plan.height*(draft?0.5:1);
+  const vis = videoFilterSupport();
+  const visualQAPossible = vis.blackdetect && vis.freezedetect;
+  if (!visualQAPossible) notChecked.push('blackdetect/freezedetect: video filters unavailable in this ffmpeg build — frame content was NOT machine-checked');
   for (const sc of plan.scenes) {
     const f = sceneFiles[sc.id];
     if (!f || !fs.existsSync(f)) { errors.push(`[${sc.id}] scene video missing`); continue; }
@@ -153,11 +180,13 @@ export function qaMedia(id, plan, sceneFiles, finalFile, draft = false) {
       if (m.vcodec !== 'h264') errors.push(`[${sc.id}] codec ${m.vcodec}`);
       const expect = sc.durFrames / FPS;
       if (Math.abs(m.duration - expect) > 0.1) errors.push(`[${sc.id}] duration ${m.duration.toFixed(2)}s != ${expect.toFixed(2)}s`);
-      const r = ff(['-i', f, '-vf', 'blackdetect=d=1.2:pix_th=0.04,freezedetect=n=-70dB:d=4', '-an', '-f', 'null', '-'], {allowFail: true});
-      if(r.status!==0) {errors.push(`[${sc.id}] FFmpeg visual QA failed (${r.status}): ${String(r.stderr||r.stdout||'').slice(-1200)}`);continue;}
-      const err = r.stderr || '';
-      for (const mm of err.matchAll(/black_start:([\d.]+) black_end:([\d.]+)/g)) if (+mm[2] - +mm[1] > 1.2) errors.push(`[${sc.id}] empty (black) frames ${mm[1]}s-${mm[2]}s`);
-      for (const mm of err.matchAll(/freeze_duration: ([\d.]+)/g)) warnings.push(`[${sc.id}] frozen picture for ${(+mm[1]).toFixed(1)}s`);
+            if (visualQAPossible) {
+        const r = ff(['-i', f, '-vf', 'blackdetect=d=1.2:pix_th=0.04,freezedetect=n=-70dB:d=4', '-an', '-f', 'null', '-'], {allowFail: true});
+        if(r.status!==0) {errors.push(`[${sc.id}] FFmpeg visual QA failed (${r.status}): ${String(r.stderr||r.stdout||'').slice(-1200)}`);continue;}
+        const err = r.stderr || '';
+        for (const mm of err.matchAll(/black_start:([\d.]+) black_end:([\d.]+)/g)) if (+mm[2] - +mm[1] > 1.2) errors.push(`[${sc.id}] empty (black) frames ${mm[1]}s-${mm[2]}s`);
+        for (const mm of err.matchAll(/freeze_duration: ([\d.]+)/g)) warnings.push(`[${sc.id}] frozen picture for ${(mm[1]).toFixed(1)}s`);
+      }
     } catch (e) { errors.push(`[${sc.id}] ${e.message}`); }
   }
   if (finalFile && fs.existsSync(finalFile)) {
@@ -172,11 +201,13 @@ export function qaMedia(id, plan, sceneFiles, finalFile, draft = false) {
     else if (Math.abs(Number(l.input_i) - TARGET_LUFS) > 1.5) warnings.push(`[final] loudness ${l.input_i} LUFS (target ${TARGET_LUFS})`);
     else warnings.push(`[final] loudness ${l.input_i} LUFS OK`);
   } else errors.push('[final] FINAL file missing');
-  return {errors, warnings};
+  return {errors, warnings, notChecked};
 }
 
 export function writeReport(id, parts) {
   const rep = {at: new Date().toISOString(), errors: parts.flatMap((p) => p.errors), warnings: parts.flatMap((p) => p.warnings)};
+  const notChecked = parts.flatMap((p) => p.notChecked || []);
+  if (notChecked.length) rep.notChecked = [...new Set(notChecked)];
   rep.ok = rep.errors.length === 0;
   writeJson(path.join(projectDir(id), 'qa_report.json'), rep);
   return rep;

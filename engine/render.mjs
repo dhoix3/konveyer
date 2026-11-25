@@ -337,7 +337,8 @@ async function cmdQa(id) {
     const rep = writeReport(id, parts);
     rep.errors.forEach((e) => log.error(e));
     rep.warnings.forEach((w) => log.warn(w));
-    log.info(rep.ok ? `QA passed (${rep.warnings.length} notes)` : `QA FAILED: ${rep.errors.length} error(s)`);
+    (rep.notChecked || []).forEach((n) => log.warn(`NOT CHECKED: ${n}`));
+    log.info(rep.ok ? `QA passed (${rep.warnings.length} notes${rep.notChecked?.length ? `, ${rep.notChecked.length} check(s) not machine-checked` : ''})` : `QA FAILED: ${rep.errors.length} error(s)`);
     markStage(id, 'qa', rep.ok ? 'done' : 'failed', {errors: rep.errors.length});
     if (!rep.ok) process.exitCode = 2;
   } catch (e) {
@@ -431,7 +432,10 @@ async function cmdAll(id) {
 async function cmdUi(id, args) {
   const port = Number(args.port || process.env.PORT || 7788);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('--port must be 1..65535');
-  startUI({port,host:String(args.host || '127.0.0.1'),allowedHosts:args['allowed-host'] ? String(args['allowed-host']).split(',') : []});
+  // KOVEYER_PROXY_HOSTS="*.e2b.app" whitelists reverse-proxy preview hosts
+  // (comma-separated globs; only subdomain-regex escaping, no other magic).
+  if (process.env.KOVEYER_PROXY_HOSTS) process.env.KOVEYER_PROXY_HOSTS = String(process.env.KOVEYER_PROXY_HOSTS);
+  startUI({port,host:String(args.host || process.env.KOVEYER_GUI_BIND || '127.0.0.1'),allowedHosts:args['allowed-host'] ? String(args['allowed-host']).split(',') : []});
   // Keep the process alive until SIGINT/SIGTERM (startUI exits on both);
   // otherwise the CLI's trailing process.exit() would kill the server.
   await new Promise(() => {});

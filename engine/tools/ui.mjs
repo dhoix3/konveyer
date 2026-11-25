@@ -300,44 +300,51 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <h3>1. Замысел</h3>
   <details><summary>Универсальный вход · офлайн, экспериментальный</summary><label><input id="universalEnabled" type="checkbox"> Создать через make вместо legacy сценариста</label><label>Тип ролика</label><select id="universalFormat"><option value="explainer">Объяснение</option><option value="documentary">Документальный</option><option value="story">История / сказка</option><option value="tutorial">Обучение</option><option value="top">Топ-N</option><option value="promo">Промо</option><option value="kids">Детский</option><option value="skit">Скетч</option><option value="review">Обзор</option></select><label>Достоверность</label><select id="universalMode"><option value="">Определить по теме/материалам</option><option value="verified">По материалам · требует проверки</option><option value="unverified-draft">Непроверенная заявка</option><option value="creative">Вымысел</option></select><p class="muted">Сеть не используется. Веб-исследование пока не реализовано. Тип ролика сохраняется как намерение; отдельные структуры сценария будут в следующей фазе. Без материалов factual режим создаёт заявку, не факты.</p></details>
   <label for="projectName">Название</label><input id="projectName" maxlength="160" placeholder="Название фильма или сезона">
-  <div class="row"><div><label for="format">Формат</label><select id="format"><option value="fiction">Художественный фильм</option><option value="documentary">Документальный разбор</option><option value="reconstruction">Учебная реконструкция</option><option value="series">Мини-сериал (вымысел)</option></select></div>
-  <div><label for="genre">Жанр</label><select id="genre"><option value="drama">Драма</option><option value="science">Научный</option><option value="history">Исторический</option><option value="disaster">Катастрофа</option><option value="fantasy">Фантастика</option><option value="post-apocalyptic">Постапокалипсис</option></select></div></div>
+  <div class="row"><div><label for="format">Формат</label><select id="format"><option value="fiction">Художественный фильм</option><option value="documentary">Документальный разбор</option><option value="reconstruction">Учебная реконструкция</option><option value="series">Мини-сериал (вымысел)</option></select></div></div>
   <label for="topic">Тема видео</label>
   <textarea id="topic" maxlength="4000" placeholder="Тема, конфликт, события и желаемое завершение"></textarea>
-  <label for="continueFrom">Продолжение проекта (id, необязательно)</label><input id="continueFrom" maxlength="40" placeholder="Например: terra-e01">
+  <details id="advancedBrief"><summary>Дополнительные параметры замысла</summary>
+    <label for="genre">Жанр</label><select id="genre"><option value="drama">Драма</option><option value="science">Научный</option><option value="history">Исторический</option><option value="disaster">Катастрофа</option><option value="fantasy">Фантастика</option><option value="post-apocalyptic">Постапокалипсис</option></select>
+    <label for="continueFrom">Продолжение проекта (id, необязательно)</label><input id="continueFrom" maxlength="40" placeholder="Например: terra-e01">
+  </details>
   <h3>2. Производство</h3>
-  <label for="aspect">Соотношение сторон</label><select id="aspect"><option value="16:9">16:9 · горизонтальное</option><option value="9:16">9:16 · вертикальное</option><option value="1:1">1:1 · квадрат</option></select>
-  <div class="row"><div><label for="episodes">Эпизодов (только сериал)</label><input id="episodes" type="number" min="1" max="12" value="3"></div><div><label for="narrative">Повествование</label><select id="narrative"><option value="chronological">Хронология</option><option value="investigation">Исследование</option><option value="character">От лица героев</option></select></div></div>
   <div class="row">
     <div><label for="duration">Длительность, сек</label><input id="duration" type="number" min="25" max="180" value="90"></div>
     <div><label for="lang">Язык</label><select id="lang"><option value="ru">Русский</option><option value="en">English</option></select></div>
   </div>
   <div class="row">
     <div><label for="characters">Персонажей</label><select id="characters"><option>1</option><option selected>2</option><option>3</option></select></div>
-    <div><label for="narrator">Голос диктора</label><select id="narrator"></select></div>
+    <div><label for="voiceMode">Озвучка</label><select id="voiceMode"><option value="tts">Piper TTS</option><option value="none">без голоса (музыка)</option></select></div>
   </div>
+  <label for="aspect">Соотношение сторон</label><select id="aspect"><option value="16:9">16:9 · горизонтальное</option><option value="9:16">9:16 · вертикальное</option><option value="1:1">1:1 · квадрат</option></select>
   <div class="row">
     <div><label for="style">Стиль</label><select id="style"></select></div>
     <div><label for="music">Музыка</label><select id="music"></select></div>
   </div>
+  <details id="advancedProduction"><summary>Дополнительные параметры производства</summary>
+    <div class="row"><div><label for="episodes">Эпизодов (только сериал)</label><input id="episodes" type="number" min="1" max="12" value="3"></div><div><label for="narrative">Повествование</label><select id="narrative"><option value="chronological">Хронология</option><option value="investigation">Исследование</option><option value="character">От лица героев</option></select></div></div>
+    <label for="narrator">Голос диктора (модель Piper)</label><select id="narrator"></select>
+  </details>
   <h3>3. Материалы и запуск</h3>
   <details id="evidencePanel"><summary>Источники и утверждения (JSON)</summary><p class="muted">Для документального разбора. supported означает «подкреплено источником пользователя», а не независимую проверку. Без материалов создаётся только исследовательская заявка.</p><textarea id="materials" placeholder='{"sources":[],"claims":[]}'></textarea></details>
-  <div class="row">
-    <div><label for="template">Шаблон</label><select id="template"><option value="auto">авто (по теме)</option><option value="freeform">свободная тема</option></select></div>
-    <div><label for="voiceMode">Озвучка</label><select id="voiceMode"><option value="tts">Piper TTS</option><option value="none">без голоса (музыка)</option></select></div>
-  </div>
-  <div class="row">
-    <div><label for="pid">id проекта</label><input id="pid" placeholder="авто"></div>
-    <div style="display:flex;align-items:flex-end;padding-bottom:8px"><label style="margin:0;color:var(--text)"><input type="checkbox" id="force" style="width:auto"> перезаписать</label></div>
-  </div>
+  <details id="advancedLaunch"><summary>Дополнительные параметры запуска</summary>
+    <label for="template">Шаблон (только legacy «что если»)</label><select id="template"><option value="auto">авто (по теме)</option><option value="freeform">свободная тема</option></select>
+    <div class="row">
+      <div><label for="pid">id проекта</label><input id="pid" placeholder="авто"></div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:8px"><label style="margin:0;color:var(--text)"><input type="checkbox" id="force" style="width:auto"> перезаписать</label></div>
+    </div>
+  </details>
   <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
     <button onclick="create()">Создать проект</button>
     <button class="secondary" onclick="run('all')">&#9654; Запустить всё</button>
     <button class="danger" onclick="stop()">&#9632; Остановить</button>
   </div>
-  <button class="small secondary" onclick="checkReady()">Проверить компоненты</button>
-  <button class="small secondary" onclick="openFolder('project')">Папка проекта</button>
-  <button class="small secondary" onclick="openFolder('output')">Папка видео</button>
+  <details style="margin-top:10px"><summary>Сервис</summary>
+    <button class="small secondary" onclick="checkReady()">Проверить компоненты</button>
+    <button class="small secondary" onclick="openFolder('project')">Папка проекта</button>
+    <button class="small secondary" onclick="openFolder('output')">Папка видео</button>
+    <p class="muted">«Проверить компоненты» показывает, установлен ли Chrome для рендера, Piper для озвучки и FFmpeg для сборки — локально, без сети.</p>
+  </details>
   <div class="msg" id="msg" role="status"></div>
 </section>
 <section>
