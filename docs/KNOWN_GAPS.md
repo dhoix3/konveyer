@@ -20,3 +20,15 @@
 source hash/locks/history — не multi-file ACID; bounded project history хранит20
 снимков на тип, не бессрочный backup; автоматический secret scan сигнатурный и не
 заменяет ручной review. Полные fixture/tests и reports доступны в handoff/final/.
+
+## Универсальный проход
+
+Новая нумерация фаз/статусы — docs/UNIVERSAL.md. Фаза0: проверены выбор графики по
+смыслу, source/event/review metadata, bbox/orthogonal edges и общий actor fit. Реальные
+шрифтовые metrics/overlap/camera/background ещё требуют Chrome и Windows review.
+Произвольно длинные подписи могут сокращаться с многоточием; полные материалы
+остаются в knowledge/SOURCES. Make/review теперь частично реализованы офлайн; web/corpus не реализованы.
+
+Phase1 partial: topic profile is lexical, not expert/safety verification. Specific
+format structures, automatic disclaimer insertion, web research/SSRF/robots/replay,
+source independence/automatic verification, uploads and corpus/live-check remain absent.

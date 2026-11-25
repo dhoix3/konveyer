@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Koveyer Dhoix'a render engine (Remotion 4 + React 18 + SVG)",
   "scripts": {
-    "test": "node tests/major.mjs && node tests/fixes1.mjs && node tests/phase78.mjs && node tests/editor.mjs && node tests/alignment.mjs && node tests/diversity.mjs && node tests/formats.mjs && node tests/speech.mjs && node tests/documentary.mjs && node tests/reliability.mjs && node tests/production.mjs && node tests/runtime.mjs && node tests/regressions.mjs && node tests/topics.mjs --cleanup",
+    "test": "node tests/universal-input.mjs && node tests/universal-phase0.mjs && node tests/major.mjs && node tests/fixes1.mjs && node tests/phase78.mjs && node tests/editor.mjs && node tests/alignment.mjs && node tests/diversity.mjs && node tests/formats.mjs && node tests/speech.mjs && node tests/documentary.mjs && node tests/reliability.mjs && node tests/production.mjs && node tests/runtime.mjs && node tests/regressions.mjs && node tests/topics.mjs --cleanup",
     "studio": "remotion studio src/index.ts",
     "render": "node render.mjs",
     "doctor": "node render.mjs doctor",

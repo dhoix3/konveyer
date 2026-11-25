@@ -77,3 +77,15 @@ Quality/meaning requires human review. No real model quality claim from stub tes
 
 References: docs/ARCHITECTURE.md, DOCUMENTARY.md, SCENE_EDITOR.md,
 PROFILE_LOCAL_LLM_SELFCHECK.md, AUDIT_V2.md, KNOWN_GAPS.md and DIAGNOSTICS.md.
+
+## Universal follow-up
+
+See docs/UNIVERSAL.md for the new phase-by-phase status (separate from prior phases).
+Phase0 uses semantic documentary selection, readable source/review captions and
+geometry-tested composition. Do not claim network research, corpus or visual sign-off
+from phase0. Keep anatomy, voice IDs, legacy CLI and cache/lock contracts intact.
+
+Universal phase1 partial: `make "TOPIC" --id NEW_ID --voice none` creates an offline
+outline (factual) or existing fiction draft (creative). Canonical --materials is JSON.
+verified requires materials plus manual review; final/publish gate unreviewed claims.
+Network research/live-check/corpus are not implemented. See docs/UNIVERSAL.md.

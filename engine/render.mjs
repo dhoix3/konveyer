@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import {makeUniversal,assertPublicationAllowed} from './tools/universal.mjs';
 import {fetchWhisper,whisperStatus} from './tools/models.mjs';
 import {renderEstimate} from './tools/render-estimate.mjs';
 import {selfcheck} from './tools/selfcheck.mjs';
@@ -300,6 +301,7 @@ async function cmdRender(id) {
 }
 
 async function cmdFinal(id) {
+  assertPublicationAllowed(loadProject(id),{acceptUnverified:!!args['accept-unverified'],draft:!!args.draft});
   const log = logger(id, 'final');
   markStage(id, 'final', 'running');
   try {
@@ -492,6 +494,7 @@ const HELP = `Koveyer Dhoix'a — pipeline
   node render.mjs publish <id> [--aspect 9:16]
   node render.mjs voices [--download ru-narrator]    list registry / explicit model download
   node render.mjs subtitles <id> [--strict]         SRT/VTT/ASS + reading QA
+  node render.mjs make "TOPIC" [--id ID --format explainer --mode unverified-draft --voice none]
   node render.mjs research <id> --topic "Рюриковичи"   offline knowledge and documentary plan
   node render.mjs recover <season-id>             finish interrupted season publication
   node render.mjs history <id>
@@ -523,6 +526,7 @@ process.on('unhandledRejection', (e) => { failRunningStage(args._[1], e); consol
 
 async function cmdPreview(id){const project=loadProject(id);assertSeriesContext(project);const plan=buildPlan(id,{projectOverride:project,persist:false,ignoreAudio:true});return cmdFrame(id,{previewPlan:plan});}
 async function cmdPublish(id) {
+  assertPublicationAllowed(loadProject(id),{acceptUnverified:!!args['accept-unverified'],draft:!!args.draft});
   const plan=loadPlan(id),dir=ensure(path.join(renderDir(id),'publish'));
   const video=path.join(renderDir(id),args.draft?'DRAFT.mp4':'FINAL.mp4');
   publishPackage(plan,dir,{video});
@@ -541,7 +545,7 @@ async function cmdSmoke(id) {
   id=id||`smoke-${Date.now()}`;
   if(!args._[1])process.on('exit',lockProject(id,{createDir:false}));
   const dir=projectDir(id);if(fs.existsSync(dir))throw new Error('Smoke project exists: choose a new id; no overwrite');
-  const pack=findPack('Рюриковичи'),claims=pack.claims.filter(c=>['treaty','moscow-line','ivan4'].includes(c.id));
+  const pack=findPack('Рюриковичи'),claims=pack.claims.filter(c=>['oleg','moscow-line','ivan4'].includes(c.id));
   const base=buildProject({id,topic:'Проверка документальной графики',duration:30});
   const p=buildDocumentary(base,{...pack,claims,causalLinks:[]});
   p.title={ru:'Smoke: карта, время, родословная',en:'Documentary smoke'};
@@ -608,13 +612,15 @@ async function cmdHistory(id) {console.log(JSON.stringify(listHistory(projectDir
 async function cmdRestore(id) {console.log(`Restored ${restoreSnapshot(projectDir(id),String(args.snapshot || ''))}`);}
 async function cmdEpisode(id) { const p=regenerateEpisode(id,Number(args.episode),!!args.force); console.log(`Episode ready: ${p.id}`); }
 
-const table = {frames:cmdFrames,models:cmdModels,selfcheck:async()=>{const r=await selfcheck({planOnly:!!args['plan-only']});if(!r.complete)process.exitCode=1;},llm:cmdLLM,profile:cmdProfile,preview:cmdPreview,smoke:cmdSmoke,export:cmdExport,publish:cmdPublish,voices:cmdVoices,subtitles:cmdSubtitles,research:cmdResearch,recover:cmdRecover,history:cmdHistory,restore:cmdRestore,episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
+async function cmdMake(){const result=makeUniversal({id:args.id,topic:args._[1],format:args.format||'explainer',duration:Number(args.duration||60),language:args.lang||'ru',mode:args.mode,materials:args.materials?readJson(path.resolve(String(args.materials))):undefined,voiceMode:args.voice||'tts',autoResearch:!!args['auto-research'],allowNetwork:!!args['allow-network']});console.log(JSON.stringify(result,null,2));}
+
+const table = {make:cmdMake,frames:cmdFrames,models:cmdModels,selfcheck:async()=>{const r=await selfcheck({planOnly:!!args['plan-only']});if(!r.complete)process.exitCode=1;},llm:cmdLLM,profile:cmdProfile,preview:cmdPreview,smoke:cmdSmoke,export:cmdExport,publish:cmdPublish,voices:cmdVoices,subtitles:cmdSubtitles,research:cmdResearch,recover:cmdRecover,history:cmdHistory,restore:cmdRestore,episode:cmdEpisode, idea: cmdIdea, new: cmdNew, voice: cmdVoice, timeline: cmdTimeline, scenes: cmdScenes, sound: cmdSound, render: cmdRender, final: cmdFinal, qa: cmdQa, frame: cmdFrame, all: cmdAll, list: cmdList, doctor: cmdDoctor, ui: cmdUi};
 try {
   if (!cmd || !table[cmd]) { console.log(HELP); process.exit(cmd ? 1 : 0); }
   if(cmd==='smoke'&&args.profile&&!args._[1])args._[1]=`smoke-${Date.now()}`;
   const id = args._[1];
-  if (!['models','selfcheck','smoke','voices', 'idea', 'list', 'doctor', 'new', 'ui', 'restore', 'history', 'recover'].includes(cmd)) need(id);
-  if (!['models','selfcheck','voices','idea', 'list', 'doctor', 'ui'].includes(cmd) && id) {
+  if (!['make','models','selfcheck','smoke','voices', 'idea', 'list', 'doctor', 'new', 'ui', 'restore', 'history', 'recover'].includes(cmd)) need(id);
+  if (!['make','models','selfcheck','voices','idea', 'list', 'doctor', 'ui'].includes(cmd) && id) {
     const unlock = lockProject(id,{createDir:cmd!=='smoke'});
     process.on('exit', unlock);
   }

@@ -14,7 +14,7 @@ assert.equal(renderEstimate(100,{scenes:{a:{frames:100,seconds:1}}},{source:'cur
 let pack=prepared.pack;
 for(const aspect of ['16:9','9:16','1:1']){
  const project=buildDocumentary(buildProject({id:'generic-test',topic:pack.topic,duration:30,voice:'none'}),pack);
- assert.ok(project.scenes.every(s=>s.doc.profile==='generic'&&s.doc.mode==='timeline'&&!s.doc.tree&&!s.doc.chapter.includes('Рюрик')));
+ assert.ok(project.scenes.every(s=>s.doc.profile==='generic'&&s.doc.mode==='evidence'&&!s.doc.tree&&!s.doc.chapter.includes('Рюрик')));
  assert.ok(!project.characters.some(c=>c.namedPerson));assert.deepEqual(projectGraphics(pack).ticks,[]);
  const plan=buildPlan(project.id,{projectOverride:project,ignoreAudio:true,persist:false,aspect});
  const q=qaDocumentary(plan);assert.deepEqual(q.errors,[],JSON.stringify(q));

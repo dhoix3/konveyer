@@ -1,3 +1,5 @@
+import {makeUniversal,reviewUniversal,assertPublicationAllowed} from './universal.mjs';
+import {topicProfile} from './topic-profile.mjs';
 import {STUDIO_STYLE,STUDIO_SCRIPT} from './studio-page.mjs';
 import {prepareMaterials} from './research-materials.mjs';
 import {EDITOR_MARKUP,EDITOR_SCRIPT} from './editor-page.mjs';
@@ -296,6 +298,7 @@ a.dl{display:inline-block;margin:6px 8px 0 0;color:var(--acc);text-decoration:no
   <h2>Создать производство</h2>
   <p class="muted">Локальный правиловый сценарист · стилизованная SVG-графика · не LLM</p>
   <h3>1. Замысел</h3>
+  <details><summary>Универсальный вход · офлайн, экспериментальный</summary><label><input id="universalEnabled" type="checkbox"> Создать через make вместо legacy сценариста</label><label>Тип ролика</label><select id="universalFormat"><option value="explainer">Объяснение</option><option value="documentary">Документальный</option><option value="story">История / сказка</option><option value="tutorial">Обучение</option><option value="top">Топ-N</option><option value="promo">Промо</option><option value="kids">Детский</option><option value="skit">Скетч</option><option value="review">Обзор</option></select><label>Достоверность</label><select id="universalMode"><option value="">Определить по теме/материалам</option><option value="verified">По материалам · требует проверки</option><option value="unverified-draft">Непроверенная заявка</option><option value="creative">Вымысел</option></select><p class="muted">Сеть не используется. Веб-исследование пока не реализовано. Тип ролика сохраняется как намерение; отдельные структуры сценария будут в следующей фазе. Без материалов factual режим создаёт заявку, не факты.</p></details>
   <label for="projectName">Название</label><input id="projectName" maxlength="160" placeholder="Название фильма или сезона">
   <div class="row"><div><label for="format">Формат</label><select id="format"><option value="fiction">Художественный фильм</option><option value="documentary">Документальный разбор</option><option value="reconstruction">Учебная реконструкция</option><option value="series">Мини-сериал (вымысел)</option></select></div>
   <div><label for="genre">Жанр</label><select id="genre"><option value="drama">Драма</option><option value="science">Научный</option><option value="history">Исторический</option><option value="disaster">Катастрофа</option><option value="fantasy">Фантастика</option><option value="post-apocalyptic">Постапокалипсис</option></select></div></div>
@@ -449,6 +452,8 @@ async function loadLog(){
 async function create(){
   try {
     msg('создание…');
+    if(el('universalEnabled').checked){var materials=JSON.parse(el('materials').value||'null');var made=await api('/api/universal/make',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:el('pid').value||undefined,topic:el('topic').value,format:el('universalFormat').value,mode:el('universalMode').value||undefined,duration:Number(el('duration').value),language:el('lang').value,voiceMode:el('voiceMode').value,materials:materials})});current=made.id;msg(made.next+' · '+made.mode,'ok');await refresh();loadLog();return;}
+
     var body = {
       continueFrom:el('continueFrom').value,name:el('projectName').value,format:el('format').value,genre:el('genre').value,narrative:el('narrative').value,episodes:el('episodes').value,
       materials:JSON.parse(el('materials').value || '{}'),
@@ -590,6 +595,7 @@ export function startUI({port = 7788, host = '127.0.0.1', token = process.env.KO
         if(req.method==='GET' && p==='/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end(LOGIN_PAGE);}
         return json(res,401,{error:'GUI authentication required'});
       }
+      if(req.method==='POST'&&['/api/universal/make','/api/universal/review','/api/universal/profile'].includes(p)){const body=await readBody(req);try{if(p==='/api/universal/make')return json(res,200,makeUniversal(body));if(p==='/api/universal/profile')return json(res,200,topicProfile(body.topic,body));if(!safeId(body.id))throw new Error('Некорректный id');return json(res,200,reviewUniversal(body.id,body));}catch(e){throw new HttpError(400,e.message);}}
       if(req.method==='POST'&&p==='/api/materials/prepare'){const body=await readBody(req);try{return json(res,200,prepareMaterials(body));}catch(e){throw new HttpError(400,e.message);}}
       if(p.startsWith('/api/editor')) {
         if(req.method==='GET' && p==='/api/editor/catalog')return json(res,200,catalog());
@@ -701,6 +707,7 @@ export function startUI({port = 7788, host = '127.0.0.1', token = process.env.KO
         if (!fs.existsSync(path.join(projectDir(id), 'project.json'))) return json(res, 404, {error: 'project not found'});
         if (readJson(path.join(projectDir(id),'project.json')).production?.kind==='season') return json(res,400,{error:'Выберите проект отдельного эпизода'});
         if(['all','scenes','render','final'].includes(stage)){const review=previewProject(id);if(review.qa.errors.length)return json(res,422,{error:'Fix QA errors before render',qa:review.qa});}
+        if(['all','final'].includes(stage)){try{assertPublicationAllowed(editorProject(id),{draft:!!draft});}catch(e){throw new HttpError(422,e.message);}}
         const extra = draft ? ['--draft','--concurrency','1'] : ['--concurrency','1'];
         const job = startJob(id, stage, extra);
         return json(res, 200, {ok: true, stage: job.stage, pid: job.pid});

@@ -7,7 +7,7 @@ export function documentaryLayout(w:number,h:number){
  return {header:{x:m,y:h*.03,w:body.w,h:h*.08},
  graphics:wide?{...body,w:w*.60}:{...body,h:body.h*.58},
  actors:wide?{x:w*.68,y:body.y,w:w*.28,h:body.h}:{x:m,y:body.y+body.h*.58+g,w:body.w,h:body.h*.42-g},
- footer:{x:m,y:h*.76,w:body.w,h:h*.08},subtitles:{x:m,y:h*.86,w:body.w,h:h*.11},font:Math.max(28,Math.min(w/1080,h/1080)*30)};
+ footer:{x:m,y:h*.74,w:body.w,h:h*.11},subtitles:{x:m,y:h*.86,w:body.w,h:h*.11},font:Math.max(28,Math.min(w/1080,h/1080)*30)};
 }
 export function fitActor(box:Box,bounds:{left:number;right:number;top:number;bottom:number}){
  const scale=Math.min(box.w/(bounds.right-bounds.left+80),box.h/(bounds.bottom-bounds.top+40));
