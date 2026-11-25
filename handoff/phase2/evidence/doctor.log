@@ -1,0 +1,15 @@
+✔ node — v22.22.3
+✔ ffmpeg — /home/user/konveyer/engine/node_modules/@remotion/compositor-linux-x64-gnu/ffmpeg
+✘ python+numpy — gen_assets.py failed (1):
+Traceback (most recent call last):
+  File "/home/user/konveyer/engine/tools/gen_assets.py", li
+✘ piper-tts — tts.py failed (1):
+Traceback (most recent call last):
+  File "/home/user/konveyer/engine/tools/tts.py", line 22, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+
+✘ piper models — missing in this checkout; existing local model files are required for offline TTS
+✘ Chrome — Chrome не найден. Установите Chrome или задайте REMOTION_BROWSER_EXECUTABLE. Для явной загрузки: REMOTION_ALLOW_BROWSER_DOWNLOAD=1.
+✔ remotion — engine/node_modules
+✔ whisper (onnx) — @huggingface/transformers

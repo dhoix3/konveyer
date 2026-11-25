@@ -1,0 +1,7 @@
+PASS SFX bell 52920 samples
+PASS SFX page_turn 22050 samples
+PASS SFX cloth_rustle 15434 samples
+PASS music probe solemn 8820 samples
+PASS music probe pastoral 8820 samples
+PASS music probe triumphant 8820 samples
+PASS music probe elegiac 8820 samples

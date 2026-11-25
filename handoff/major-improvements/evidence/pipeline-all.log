@@ -1,0 +1,12 @@
+[all] Render estimate (not total pipeline): {"sampleCompatibilityChecked":true,"draftSampleCount":0,"finalSampleCount":0,"frames":723,"draftSeconds":253,"finalSeconds":1012,"draftSecondsPerFrame":0.35,"finalSecondsPerFrame":1.4,"draftBasis":"user Windows selfcheck observation: ~0.35s/frame at 960x540; not sandbox measurement","finalBasis":"UNMEASURED extrapolation x4 pixel area from draft, not a benchmark","caveat":"historical local samples may predate source/resolution/hardware changes; remeasure after reviewing frames","excludes":"TTS, asset/bundle warmup, mixing/mux/QA; cache and scene complexity change time"}
+[all] === stage voice started ===
+[voice] voice mode: none
+[voice] voice ready (none)
+[all] === stage voice done (0s total) ===
+[all] === stage timeline started ===
+[timeline] timeline: 5 scenes, 30.1s (723 frames), voice=estimated
+[timeline] [film] no "close" shots in the film
+[all] === stage timeline done (0s total) ===
+[all] === stage scenes started ===
+[scenes] scenes failed: Chrome не найден. Установите Chrome или задайте REMOTION_BROWSER_EXECUTABLE. Для явной загрузки: REMOTION_ALLOW_BROWSER_DOWNLOAD=1.
+✘ Chrome не найден. Установите Chrome или задайте REMOTION_BROWSER_EXECUTABLE. Для явной загрузки: REMOTION_ALLOW_BROWSER_DOWNLOAD=1.
